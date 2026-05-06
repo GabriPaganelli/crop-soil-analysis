@@ -10,8 +10,8 @@ source(here('scripts', 'utilities.R'))
 target_vars <- c("PercSOC", "PercTotNitro", "PercTotPhos")
 
 # ── 3. ANALISI ESPLORATIVA UNIVARIATA ─────────────────────────────────────────
-analizza_dataset(dati)
-grafico_distribuzioni(dati[,-c(2,3,18,19)])
+analizza_dataset(crop)
+grafico_distribuzioni(crop[,-c(2,3,18,19)])
 
 # Plotta i tuoi crop direttamente sul triangolo USDA
 soiltexture::TT.plot(class.sys = "USDA.TT", tri.data = data.frame(
@@ -21,25 +21,22 @@ soiltexture::TT.plot(class.sys = "USDA.TT", tri.data = data.frame(
 ))
 
 # Correlazioni e scatter di ogni target vs tutti i predittori
-walk(target_vars, ~ {
-  cat("\n\n══ Target:", .x, "══\n")
-  print(correlazione_tra_x(dati, .x))
-  plot_x_vs_y(dati, .x)
-})
+plot_x_vs_y(crop, target_vars)
+
 
 # ── 4. PROFILI VERTICALI (depth profiles) ─────────────────────────────────────
 # Ogni osservazione è un campionamento a una certa profondità (Bottom)
 # dello stesso plot: ha senso visualizzare le traiettorie per plot
 
-# Porta i dati in formato long
-dati_long <- dati |>
+# Porta i crop in formato long
+crop_long <- crop |>
   select(Field, Bottom, all_of(target_vars)) |>
   pivot_longer(cols = all_of(target_vars),
                names_to = "target",
                values_to = "valore")
 
 # Grafico
-ggplot(dati_long, aes(x = Bottom, y = valore,
+ggplot(crop_long, aes(x = Bottom, y = valore,
                       group = Field, color = Field)) +
   geom_line(alpha = 0.6) +
   geom_point(size = 1.5, alpha = 0.8) +
@@ -64,7 +61,7 @@ ggplot(dati_long, aes(x = Bottom, y = valore,
 # Varianza tra Field vs dentro Field (guidata da profondità)
 
 # Boxplot per Landuse (7 categorie, leggibile) x profondità
-ggplot(dati_long_target,
+ggplot(crop_long_target,
        aes(x = Landuse, y = valore, fill = as.factor(Bottom))) +
   geom_boxplot(outlier.size = 0.8, alpha = 0.8) +
   facet_wrap(~ variabile, scales = "free_y") +
@@ -73,7 +70,7 @@ ggplot(dati_long_target,
   theme_minimal()
 
 # Rapporto sd_between / sd_within per quantificare la gerarchia
-dati_long_target |>
+crop_long_target |>
   group_by(variabile, Field) |>
   summarise(media = mean(valore), sd_within = sd(valore), .groups = "drop") |>
   group_by(variabile) |>
@@ -89,7 +86,7 @@ dati_long_target |>
 
 # Colorato per Landuse
 ggpairs(
-  dati,
+  crop,
   columns  = target_vars,
   aes(colour = Landuse, alpha = 0.6),
   upper = list(continuous = wrap("cor", size = 3)),
@@ -101,7 +98,7 @@ ggpairs(
 
 # Colorato per Fertilised
 ggpairs(
-  dati,
+  crop,
   columns  = target_vars,
   aes(colour = Fertilised, alpha = 0.6),
   upper = list(continuous = wrap("cor", size = 3)),
@@ -115,7 +112,7 @@ ggpairs(
 
 # Un plot per variabile (scala colore separata, altrimenti dominata da PercSOC)
 plots_spaziali <- map(target_vars, ~ {
-  dati_long_target |>
+  crop_long_target |>
     filter(variabile == .x) |>
     ggplot(aes(x = Lat, y = Long, size = valore, colour = valore)) +
     geom_point(alpha = 0.6) +
@@ -129,7 +126,7 @@ plots_spaziali <- map(target_vars, ~ {
 wrap_plots(plots_spaziali, ncol = 1)
 
 # Correlazione numerica con le coordinate
-dati |>
+crop |>
   summarise(across(all_of(target_vars), list(
     cor_Lat  = ~ cor(.x, Lat,  use = "complete.obs"),
     cor_Long = ~ cor(.x, Long, use = "complete.obs")
