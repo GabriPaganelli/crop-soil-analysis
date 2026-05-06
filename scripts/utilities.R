@@ -521,20 +521,22 @@ grafico_distribuzioni <- function(df) {
   return(result)
 }
 
-plot_x_vs_y <- function(df, y_var_names,          # <-- ora è un vettore
+plot_x_vs_y <- function(df, y_var_names,
                         numeric_x_test = c("none", "linear_model"),
                         test_type = c("parametric", "non_parametric")) {
   
-  if (!is.data.frame(df) && !inherits(df, c("tbl_df", "tbl", "data.table"))) {
+  # Validazione input
+  if (!is.data.frame(df) && !inherits(df, c("tbl_df", "tbl", "data.table")))
     stop("L'input deve essere un dataframe, tibble o data.table")
-  }
   df <- as.data.frame(df)
   if (nrow(df) == 0 || ncol(df) == 0) stop("Il dataframe non può essere vuoto")
   
-  if (!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2")
+  if (!requireNamespace("ggplot2",   quietly = TRUE)) install.packages("ggplot2")
   if (!requireNamespace("patchwork", quietly = TRUE)) install.packages("patchwork")
+  if (!requireNamespace("ggpubr",    quietly = TRUE)) install.packages("ggpubr")
   library(ggplot2)
   library(patchwork)
+  library(ggpubr)
   
   numeric_x_test <- match.arg(numeric_x_test)
   test_type      <- match.arg(test_type)
@@ -547,39 +549,51 @@ plot_x_vs_y <- function(df, y_var_names,          # <-- ora è un vettore
       stop(paste("La variabile y (", y_var_name, ") deve essere quantitativa (numerica)."))
   }
   
-  # Colonne X = tutto tranne le Y
-  x_cols <- setdiff(names(df), y_var_names)
+  single_y <- length(y_var_names) == 1
+  x_cols   <- setdiff(names(df), y_var_names)
   
-  # Helper: costruisce UN singolo plot (x_col ~ y_var_name)
+  # ── Helper: costruisce UN singolo plot (col_name ~ y_var_name) ──────────────
   make_single_plot <- function(col_name, y_var_name) {
-    x_data <- df[[col_name]]
-    p <- NULL
-    test_result_text <- NULL
-    temp_df_for_plot <- df
+    x_data             <- df[[col_name]]
+    p                  <- NULL
+    test_result_text   <- NULL
+    temp_df_for_plot   <- df
     
     if (is.numeric(x_data)) {
       temp_df_clean <- na.omit(temp_df_for_plot[, c(col_name, y_var_name)])
       if (nrow(temp_df_clean) == 0) return(NULL)
       
+      title_str <- if (single_y)
+        paste("Relazione tra", col_name, "e", y_var_name) else y_var_name
+      
       p <- ggplot(temp_df_clean, aes(x = .data[[col_name]], y = .data[[y_var_name]])) +
         geom_point(alpha = 0.6) +
         geom_smooth(method = "lm", se = TRUE, color = "blue") +
-        labs(title = y_var_name, x = col_name, y = y_var_name,
+        labs(title    = title_str,
+             x        = col_name,
+             y        = y_var_name,
              subtitle = if (nrow(temp_df_for_plot) - nrow(temp_df_clean) > 0)
-               paste("NA rimossi:", nrow(temp_df_for_plot) - nrow(temp_df_clean)) else NULL) +
+               paste("Osservazioni rimosse (NA):", nrow(temp_df_for_plot) - nrow(temp_df_clean))
+             else NULL) +
         theme_minimal()
       
       if (numeric_x_test == "linear_model" && nrow(temp_df_clean) > 2) {
         tryCatch({
-          lm_model    <- lm(as.formula(paste(y_var_name, "~", col_name)), data = temp_df_clean)
-          model_sum   <- summary(lm_model)
+          lm_model  <- lm(as.formula(paste(y_var_name, "~", col_name)), data = temp_df_clean)
+          model_sum <- summary(lm_model)
           if (col_name %in% rownames(model_sum$coefficients)) {
-            p_value_lm  <- model_sum$coefficients[col_name, "Pr(>|t|)"]
-            r_squared   <- model_sum$r.squared
-            test_result_text <- paste0("LM p=", format.pval(p_value_lm, digits = 3),
-                                       " R²=", round(r_squared, 3))
+            p_value_lm <- model_sum$coefficients[col_name, "Pr(>|t|)"]
+            r_squared  <- model_sum$r.squared
+            test_result_text <- if (single_y)
+              paste0("Modello Lineare p-value: ", format.pval(p_value_lm, digits = 3),
+                     " (R² = ", round(r_squared, 3), ")")
+            else
+              paste0("LM p=", format.pval(p_value_lm, digits = 3),
+                     " R²=", round(r_squared, 3))
           }
-        }, error = function(e) { test_result_text <<- "LM errore" })
+        }, error = function(e) {
+          test_result_text <<- if (single_y) "Modello non applicabile (errore)" else "LM errore"
+        })
       }
       
     } else if (is.factor(x_data) || is.character(x_data) || is.logical(x_data)) {
@@ -594,9 +608,9 @@ plot_x_vs_y <- function(df, y_var_names,          # <-- ora è un vettore
       # Limita categorie
       max_categories <- 15
       if (length(levels(temp_df_clean[[col_name]])) > max_categories) {
-        freq_table    <- table(temp_df_clean[[col_name]])
-        nas_count     <- freq_table["NAs"]
-        non_nas_freq  <- freq_table[names(freq_table) != "NAs"]
+        freq_table     <- table(temp_df_clean[[col_name]])
+        nas_count      <- freq_table["NAs"]
+        non_nas_freq   <- freq_table[names(freq_table) != "NAs"]
         top_categories <- names(sort(non_nas_freq, decreasing = TRUE))[1:(max_categories - 2)]
         temp_df_clean[[col_name]] <- as.character(temp_df_clean[[col_name]])
         temp_df_clean[[col_name]][!temp_df_clean[[col_name]] %in% c(top_categories, "NAs")] <- "Altri"
@@ -605,12 +619,18 @@ plot_x_vs_y <- function(df, y_var_names,          # <-- ora è un vettore
         temp_df_clean[[col_name]] <- factor(temp_df_clean[[col_name]], levels = final_levels)
       }
       
+      title_str <- if (single_y)
+        paste("Relazione tra", col_name, "e", y_var_name) else y_var_name
+      
       p <- ggplot(temp_df_clean, aes(x = .data[[col_name]], y = .data[[y_var_name]])) +
         geom_boxplot(fill = "lightgreen", alpha = 0.7, outlier.shape = NA) +
         geom_jitter(width = 0.2, alpha = 0.4, color = "darkblue") +
-        labs(title = y_var_name, x = col_name, y = y_var_name,
+        labs(title    = title_str,
+             x        = col_name,
+             y        = y_var_name,
              subtitle = if (nrow(temp_df_for_plot) - nrow(temp_df_clean) > 0)
-               paste("NA rimossi:", nrow(temp_df_for_plot) - nrow(temp_df_clean)) else NULL) +
+               paste("Osservazioni rimosse (y NA):", nrow(temp_df_for_plot) - nrow(temp_df_clean))
+             else NULL) +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
       
@@ -626,52 +646,100 @@ plot_x_vs_y <- function(df, y_var_names,          # <-- ora è un vettore
           if (test_type == "parametric") {
             if (num_levels == 2) {
               res <- t.test(as.formula(formula_str), data = temp_df_test)
-              test_result_text <- paste0("t-test p=", format.pval(res$p.value, digits = 3))
+              test_result_text <- if (single_y)
+                paste0("T-test p-value: ", format.pval(res$p.value, digits = 3))
+              else
+                paste0("t-test p=", format.pval(res$p.value, digits = 3))
             } else {
-              res <- aov(as.formula(formula_str), data = temp_df_test)
+              res   <- aov(as.formula(formula_str), data = temp_df_test)
               p_val <- summary(res)[[1]]$`Pr(>F)`[1]
-              test_result_text <- paste0("ANOVA p=", format.pval(p_val, digits = 3))
+              test_result_text <- if (single_y)
+                paste0("ANOVA p-value: ", format.pval(p_val, digits = 3))
+              else
+                paste0("ANOVA p=", format.pval(p_val, digits = 3))
             }
           } else {
             if (num_levels == 2) {
               res <- wilcox.test(as.formula(formula_str), data = temp_df_test)
-              test_result_text <- paste0("Wilcox p=", format.pval(res$p.value, digits = 3))
+              test_result_text <- if (single_y)
+                paste0("Wilcoxon p-value: ", format.pval(res$p.value, digits = 3))
+              else
+                paste0("Wilcox p=", format.pval(res$p.value, digits = 3))
             } else {
               res <- kruskal.test(as.formula(formula_str), data = temp_df_test)
-              test_result_text <- paste0("KW p=", format.pval(res$p.value, digits = 3))
+              test_result_text <- if (single_y)
+                paste0("Kruskal-Wallis p-value: ", format.pval(res$p.value, digits = 3))
+              else
+                paste0("KW p=", format.pval(res$p.value, digits = 3))
             }
           }
-        }, error = function(e) { test_result_text <<- "Test errore" })
+        }, error = function(e) {
+          test_result_text <<- if (single_y) "Test non applicabile (errore)" else "Test errore"
+        })
       } else {
-        test_result_text <- "<2 gruppi validi"
+        test_result_text <- if (single_y) "Test non applicabile (<2 gruppi validi)" else "<2 gruppi validi"
       }
+      
     } else {
+      message(paste("Saltando", col_name, ": tipo di dato non supportato (", class(x_data)[1], ")"))
       return(NULL)
     }
     
-    if (!is.null(p) && !is.null(test_result_text)) {
+    if (!is.null(p) && !is.null(test_result_text))
       p <- p + annotate("text", x = Inf, y = Inf,
                         label = test_result_text,
                         hjust = 1.05, vjust = 1.5,
-                        size = 3, color = "red")
-    }
+                        size  = if (single_y) 3.5 else 3,
+                        color = "red")
     p
   }
   
-  # Per ogni X: crea una riga con n_y grafici affiancati e stampa subito
-  for (col_name in x_cols) {
-    x_data <- df[[col_name]]
-    if (length(unique(na.omit(x_data))) <= 1) next
+  # ── Modalità Y singola: comportamento originale (patchwork + return) ────────
+  if (single_y) {
+    y_var_name <- y_var_names[[1]]
+    plot_list  <- list()
     
-    plots_for_x <- lapply(y_var_names, function(y) make_single_plot(col_name, y))
-    plots_for_x <- Filter(Negate(is.null), plots_for_x)
+    for (col_name in x_cols) {
+      if (length(unique(na.omit(df[[col_name]]))) <= 1) next
+      p <- make_single_plot(col_name, y_var_name)
+      if (!is.null(p)) plot_list[[col_name]] <- p
+    }
+    
+    if (length(plot_list) == 0) {
+      message("Nessun plot è stato generato.")
+      return(invisible(NULL))
+    }
+    
+    n_plots <- length(plot_list)
+    if (n_plots == 1) {
+      return(plot_list[[1]])
+    } else if (n_plots <= 4) {
+      return(wrap_plots(plot_list, ncol = 2))
+    } else if (n_plots <= 9) {
+      return(wrap_plots(plot_list, ncol = 3))
+    } else {
+      plots_per_page <- 9
+      n_pages        <- ceiling(n_plots / plots_per_page)
+      message(paste("Generando", n_pages, "pagine di grafici..."))
+      pages <- lapply(seq_len(n_pages), function(page) {
+        idx <- seq((page - 1) * plots_per_page + 1, min(page * plots_per_page, n_plots))
+        wrap_plots(plot_list[idx], ncol = 3)
+      })
+      for (i in seq_along(pages)[-1]) { cat("\n\n"); print(pages[[i]]) }
+      return(pages[[1]])
+    }
+  }
+  
+  # ── Modalità Y multipla: una riga per X, stampa progressiva ────────────────
+  for (col_name in x_cols) {
+    if (length(unique(na.omit(df[[col_name]]))) <= 1) next
+    plots_for_x <- Filter(Negate(is.null),
+                          lapply(y_var_names, function(y) make_single_plot(col_name, y)))
     if (length(plots_for_x) == 0) next
     
-    # Titolo comune = nome della X; i sotto-titoli = nome delle Y
     combined <- wrap_plots(plots_for_x, nrow = 1) +
       plot_annotation(title = paste("X:", col_name),
                       theme = theme(plot.title = element_text(face = "bold", size = 13)))
-    
     print(combined)
     cat("\n")
   }
