@@ -1,10 +1,11 @@
 library(tidyverse)
 library(GGally)
 library(patchwork)
+library(here)
 
 # ── 1. CARICAMENTO ────────────────────────────────────────────────────────────
-crop = readRDS("C:/Users/gabri/Desktop/Università/Statistica iterazione/Lavoro di gruppo/crop.rds")
-source('utilities.R')
+crop = readRDS(here("data", "crop.rds"))
+source(here('scripts', 'utilities.R'))
 
 target_vars <- c("PercSOC", "PercTotNitro", "PercTotPhos")
 

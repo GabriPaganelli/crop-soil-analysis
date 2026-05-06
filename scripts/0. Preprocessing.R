@@ -1,9 +1,9 @@
 # ── 1. CARICAMENTO ────────────────────────────────────────────────────────────
-setwd("C:/Users/gabri/Desktop/Università/Statistica iterazione/Lavoro di gruppo")
 
 library(soiltexture)
+library(here)
 
-crop <- read.csv("crop.csv", sep = ";")
+crop <- read.csv(here("data", "crop.csv"))
 
 # ── 2. PREPROCESSING ──────────────────────────────────────────────────────────
 crop <- crop |>
@@ -51,4 +51,4 @@ crop$texture_class = NULL
 colnames(crop) = c(colnames(crop)[1:18],'Texture')
 
 head(crop)
-saveRDS(crop, file = "crop.rds")
+#saveRDS(crop, file = "crop.rds")
