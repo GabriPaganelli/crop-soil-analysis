@@ -1,0 +1,797 @@
+# Funzioni
+
+analizza_dataset <- function(data) {
+  
+  # Validazione input più flessibile
+  if (!is.data.frame(data) && !inherits(data, c("tbl_df", "data.table"))) {
+    stop("L'input deve essere un data.frame, tibble o data.table")
+  }
+  
+  # Gestione dataset vuoto
+  if (ncol(data) == 0) {
+    return(data.frame(
+      variabile = character(0),
+      tipo = character(0),
+      campo_variazione = character(0),
+      num_na = integer(0),
+      num_unique = integer(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+  
+  # Pre-alloca il data.frame risultato per efficienza
+  n_cols <- ncol(data)
+  risultato <- data.frame(
+    variabile = character(n_cols),
+    tipo = character(n_cols),
+    campo_variazione = character(n_cols),
+    num_na = integer(n_cols),
+    num_unique = integer(n_cols),
+    stringsAsFactors = FALSE
+  )
+  
+  # Funzione helper per campo di variazione
+  calcola_campo_variazione <- function(col_data, num_unique, num_na) {
+    # Se tutti i valori sono NA
+    if (num_na == length(col_data)) {
+      return("Tutti NA")
+    }
+    
+    if (is.numeric(col_data)) {
+      min_val <- min(col_data, na.rm = TRUE)
+      max_val <- max(col_data, na.rm = TRUE)
+      return(paste0("[", min_val, " - ", max_val, "]"))
+      
+    } else if (is.factor(col_data) || is.character(col_data)) {
+      return(paste0(num_unique, " categorie"))
+      
+    } else if (is.logical(col_data)) {
+      valori_unici <- unique(col_data[!is.na(col_data)])
+      return(paste(valori_unici, collapse = ", "))
+      
+    } else if (inherits(col_data, "Date")) {
+      min_date <- min(col_data, na.rm = TRUE)
+      max_date <- max(col_data, na.rm = TRUE)
+      # Gestione sicura per date
+      if (is.na(min_date) || is.na(max_date)) {
+        return("Tutti NA")
+      } else {
+        return(paste0("[", min_date, " - ", max_date, "]"))
+      }
+      
+    } else {
+      return(paste0(num_unique, " valori unici"))
+    }
+  }
+  
+  # Itera su ogni colonna (usando seq_len per sicurezza)
+  for (i in seq_len(ncol(data))) {
+    col_name <- names(data)[i]
+    col_data <- data[[i]]
+    
+    # Calcoli una volta sola
+    tipo <- class(col_data)[1]
+    num_na <- sum(is.na(col_data))
+    num_unique <- length(unique(col_data[!is.na(col_data)]))
+    campo_var <- calcola_campo_variazione(col_data, num_unique, num_na)
+    
+    # Assegnazione diretta invece di rbind
+    risultato[i, ] <- list(
+      variabile = col_name,
+      tipo = tipo,
+      campo_variazione = campo_var,
+      num_na = num_na,
+      num_unique = num_unique
+    )
+  }
+  
+  return(risultato)
+}
+
+correlazione_x_y <- function(data, y_col = 'y', metodo = "pearson", 
+                             plot = T, titolo = "Correlazioni X vs Y") {
+  
+  # Validazione input - accetta data.frame, tibble, data.table
+  if (!is.data.frame(data)) {
+    stop("L'input deve essere un data.frame, tibble o data.table")
+  }
+  
+  if (!y_col %in% names(data)) {
+    stop("La variabile Y specificata non esiste nel dataset")
+  }
+  
+  if (!is.numeric(data[[y_col]])) {
+    stop("La variabile Y deve essere numerica")
+  }
+  
+  # Validazione metodo
+  metodi_validi <- c("pearson", "spearman", "kendall")
+  if (!metodo %in% metodi_validi) {
+    stop(paste("Metodo deve essere uno tra:", paste(metodi_validi, collapse = ", ")))
+  }
+  
+  # Verifica disponibilità ggplot2 se necessario
+  if (plot && !requireNamespace("ggplot2", quietly = TRUE)) {
+    warning("ggplot2 non disponibile. Il plot non verrà generato.")
+    plot <- FALSE
+  }
+  
+  # Seleziona solo variabili numeriche (escludendo Y)
+  var_numeriche <- sapply(data, is.numeric)
+  x_vars <- names(data)[var_numeriche & names(data) != y_col]
+  
+  if (length(x_vars) == 0) {
+    stop("Non ci sono variabili X numeriche nel dataset")
+  }
+  
+  # Pre-alloca dataframe per efficienza
+  n_vars <- length(x_vars)
+  correlazioni <- data.frame(
+    variabile_x = x_vars,
+    correlazione = numeric(n_vars),
+    p_value = numeric(n_vars),
+    significativa = logical(n_vars),
+    stringsAsFactors = FALSE
+  )
+  
+  y_data <- data[[y_col]]
+  
+  # Calcola correlazioni - riempie vettori pre-allocati
+  for (i in seq_along(x_vars)) {
+    x_var <- x_vars[i]
+    x_data <- data[[x_var]]
+    
+    # Rimuovi coppie con NA
+    complete_cases <- complete.cases(x_data, y_data)
+    n_complete <- sum(complete_cases)
+    
+    if (n_complete < 3) {
+      # Non abbastanza osservazioni
+      correlazioni$correlazione[i] <- NA
+      correlazioni$p_value[i] <- NA
+      correlazioni$significativa[i] <- NA
+    } else {
+      # Test di correlazione
+      tryCatch({
+        test_result <- cor.test(x_data[complete_cases], y_data[complete_cases], 
+                                method = metodo)
+        
+        correlazioni$correlazione[i] <- test_result$estimate
+        correlazioni$p_value[i] <- test_result$p.value
+        correlazioni$significativa[i] <- test_result$p.value < 0.05
+      }, error = function(e) {
+        correlazioni$correlazione[i] <<- NA
+        correlazioni$p_value[i] <<- NA
+        correlazioni$significativa[i] <<- NA
+        warning(paste("Errore nel calcolo della correlazione per", x_var, ":", e$message))
+      })
+    }
+  }
+  
+  # Ordina per correlazione assoluta decrescente (gestendo NA)
+  correlazioni <- correlazioni[order(abs(correlazioni$correlazione), decreasing = TRUE, na.last = TRUE), ]
+  rownames(correlazioni) <- NULL
+  
+  # Crea e stampa plot se richiesto
+  if (plot && nrow(correlazioni) > 0) {
+    # Rimuovi NA per il plot
+    cor_plot_data <- correlazioni[!is.na(correlazioni$correlazione), ]
+    
+    if (nrow(cor_plot_data) > 0) {
+      p <- ggplot2::ggplot(cor_plot_data, 
+                           ggplot2::aes(x = reorder(variabile_x, abs(correlazione)), 
+                                        y = correlazione, 
+                                        fill = significativa)) +
+        ggplot2::geom_col() +
+        ggplot2::scale_fill_manual(values = c("TRUE" = "steelblue", "FALSE" = "lightgray"),
+                                   name = "Significativa\n(p < 0.05)",
+                                   na.value = "darkgray") +
+        ggplot2::ylim(-1, 1) +
+        ggplot2::coord_flip() +
+        ggplot2::labs(title = titolo,
+                      subtitle = paste("Metodo:", metodo),
+                      x = "Variabili X",
+                      y = "Correlazione") +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+                       plot.subtitle = ggplot2::element_text(hjust = 0.5))
+      
+      print(p)
+    }
+  }
+  
+  return(correlazioni)
+}
+
+plot_corrplot <- function(cor_matrix, titolo, metodo) {
+  if (requireNamespace("corrplot", quietly = TRUE)) {
+    tryCatch({
+      corrplot::corrplot(cor_matrix, 
+                         method = "color",
+                         type = "upper",
+                         order = "original",  # Evita problemi con hclust
+                         tl.col = "black",
+                         tl.srt = 45,
+                         diag = FALSE,
+                         title = paste(titolo, "-", metodo),
+                         mar = c(0,0,2,0),
+                         # Rimuovi coefficienti per plot più puliti
+                         addCoef.col = if(ncol(cor_matrix) <= 10) "black" else NULL)
+    }, error = function(e) {
+      warning("Errore nel corrplot, uso imageplot base")
+      plot_imageplot_matrix(cor_matrix, titolo, metodo)
+    })
+  } else {
+    warning("Package corrplot non disponibile, uso imageplot base")
+    plot_imageplot_matrix(cor_matrix, titolo, metodo)
+  }
+}
+plot_imageplot_matrix <- function(cor_matrix, titolo, metodo) {
+  # Salva parametri grafici originali
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par))
+  
+  p <- ncol(cor_matrix)
+  var_names <- colnames(cor_matrix)
+  
+  # Calcola dimensioni appropriate
+  cex_size <- max(0.3, min(1, 15/p))
+  
+  # Imposta margini in base al numero di variabili
+  bottom_margin <- max(3, min(15, max(nchar(var_names)) * 0.3))
+  left_margin <- max(3, min(15, max(nchar(var_names)) * 0.3))
+  
+  par(mar = c(bottom_margin, left_margin, 4, 4))
+  
+  # Crea imageplot
+  image(1:p, 1:p, cor_matrix,
+        col = colorRampPalette(c("red", "white", "blue"))(100),
+        zlim = c(-1, 1),
+        xlab = "", ylab = "",
+        main = paste(titolo, "\n(Metodo:", metodo, ")"),
+        axes = FALSE)
+  
+  # Aggiungi etichette solo se leggibili
+  if (p <= 50) {
+    axis(1, at = 1:p, labels = var_names, las = 2, cex.axis = cex_size)
+    axis(2, at = 1:p, labels = var_names, las = 1, cex.axis = cex_size)
+  } else {
+    # Per matrici molto grandi, mostra solo alcuni tick
+    tick_pos <- seq(1, p, length.out = min(20, p))
+    tick_labels <- var_names[round(tick_pos)]
+    axis(1, at = tick_pos, labels = tick_labels, las = 2, cex.axis = 0.3)
+    axis(2, at = tick_pos, labels = tick_labels, las = 1, cex.axis = 0.3)
+  }
+  
+  # Aggiungi griglia per matrici piccole
+  if (p <= 20) {
+    abline(h = 1:p + 0.5, col = "gray", lwd = 0.5)
+    abline(v = 1:p + 0.5, col = "gray", lwd = 0.5)
+  }
+  
+  # Aggiungi scala colori
+  legend_x <- par("usr")[2] + 0.02 * (par("usr")[2] - par("usr")[1])
+  legend_y_bottom <- par("usr")[3]
+  legend_y_top <- par("usr")[4]
+  
+  # Disegna barra dei colori
+  legend_colors <- colorRampPalette(c("red", "white", "blue"))(100)
+  legend_breaks <- seq(-1, 1, length.out = 101)
+  
+  for (i in 1:100) {
+    rect(legend_x, legend_y_bottom + (i-1) * (legend_y_top - legend_y_bottom)/100,
+         legend_x + 0.03 * (par("usr")[2] - par("usr")[1]),
+         legend_y_bottom + i * (legend_y_top - legend_y_bottom)/100,
+         col = legend_colors[i], border = NA)
+  }
+  
+  # Etichette scala
+  text(legend_x + 0.05 * (par("usr")[2] - par("usr")[1]), legend_y_bottom, "-1", cex = 0.7)
+  text(legend_x + 0.05 * (par("usr")[2] - par("usr")[1]), legend_y_top, "1", cex = 0.7)
+  text(legend_x + 0.05 * (par("usr")[2] - par("usr")[1]), 
+       (legend_y_bottom + legend_y_top)/2, "0", cex = 0.7)
+}
+# Funzione per matrice di correlazione tra tutte le X
+correlazione_tra_x <- function(data, y_col = NULL, metodo = "pearson", 
+                               plot = T, titolo = "Matrice di Correlazione tra X", 
+                               p_threshold = 20) {
+  
+  # Validazione input più flessibile
+  if (!is.data.frame(data) && !inherits(data, c("tbl_df", "data.table"))) {
+    stop("L'input deve essere un data.frame, tibble o data.table")
+  }
+  
+  # Verifica esistenza y_col se specificata
+  if (!is.null(y_col) && !y_col %in% names(data)) {
+    warning(paste("La variabile Y specificata '", y_col, "' non esiste nel dataset"))
+    y_col <- NULL
+  }
+  
+  # Seleziona solo variabili numeriche (escludendo Y se specificata)
+  var_numeriche <- sapply(data, is.numeric)
+  if (!is.null(y_col)) {
+    x_vars <- names(data)[var_numeriche & names(data) != y_col]
+  } else {
+    x_vars <- names(data)[var_numeriche]
+  }
+  
+  if (length(x_vars) < 2) {
+    stop("Servono almeno 2 variabili X numeriche per calcolare la matrice di correlazione")
+  }
+  
+  # Seleziona dati numerici
+  x_data <- data[, x_vars, drop = FALSE]
+  
+  # Verifica che ci siano osservazioni sufficienti
+  n_complete <- sum(complete.cases(x_data))
+  if (n_complete < 2) {
+    stop("Non ci sono abbastanza osservazioni complete per calcolare le correlazioni")
+  }
+  
+  # Calcola matrice di correlazione
+  cor_matrix <- cor(x_data, method = metodo, use = "pairwise.complete.obs")
+  
+  # Verifica che la matrice sia valida
+  if (any(is.na(diag(cor_matrix)))) {
+    warning("Alcune variabili hanno varianza zero o problemi di calcolo")
+  }
+  
+  # Plot se richiesto
+  if (plot && !is.null(cor_matrix)) {
+    p <- ncol(cor_matrix)
+    
+    if (p <= p_threshold) {
+      # Usa corrplot per p piccolo
+      plot_corrplot(cor_matrix, titolo, metodo)
+    } else {
+      # Usa imageplot per p grande
+      plot_imageplot_matrix(cor_matrix, titolo, metodo)
+    }
+  }
+  
+  return(cor_matrix)
+}
+
+grafico_distribuzioni <- function(df) {
+  # Verifica che l'input sia un dataframe, tibble o data.table
+  if (!is.data.frame(df) && !inherits(df, c("tbl_df", "tbl", "data.table"))) {
+    stop("L'input deve essere un dataframe, tibble o data.table")
+  }
+  
+  # Converti in dataframe standard per compatibilità
+  df <- as.data.frame(df)
+  
+  # Verifica che il dataframe non sia vuoto
+  if (nrow(df) == 0 || ncol(df) == 0) {
+    stop("Il dataframe non può essere vuoto")
+  }
+  
+  # Carica le librerie necessarie
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    install.packages("ggplot2")
+  }
+  if (!requireNamespace("patchwork", quietly = TRUE)) {
+    install.packages("patchwork")
+  }
+  library(ggplot2)
+  library(patchwork)
+  
+  plot_list <- list()
+  
+  for (col_name in names(df)) {
+    col_data <- df[[col_name]]
+    
+    # Salta colonne completamente vuote
+    if (all(is.na(col_data))) {
+      message(paste("Saltando", col_name, ": colonna completamente vuota"))
+      next
+    }
+    
+    p <- NULL # Inizializza l'oggetto plot
+    
+    if (is.numeric(col_data)) {
+      # Per variabili numeriche, usa istogramma
+      # Rimuovi NA per il calcolo dei bin, ma mantienili nel dataset per trasparenza
+      non_na_data <- col_data[!is.na(col_data)]
+      
+      if (length(non_na_data) == 0) {
+        message(paste("Saltando", col_name, ": tutti i valori numerici sono NA"))
+        next
+      }
+      
+      # Calcola bins appropriati
+      n_bins <- min(30, max(10, length(non_na_data) / 10))
+      
+      p <- ggplot(df, aes(x = .data[[col_name]])) +
+        geom_histogram(fill = "skyblue", color = "black", bins = n_bins, alpha = 0.7) +
+        labs(title = paste("Distribuzione di", col_name), 
+             x = col_name, 
+             y = "Frequenza",
+             subtitle = if(sum(is.na(col_data)) > 0) paste("Valori NA:", sum(is.na(col_data))) else NULL) +
+        theme_minimal()
+      
+    } else if (is.factor(col_data) || is.character(col_data) || is.logical(col_data)) {
+      # Per variabili categoriche, carattere o logiche
+      # Crea una copia temporanea del dataframe per evitare modifiche all'originale
+      temp_df_for_plot <- df
+      
+      # Converti in carattere per manipolare NA
+      temp_df_for_plot[[col_name]] <- as.character(temp_df_for_plot[[col_name]])
+      temp_df_for_plot[[col_name]][is.na(temp_df_for_plot[[col_name]])] <- "NAs"
+      
+      # Ricrea il fattore includendo "NAs" come livello
+      # Mantiene l'ordine originale delle categorie, mettendo NAs alla fine
+      original_levels <- NULL
+      if (is.factor(col_data)) {
+        original_levels <- levels(col_data)
+      } else {
+        # Se era carattere o logico, ottieni i livelli unici non NA
+        original_levels <- unique(na.omit(col_data))
+      }
+      
+      all_levels <- c(original_levels, "NAs")
+      temp_df_for_plot[[col_name]] <- factor(temp_df_for_plot[[col_name]], levels = all_levels)
+      
+      # Limita il numero di categorie mostrate per leggibilità
+      max_categories <- 20
+      if (length(levels(temp_df_for_plot[[col_name]])) > max_categories) {
+        # Mantieni le top categorie (esclusi NAs) e raggruppa il resto
+        freq_table <- table(temp_df_for_plot[[col_name]])
+        nas_count <- freq_table["NAs"]
+        non_nas_freq <- freq_table[names(freq_table) != "NAs"]
+        
+        if (length(non_nas_freq) > 0) {
+          top_categories <- names(sort(non_nas_freq, decreasing = TRUE))[1:(max_categories-2)]
+          temp_df_for_plot[[col_name]] <- as.character(temp_df_for_plot[[col_name]])
+          temp_df_for_plot[[col_name]][!temp_df_for_plot[[col_name]] %in% c(top_categories, "NAs")] <- "Altri"
+          
+          # Riordina: top categories, Altri, NAs
+          final_levels <- c(top_categories, "Altri")
+          if (!is.na(nas_count) && nas_count > 0) {
+            final_levels <- c(final_levels, "NAs")
+          }
+          temp_df_for_plot[[col_name]] <- factor(temp_df_for_plot[[col_name]], levels = final_levels)
+        }
+      }
+      
+      p <- ggplot(temp_df_for_plot, aes(x = .data[[col_name]])) +
+        geom_bar(fill = "lightgreen", color = "black", alpha = 0.7) +
+        labs(title = paste("Distribuzione di", col_name), 
+             x = col_name, 
+             y = "Conteggio") +
+        theme_minimal() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+      
+    } else {
+      # Per altri tipi non supportati
+      message(paste("Saltando", col_name, ": tipo di dato non supportato (", class(col_data)[1], ")"))
+      next
+    }
+    
+    if (!is.null(p)) {
+      plot_list[[col_name]] <- p
+    }
+  }
+  
+  # Verifica che ci siano plot da mostrare
+  if (length(plot_list) == 0) {
+    message("Nessun plot è stato generato.")
+    return(invisible(NULL))
+  }
+  
+  # Disponi i plot usando patchwork
+  n_plots <- length(plot_list)
+  
+  # Calcola layout ottimale
+  if (n_plots == 1) {
+    result <- plot_list[[1]]
+  } else if (n_plots <= 4) {
+    ncol <- 2
+    result <- wrap_plots(plot_list, ncol = ncol)
+  } else if (n_plots <= 9) {
+    ncol <- 3
+    result <- wrap_plots(plot_list, ncol = ncol)
+  } else {
+    # Per più di 9 plot, crea pagine multiple
+    plots_per_page <- 9
+    n_pages <- ceiling(n_plots / plots_per_page)
+    
+    message(paste("Generando", n_pages, "pagine di grafici..."))
+    
+    # Crea lista di pagine
+    pages <- list()
+    for (page in 1:n_pages) {
+      start_idx <- (page - 1) * plots_per_page + 1
+      end_idx <- min(page * plots_per_page, n_plots)
+      page_plots <- plot_list[start_idx:end_idx]
+      
+      pages[[page]] <- wrap_plots(page_plots, ncol = 3)
+    }
+    
+    # Restituisci la prima pagina e stampa le altre
+    result <- pages[[1]]
+    if (n_pages > 1) {
+      for (i in 2:n_pages) {
+        cat("\n\n")
+        print(pages[[i]])
+      }
+    }
+  }
+  
+  return(result)
+}
+
+plot_x_vs_y <- function(df, y_var_name,
+                        numeric_x_test = c("none", "linear_model"),
+                        test_type = c("parametric", "non_parametric")) { # test_type si applica solo a X categorica
+  
+  # Verifica che l'input sia un dataframe, tibble o data.table
+  if (!is.data.frame(df) && !inherits(df, c("tbl_df", "tbl", "data.table"))) {
+    stop("L'input deve essere un dataframe, tibble o data.table")
+  }
+  
+  # Converti in dataframe standard per compatibilità
+  df <- as.data.frame(df)
+  
+  # Verifica che il dataframe non sia vuoto
+  if (nrow(df) == 0 || ncol(df) == 0) {
+    stop("Il dataframe non può essere vuoto")
+  }
+  
+  # Carica le librerie necessarie
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    install.packages("ggplot2")
+  }
+  if (!requireNamespace("patchwork", quietly = TRUE)) {
+    install.packages("patchwork")
+  }
+  if (!requireNamespace("ggpubr", quietly = TRUE)) {
+    install.packages("ggpubr")
+  }
+  library(ggplot2)
+  library(patchwork)
+  library(ggpubr)
+  
+  # Controllo degli argomenti
+  numeric_x_test <- match.arg(numeric_x_test)
+  test_type <- match.arg(test_type) # Questo ora influenza solo i test per X categorica
+  
+  # Controllo che la variabile y_var_name esista e sia numerica
+  if (!y_var_name %in% names(df)) {
+    stop(paste("La variabile y_var_name (", y_var_name, ") non esiste nel dataframe."))
+  }
+  if (!is.numeric(df[[y_var_name]])) {
+    stop(paste("La variabile y (", y_var_name, ") deve essere quantitativa (numerica)."))
+  }
+  
+  plot_list <- list()
+  
+  for (col_name in names(df)) {
+    # Salta la variabile y stessa e le colonne con un solo valore (o tutti NA)
+    if (col_name == y_var_name || length(unique(na.omit(df[[col_name]]))) <= 1) {
+      next
+    }
+    
+    x_data <- df[[col_name]]
+    p <- NULL # Inizializza l'oggetto plot
+    test_result_text <- NULL # Per il testo del p-value
+    
+    # Crea una copia temporanea del dataframe per evitare modifiche all'originale
+    temp_df_for_plot <- df 
+    
+    if (is.numeric(x_data)) {
+      # Relazione tra due variabili numeriche: Scatter plot
+      
+      # Gestione dei NA per il plot e il test
+      temp_df_clean <- na.omit(temp_df_for_plot[, c(col_name, y_var_name)])
+      
+      if (nrow(temp_df_clean) == 0) {
+        message(paste("Saltando", col_name, ": nessun dato valido dopo rimozione NA"))
+        next
+      }
+      
+      p <- ggplot(temp_df_clean, aes(x = .data[[col_name]], y = .data[[y_var_name]])) +
+        geom_point(alpha = 0.6) + # Punti per lo scatter plot
+        geom_smooth(method = "lm", se = TRUE, color = "blue") + # Linea di regressione con intervallo di confidenza
+        labs(title = paste("Relazione tra", col_name, "e", y_var_name),
+             x = col_name, y = y_var_name,
+             subtitle = if(nrow(temp_df_for_plot) - nrow(temp_df_clean) > 0) 
+               paste("Osservazioni rimosse (NA):", nrow(temp_df_for_plot) - nrow(temp_df_clean)) else NULL) +
+        theme_minimal()
+      
+      # Test di significatività del coefficiente beta del modello lineare
+      if (numeric_x_test == "linear_model") {
+        if(nrow(temp_df_clean) > 2) { # Serve almeno 3 osservazioni per un modello sensato
+          tryCatch({
+            formula_str <- paste(y_var_name, "~", col_name)
+            lm_model <- lm(as.formula(formula_str), data = temp_df_clean)
+            model_summary <- summary(lm_model)
+            
+            # Estrai il p-value per il coefficiente di col_name
+            if (col_name %in% rownames(model_summary$coefficients)) {
+              p_value_lm <- model_summary$coefficients[col_name, "Pr(>|t|)"]
+              r_squared <- model_summary$r.squared
+              test_result_text <- paste0("Modello Lineare p-value: ", format.pval(p_value_lm, digits = 3), 
+                                         " (R² = ", round(r_squared, 3), ")")
+            } else {
+              test_result_text <- "Coefficiente non trovato"
+            }
+          }, error = function(e) {
+            test_result_text <<- "Modello non applicabile (errore)"
+          })
+        } else {
+          test_result_text <- "Modello non applicabile (dati insufficienti)"
+        }
+      }
+      
+    } else if (is.factor(x_data) || is.character(x_data) || is.logical(x_data)) {
+      # Relazione tra variabile categorica (x) e quantitativa (y): Box plot
+      
+      # Crea una copia temporanea per evitare modifiche all'originale
+      temp_df_for_plot <- df
+      
+      # Gestione dei NA nelle variabili categoriche - li includiamo come categoria "NAs"
+      temp_df_for_plot[[col_name]] <- as.character(temp_df_for_plot[[col_name]])
+      temp_df_for_plot[[col_name]][is.na(temp_df_for_plot[[col_name]])] <- "NAs"
+      
+      # Ricrea il fattore includendo "NAs" come livello
+      original_levels <- NULL
+      if (is.factor(x_data)) {
+        original_levels <- levels(x_data)
+      } else {
+        # Se era carattere o logico, ottieni i livelli unici non NA
+        original_levels <- unique(na.omit(x_data))
+      }
+      
+      all_levels <- c(original_levels, "NAs")
+      temp_df_for_plot[[col_name]] <- factor(temp_df_for_plot[[col_name]], levels = all_levels)
+      
+      # Rimuovi solo le righe dove y è NA (manteniamo x con "NAs")
+      temp_df_clean <- temp_df_for_plot[!is.na(temp_df_for_plot[[y_var_name]]), ]
+      
+      if (nrow(temp_df_clean) == 0) {
+        message(paste("Saltando", col_name, ": nessun dato valido per y dopo rimozione NA"))
+        next
+      }
+      
+      # Limita il numero di categorie mostrate per leggibilità
+      max_categories <- 15
+      if (length(levels(temp_df_clean[[col_name]])) > max_categories) {
+        # Mantieni le top categorie per frequenza (esclusi NAs) e raggruppa il resto
+        freq_table <- table(temp_df_clean[[col_name]])
+        nas_count <- freq_table["NAs"]
+        non_nas_freq <- freq_table[names(freq_table) != "NAs"]
+        
+        if (length(non_nas_freq) > 0) {
+          top_categories <- names(sort(non_nas_freq, decreasing = TRUE))[1:(max_categories-2)]
+          temp_df_clean[[col_name]] <- as.character(temp_df_clean[[col_name]])
+          temp_df_clean[[col_name]][!temp_df_clean[[col_name]] %in% c(top_categories, "NAs")] <- "Altri"
+          
+          # Riordina: top categories, Altri, NAs
+          final_levels <- c(top_categories, "Altri")
+          if (!is.na(nas_count) && nas_count > 0) {
+            final_levels <- c(final_levels, "NAs")
+          }
+          temp_df_clean[[col_name]] <- factor(temp_df_clean[[col_name]], levels = final_levels)
+        }
+      }
+      
+      p <- ggplot(temp_df_clean, aes(x = .data[[col_name]], y = .data[[y_var_name]])) +
+        geom_boxplot(fill = "lightgreen", alpha = 0.7, outlier.shape = NA) + # Box plot
+        geom_jitter(width = 0.2, alpha = 0.4, color = "darkblue") + # Punti jitterati per mostrare la distribuzione
+        labs(title = paste("Relazione tra", col_name, "e", y_var_name),
+             x = col_name, y = y_var_name,
+             subtitle = if(nrow(temp_df_for_plot) - nrow(temp_df_clean) > 0) 
+               paste("Osservazioni rimosse (y NA):", nrow(temp_df_for_plot) - nrow(temp_df_clean)) else NULL) +
+        theme_minimal() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) # Ruota le etichette per leggibilità
+      
+      # Esegui il test appropriato per l'uguaglianza delle medie/distribuzioni di y
+      # Rimuovi gruppi con meno di 2 osservazioni per il test
+      group_counts <- table(temp_df_clean[[col_name]])
+      valid_groups <- names(group_counts)[group_counts >= 2]
+      
+      if (length(valid_groups) > 1) {
+        # Filtra solo i gruppi validi per il test
+        temp_df_test <- temp_df_clean[temp_df_clean[[col_name]] %in% valid_groups, ]
+        temp_df_test[[col_name]] <- droplevels(temp_df_test[[col_name]])
+        
+        num_levels <- length(levels(temp_df_test[[col_name]]))
+        
+        tryCatch({
+          formula_str <- paste(y_var_name, "~", col_name)
+          
+          if (test_type == "parametric") {
+            # T-test o ANOVA
+            if (num_levels == 2) {
+              test_result <- t.test(as.formula(formula_str), data = temp_df_test)
+              test_result_text <- paste0("T-test p-value: ", format.pval(test_result$p.value, digits = 3))
+            } else {
+              aov_result <- aov(as.formula(formula_str), data = temp_df_test)
+              summary_aov <- summary(aov_result)
+              p_value_anova <- summary_aov[[1]]$`Pr(>F)`[1]
+              test_result_text <- paste0("ANOVA p-value: ", format.pval(p_value_anova, digits = 3))
+            }
+          } else { # non_parametric
+            # Wilcoxon o Kruskal-Wallis
+            if (num_levels == 2) {
+              test_result <- wilcox.test(as.formula(formula_str), data = temp_df_test)
+              test_result_text <- paste0("Wilcoxon p-value: ", format.pval(test_result$p.value, digits = 3))
+            } else {
+              kruskal_result <- kruskal.test(as.formula(formula_str), data = temp_df_test)
+              test_result_text <- paste0("Kruskal-Wallis p-value: ", format.pval(kruskal_result$p.value, digits = 3))
+            }
+          }
+        }, error = function(e) {
+          test_result_text <<- "Test non applicabile (errore)"
+        })
+      } else {
+        test_result_text <- "Test non applicabile (<2 gruppi validi)"
+      }
+      
+    } else {
+      # Per altri tipi non supportati, salta
+      message(paste("Saltando", col_name, ": tipo di dato non supportato (", class(x_data)[1], ")"))
+      next
+    }
+    
+    # Aggiungi il p-value al grafico usando annotate (comune a entrambi i tipi di X)
+    if (!is.null(p) && !is.null(test_result_text)) {
+      p <- p + annotate("text", x = Inf, y = Inf, 
+                        label = test_result_text, 
+                        hjust = 1.05, vjust = 1.5, # Posiziona in alto a destra
+                        size = 3.5, color = "red")
+    }
+    
+    if (!is.null(p)) {
+      plot_list[[col_name]] <- p
+    }
+  }
+  
+  # Verifica che ci siano plot da mostrare
+  if (length(plot_list) == 0) {
+    message("Nessun plot è stato generato.")
+    return(invisible(NULL))
+  }
+  
+  # Disponi i plot usando patchwork
+  n_plots <- length(plot_list)
+  
+  # Calcola layout ottimale
+  if (n_plots == 1) {
+    result <- plot_list[[1]]
+  } else if (n_plots <= 4) {
+    ncol <- 2
+    result <- wrap_plots(plot_list, ncol = ncol)
+  } else if (n_plots <= 9) {
+    ncol <- 3
+    result <- wrap_plots(plot_list, ncol = ncol)
+  } else {
+    # Per più di 9 plot, crea pagine multiple
+    plots_per_page <- 9
+    n_pages <- ceiling(n_plots / plots_per_page)
+    
+    message(paste("Generando", n_pages, "pagine di grafici..."))
+    
+    # Crea lista di pagine
+    pages <- list()
+    for (page in 1:n_pages) {
+      start_idx <- (page - 1) * plots_per_page + 1
+      end_idx <- min(page * plots_per_page, n_plots)
+      page_plots <- plot_list[start_idx:end_idx]
+      
+      pages[[page]] <- wrap_plots(page_plots, ncol = 3)
+    }
+    
+    # Restituisci la prima pagina e stampa le altre
+    result <- pages[[1]]
+    if (n_pages > 1) {
+      for (i in 2:n_pages) {
+        cat("\n\n")
+        print(pages[[i]])
+      }
+    }
+  }
+  
+  return(result)
+}
