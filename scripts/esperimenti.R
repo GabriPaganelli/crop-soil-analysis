@@ -52,7 +52,7 @@ fviz_eig(res_pca, addlabels = TRUE, ncp = 10)
 
 # Biplot individui + variabili
 fviz_pca_biplot(res_pca,
-                habillage   = "Landuse",   # colora per Landuse, cambia a piacere
+                habillage   = "Texture",   # colora per Landuse, cambia a piacere
                 addEllipses = TRUE,
                 ellipse.level = 0.95,
                 label       = "var",
