@@ -746,3 +746,23 @@ plot_x_vs_y <- function(df, y_var_names,
   
   invisible(NULL)
 }
+
+#setup grafico :
+colori_zone <- c(
+  "Cl"     = "#B37A5C",  
+  "SiCl"   = "#9F9A83",  
+  "SaCl"   = "#C3A482",  
+  "ClLo"   = "#9C7355",  
+  "SiClLo" = "#826A4D",  
+  "SaClLo" = "#B89B74",  
+  "Lo"     = "#D1B993",  
+  "SiLo"   = "#BCAD92",  
+  "SaLo"   = "#CBAA7B",  
+  "Si"     = "#A9A590",  
+  "LoSa"   = "#D6C5A0",  
+  "Sa"     = "#DFD4B6"   
+)
+
+# 2. Abbassa l'opacità dei colori al 50% (alpha.f = 0.5)
+colori_trasparenti <- adjustcolor(colori_zone, alpha.f = 0.8)
+

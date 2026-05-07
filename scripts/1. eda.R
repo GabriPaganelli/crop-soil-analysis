@@ -13,12 +13,29 @@ target_vars <- c("PercSOC", "PercTotNitro", "PercTotPhos")
 analizza_dataset(crop)
 grafico_distribuzioni(crop[,-c(2,3,17,18)])
 
-# Plotta i tuoi crop direttamente sul triangolo USDA
-soiltexture::TT.plot(class.sys = "USDA.TT", tri.data = data.frame(
-  SAND = crop$PercSand,
-  SILT = crop$PercSilt,
-  CLAY = crop$PercClay
-))
+library(soiltexture)
+
+TT.plot(
+  class.sys = "USDA.TT",
+  tri.data = tex_data,            
+  main = "Soil Texture Triangle",
+  
+  # 1. SFONDO BIANCO PULITO
+  bg = "white",                
+  frame.bg.col = "white",      
+  class.p.bg.col = colori_trasparenti,      
+  
+  # 2. LINEE E TESTI DELLE CLASSI
+  class.line.col = "brown",    
+  class.lab.show = "full",     
+  class.lab.col = "black",   
+  cex.lab = 0.8,               
+  
+  
+  pch = 21,                    
+  col = "black",              
+  cex = 1                  
+)
 
 # Correlazioni e scatter di ogni target vs tutti i predittori
 plot_x_vs_y(crop, target_vars)
