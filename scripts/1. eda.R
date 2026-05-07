@@ -2,6 +2,7 @@ library(tidyverse)
 library(GGally)
 library(patchwork)
 library(here)
+library(soiltexture)
 
 # ── 1. CARICAMENTO ────────────────────────────────────────────────────────────
 crop = readRDS(here("data", "crop.rds"))
@@ -13,11 +14,11 @@ target_vars <- c("PercSOC", "PercTotNitro", "PercTotPhos")
 analizza_dataset(crop)
 grafico_distribuzioni(crop[,-c(2,3,17,18)])
 
-library(soiltexture)
-
 TT.plot(
   class.sys = "USDA.TT",
-  tri.data = tex_data,            
+  tri.data = data.frame(SAND = crop$PercSand,
+                        SILT = crop$PercSilt,
+                        CLAY = crop$PercClay),            
   main = "Soil Texture Triangle",
   
   # 1. SFONDO BIANCO PULITO
