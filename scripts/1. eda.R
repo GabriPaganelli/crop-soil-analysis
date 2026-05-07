@@ -48,7 +48,7 @@ plot_x_vs_y(crop, target_vars)
 
 # Porta i crop in formato long
 crop_long <- crop |>
-  select(Field, Bottom, Lat, Long, all_of(target_vars)) |>
+  select(Field, Bottom, Lat, Long, all_of(target_vars), Landuse) |>
   pivot_longer(cols = all_of(target_vars),
                names_to = "target",
                values_to = "valore")
@@ -82,7 +82,7 @@ ggplot(crop_long, aes(x = Bottom, y = valore,
 ggplot(crop_long,
        aes(x = Landuse, y = valore, fill = as.factor(Bottom))) +
   geom_boxplot(outlier.size = 0.8, alpha = 0.8) +
-  facet_wrap(~ variabile, scales = "free_y") +
+  facet_wrap(~ target, scales = "free_y") +          # <-- "target" not "variabile"
   labs(title = "Distribuzione per Landuse e profondità",
        x = "Landuse", y = "Valore", fill = "Profondità (cm)") +
   theme_minimal()

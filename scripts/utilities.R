@@ -747,6 +747,210 @@ plot_x_vs_y <- function(df, y_var_names,
   invisible(NULL)
 }
 
+plot_density_y_by_x <- function(df, y_var_names,
+                                test_type    = c("parametric", "non_parametric"),
+                                numeric_x_bins = c("none", "quartile")) {
+  # ── Validazione input ──────────────────────────────────────────────────────
+  if (!is.data.frame(df) && !inherits(df, c("tbl_df", "tbl", "data.table")))
+    stop("L'input deve essere un dataframe, tibble o data.table")
+  df <- as.data.frame(df)
+  if (nrow(df) == 0 || ncol(df) == 0) stop("Il dataframe non può essere vuoto")
+  
+  for (pkg in c("ggplot2", "patchwork", "ggridges")) {
+    if (!requireNamespace(pkg, quietly = TRUE)) install.packages(pkg)
+  }
+  library(ggplot2)
+  library(patchwork)
+  library(ggridges)
+  
+  test_type      <- match.arg(test_type)
+  numeric_x_bins <- match.arg(numeric_x_bins)
+  
+  # Validazione variabili Y
+  for (yn in y_var_names) {
+    if (!yn %in% names(df))
+      stop(paste("La variabile y_var_name (", yn, ") non esiste nel dataframe."))
+    if (!is.numeric(df[[yn]]))
+      stop(paste("La variabile y (", yn, ") deve essere numerica."))
+  }
+  
+  single_y <- length(y_var_names) == 1
+  x_cols   <- setdiff(names(df), y_var_names)
+  
+  # Palette discreta (fino a 15 livelli)
+  PALETTE <- c(
+    "#4E79A7","#F28E2B","#E15759","#76B7B2","#59A14F",
+    "#EDC948","#B07AA1","#FF9DA7","#9C755F","#BAB0AC",
+    "#D37295","#FABFD2","#8CD17D","#86BCB6","#499894"
+  )
+  
+  # ── Helper: statistiche per caption ───────────────────────────────────────
+  compute_test_text <- function(col_name, y_var_name, tmp, single) {
+    grp_counts <- table(tmp[[col_name]])
+    valid_grps <- names(grp_counts)[grp_counts >= 2]
+    if (length(valid_grps) < 2)
+      return(if (single) "Test non applicabile (<2 gruppi validi)" else "<2 gruppi")
+    
+    td <- tmp[tmp[[col_name]] %in% valid_grps, ]
+    td[[col_name]] <- droplevels(td[[col_name]])
+    nl  <- length(levels(td[[col_name]]))
+    frm <- as.formula(paste(y_var_name, "~", col_name))
+    
+    tryCatch({
+      if (test_type == "parametric") {
+        if (nl == 2) {
+          res <- t.test(frm, data = td)
+          if (single) paste0("T-test p = ", format.pval(res$p.value, digits = 3))
+          else        paste0("t=", format.pval(res$p.value, digits = 3))
+        } else {
+          res <- aov(frm, data = td)
+          pv  <- summary(res)[[1]]$`Pr(>F)`[1]
+          if (single) paste0("ANOVA p = ", format.pval(pv, digits = 3))
+          else        paste0("ANOVA=", format.pval(pv, digits = 3))
+        }
+      } else {
+        if (nl == 2) {
+          res <- wilcox.test(frm, data = td)
+          if (single) paste0("Wilcoxon p = ", format.pval(res$p.value, digits = 3))
+          else        paste0("W=", format.pval(res$p.value, digits = 3))
+        } else {
+          res <- kruskal.test(frm, data = td)
+          if (single) paste0("Kruskal-Wallis p = ", format.pval(res$p.value, digits = 3))
+          else        paste0("KW=", format.pval(res$p.value, digits = 3))
+        }
+      }
+    }, error = function(e) if (single) "Test non applicabile (errore)" else "errore")
+  }
+  
+  # ── Helper: costruisce UN plot densità ────────────────────────────────────
+  make_density_plot <- function(col_name, y_var_name) {
+    x_raw <- df[[col_name]]
+    
+    # Gestione numerica: binning a quartili (opzionale)
+    if (is.numeric(x_raw)) {
+      if (numeric_x_bins == "none") return(NULL)
+      q   <- quantile(x_raw, probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
+      lbl <- c("Q1","Q2","Q3","Q4")
+      tmp <- df
+      tmp[[col_name]] <- cut(x_raw, breaks = q, labels = lbl,
+                             include.lowest = TRUE)
+      if (all(is.na(tmp[[col_name]]))) return(NULL)
+      bin_note <- paste0("(binned in quartili)")
+    } else {
+      tmp      <- df
+      bin_note <- NULL
+    }
+    
+    # Preparazione del fattore
+    x_vals <- tmp[[col_name]]
+    x_vals <- as.character(x_vals)
+    x_vals[is.na(x_vals)] <- "NA"
+    orig_levels <- if (is.factor(df[[col_name]])) levels(df[[col_name]])
+    else unique(na.omit(as.character(df[[col_name]])))
+    all_levels  <- c(orig_levels[orig_levels != "NA"], "NA")
+    # Limita a 15 categorie
+    max_cat <- 15
+    if (length(all_levels) > max_cat) {
+      ft   <- table(x_vals[x_vals != "NA"])
+      top  <- names(sort(ft, decreasing = TRUE))[1:(max_cat - 1)]
+      x_vals[!x_vals %in% c(top, "NA")] <- "Altri"
+      all_levels <- c(top, "Altri")
+      if (any(x_vals == "NA")) all_levels <- c(all_levels, "NA")
+    }
+    tmp[[col_name]] <- factor(x_vals, levels = all_levels)
+    
+    # Rimuovi NA in y
+    tmp <- tmp[!is.na(tmp[[y_var_name]]), ]
+    if (nrow(tmp) == 0) return(NULL)
+    if (length(unique(tmp[[col_name]])) < 2) return(NULL)
+    
+    n_lvl   <- length(levels(tmp[[col_name]]))
+    palette <- PALETTE[seq_len(min(n_lvl, length(PALETTE)))]
+    
+    # Titolo e test
+    test_txt <- compute_test_text(col_name, y_var_name, tmp, single_y)
+    title_str <- if (single_y)
+      paste("Densità di", y_var_name, "per", col_name,
+            if (!is.null(bin_note)) bin_note else "")
+    else y_var_name
+    
+    subtitle_str <- paste0(test_txt,
+                           if (!is.null(bin_note)) paste0(" — ", bin_note) else "")
+    
+    # Ridge plot: y = livelli di X, x = valori di Y
+    # Ordine top->bottom segue l'ordine dei livelli
+    tmp[[col_name]] <- factor(tmp[[col_name]],
+                              levels = rev(levels(tmp[[col_name]])))
+    
+    p <- ggplot(tmp, aes(
+      x    = .data[[y_var_name]],
+      y    = .data[[col_name]],
+      fill = .data[[col_name]])) +
+      geom_density_ridges(alpha = 0.70, scale = 1.1,
+                          color = "white", linewidth = 0.3,
+                          quantile_lines = TRUE, quantiles = 2) +
+      scale_fill_manual(values = palette, guide = "none") +
+      labs(title    = title_str,
+           subtitle = subtitle_str,
+           x        = y_var_name,
+           y        = col_name) +
+      theme_minimal(base_size = 11) +
+      theme(
+        plot.title    = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 9, color = "red"),
+        axis.text.y   = element_text(size = 8)
+      )
+    p
+  }
+  
+  # ── Modalità Y singola ────────────────────────────────────────────────────
+  if (single_y) {
+    y_var_name <- y_var_names[[1]]
+    plot_list  <- list()
+    
+    for (col_name in x_cols) {
+      if (length(unique(na.omit(df[[col_name]]))) <= 1) next
+      p <- make_density_plot(col_name, y_var_name)
+      if (!is.null(p)) plot_list[[col_name]] <- p
+    }
+    
+    if (length(plot_list) == 0) { message("Nessun plot generato."); return(invisible(NULL)) }
+    
+    n <- length(plot_list)
+    if (n == 1)       return(plot_list[[1]])
+    else if (n <= 4)  return(wrap_plots(plot_list, ncol = 2))
+    else if (n <= 9)  return(wrap_plots(plot_list, ncol = 3))
+    else {
+      ppp    <- 6          # ridge plots sono alti, meglio 6 per pagina
+      npages <- ceiling(n / ppp)
+      message(paste("Generando", npages, "pagine..."))
+      pages  <- lapply(seq_len(npages), function(pg) {
+        idx <- seq((pg - 1) * ppp + 1, min(pg * ppp, n))
+        wrap_plots(plot_list[idx], ncol = 2)
+      })
+      for (i in seq_along(pages)[-1]) { cat("\n\n"); print(pages[[i]]) }
+      return(pages[[1]])
+    }
+  }
+  
+  # ── Modalità Y multipla ───────────────────────────────────────────────────
+  for (col_name in x_cols) {
+    if (length(unique(na.omit(df[[col_name]]))) <= 1) next
+    plots_for_x <- Filter(Negate(is.null),
+                          lapply(y_var_names, function(y) make_density_plot(col_name, y)))
+    if (length(plots_for_x) == 0) next
+    
+    combined <- wrap_plots(plots_for_x, nrow = 1) +
+      plot_annotation(
+        title = paste("X:", col_name),
+        theme = theme(plot.title = element_text(face = "bold", size = 13))
+      )
+    print(combined)
+    cat("\n")
+  }
+  invisible(NULL)
+}
+
 #setup grafico :
 colori_zone <- c(
   "Cl"     = "#B37A5C",  

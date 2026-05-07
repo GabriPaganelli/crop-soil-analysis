@@ -23,7 +23,7 @@ hist(crop$PH %>% log(base = 10), breaks = 20)
 
 
 # Bimodalità di BulkDensity
-plot_x_vs_y(crop, 'BulkDensity')
+plot_density_y_by_x(crop, 'BulkDensity', numeric_x_bins = 'quartile')
 
 # pca
 
