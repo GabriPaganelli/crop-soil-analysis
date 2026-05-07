@@ -1,5 +1,6 @@
 # ── 1. CARICAMENTO ────────────────────────────────────────────────────────────
 
+library(tidyverse)
 library(soiltexture)
 library(here)
 
@@ -11,8 +12,6 @@ crop <- crop |>
   mutate(across(c(Landuse, Field, Plot, OnFarm, Irrigate,
                   Fertilised, N_Natural, Class), as.factor))
 
-# Prepara il dataframe con i nomi colonna richiesti dal pacchetto
-# (Assicurati di sostituire df$sand, df$silt, df$clay con i nomi esatti delle tue colonne)
 tex_data <- data.frame(
   SAND = crop$PercSand,
   SILT = crop$PercSilt,
@@ -46,9 +45,9 @@ usda_lookup <- c(
 # Applica la conversione alla colonna creata in precedenza
 crop$texture <- usda_lookup[crop$texture_class]
 
-crop$Class = NULL
-crop$texture_class = NULL
-colnames(crop) = c(colnames(crop)[1:18],'Texture')
+crop$Class <- NULL
+crop$texture_class <- NULL
+crop <- rename(crop, Texture = texture)
 
 head(crop)
 #saveRDS(crop, file = "crop.rds")

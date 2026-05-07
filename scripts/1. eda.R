@@ -1,8 +1,10 @@
 library(tidyverse)
 library(GGally)
 library(patchwork)
-library(here)
+library(ggpubr)
+library(ggtern)
 library(soiltexture)
+library(here)
 
 # ── 1. CARICAMENTO ────────────────────────────────────────────────────────────
 crop = readRDS(here("data", "crop.rds"))
@@ -12,31 +14,11 @@ target_vars <- c("PercSOC", "PercTotNitro", "PercTotPhos")
 
 # ── 3. ANALISI ESPLORATIVA UNIVARIATA ─────────────────────────────────────────
 analizza_dataset(crop)
-grafico_distribuzioni(crop[,-c(2,3,17,18)])
+grafico_distribuzioni(crop[, !names(crop) %in% c("Field", "Plot", "Lat", "Long")])
 
-TT.plot(
-  class.sys = "USDA.TT",
-  tri.data = data.frame(SAND = crop$PercSand,
-                        SILT = crop$PercSilt,
-                        CLAY = crop$PercClay),            
-  main = "Soil Texture Triangle",
-  
-  # 1. SFONDO BIANCO PULITO
-  bg = "white",                
-  frame.bg.col = "white",      
-  class.p.bg.col = colori_trasparenti,      
-  
-  # 2. LINEE E TESTI DELLE CLASSI
-  class.line.col = "brown",    
-  class.lab.show = "full",     
-  class.lab.col = "black",   
-  cex.lab = 0.8,               
-  
-  
-  pch = 21,                    
-  col = "black",              
-  cex = 1                  
-)
+# ── Triangolo di texture ──────────────────────────────────────────────────────
+plot_texture_triangle(crop, color_var = "Landuse")
+plot_texture_triangle(crop, color_var = "Landuse", version = "ttplot")
 
 # Correlazioni e scatter di ogni target vs tutti i predittori
 plot_x_vs_y(crop, target_vars)
@@ -82,7 +64,7 @@ ggplot(crop_long, aes(x = Bottom, y = valore,
 ggplot(crop_long,
        aes(x = Landuse, y = valore, fill = as.factor(Bottom))) +
   geom_boxplot(outlier.size = 0.8, alpha = 0.8) +
-  facet_wrap(~ target, scales = "free_y") +          # <-- "target" not "variabile"
+  facet_wrap(~ target, scales = "free_y") +
   labs(title = "Distribuzione per Landuse e profondità",
        x = "Landuse", y = "Valore", fill = "Profondità (cm)") +
   theme_minimal()
@@ -144,15 +126,13 @@ ggpairs(
 plots_spaziali <- map(target_vars, ~ {
   crop_long |>
     filter(target == .x) |>
-    ggplot(aes(x = Lat, y = Long, size = valore, colour = valore)) +
-    geom_point(alpha = 0.6) +
-    scale_size_continuous(range = c(1, 8)) +
+    ggplot(aes(x = Long, y = Lat, colour = valore)) +
+    geom_point(alpha = 0.7, size = 3) +
     scale_colour_viridis_c(option = "magma", direction = -1) +
-    labs(title = .x, x = "Latitudine", y = "Longitudine",
-         size = "Valore", colour = "Valore") +
+    labs(title = .x, x = "Longitudine", y = "Latitudine", colour = "Valore") +
     theme_minimal()
 })
-wrap_plots(plots_spaziali, ncol = 1)
+wrap_plots(plots_spaziali, nrow = 1)
 
 # Correlazione numerica con le coordinate
 crop |>
@@ -167,21 +147,20 @@ crop |>
 
 
 # 8. Plot 1:5 appartengono alla stessa farm?
-
-crop$Field_Num <- as.numeric(gsub("\\D", "", as.character(crop$Field)))
-crop$Field_Group <- as.factor((crop$Field_Num - 1) %/% 5)
-
-ggplot(crop, aes(x = Long, y = Lat, color = Field_Group)) +
+crop |>
+  mutate(
+    Field_Num   = as.numeric(gsub("\\D", "", as.character(Field))),
+    Field_Group = as.factor((Field_Num - 1) %/% 5)
+  ) |>
+  ggplot(aes(x = Long, y = Lat, color = Field_Group)) +
   geom_point(size = 3, alpha = 0.8) +
   theme_minimal() +
   scale_color_viridis_d(option = "turbo") +
   labs(
-    title = "Distribuzione Lat/Long raggruppata per Field",
+    title    = "Distribuzione Lat/Long raggruppata per Field",
     subtitle = "I colori cambiano ogni 5 campi (es. 1-5, 6-10...)",
-    x = "Longitudine",
-    y = "Latitudine",
-    color = "Blocco Field"
+    x        = "Longitudine",
+    y        = "Latitudine",
+    color    = "Blocco Field"
   ) +
-  theme(
-    panel.grid.minor = element_blank()
-  )
+  theme(panel.grid.minor = element_blank())
