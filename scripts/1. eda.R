@@ -25,36 +25,18 @@ plot_x_vs_y(crop, target_vars)
 
 
 # ── 4. PROFILI VERTICALI (depth profiles) ─────────────────────────────────────
-# Ogni osservazione è un campionamento a una certa profondità (Bottom)
-# dello stesso plot: ha senso visualizzare le traiettorie per plot
-
-# Porta i crop in formato long
+# Porta i crop in formato long (usato anche nelle sezioni successive)
 crop_long <- crop |>
   select(Field, Bottom, Lat, Long, all_of(target_vars), Landuse) |>
   pivot_longer(cols = all_of(target_vars),
                names_to = "target",
                values_to = "valore")
 
-# Grafico
-ggplot(crop_long, aes(x = Bottom, y = valore,
-                      group = Field, color = Field)) +
-  geom_line(alpha = 0.6) +
-  geom_point(size = 1.5, alpha = 0.8) +
-  facet_wrap(~ target, scales = "free_y", ncol = 1,
-             labeller = labeller(target = c(
-               PercSOC      = "SOC (%)",
-               PercTotNitro = "Azoto totale (%)",
-               PercTotPhos  = "Fosforo totale (%)"
-             ))) +
-  scale_x_continuous(breaks = c(20, 30, 40, 50, 60, 80)) +
-  scale_color_viridis_d(option = "turbo") +
-  labs(title = "Andamento delle target vars per profondità",
-       x = "Bottom (profondità, cm)",
-       y = "Valore (%)",
-       color = "Field") +
-  theme_minimal(base_size = 12) +
-  theme(legend.position = "right",
-        strip.text = element_text(face = "bold"))
+# Per Field (40 livelli → viridis_d automatico): mostra variabilità individuale
+plot_depth_profiles(crop, target_vars, color_var = "Field", ncol = 1)
+
+# Per Landuse (7 livelli → Set1): mostra separazione per classe gestionale
+plot_depth_profiles(crop, target_vars, color_var = "Landuse", ncol = 1)
 
 
 # ── 5. STRUTTURA GERARCHICA ───────────────────────────────────────────────────

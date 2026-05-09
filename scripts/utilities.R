@@ -951,6 +951,77 @@ plot_density_y_by_x <- function(df, y_var_names,
   invisible(NULL)
 }
 
+plot_depth_profiles <- function(df,
+                                y_vars,
+                                color_var  = NULL,
+                                bottom_col = "Bottom",
+                                group_col  = "Field",
+                                log_y      = FALSE,
+                                ncol       = 1) {
+  if (!requireNamespace("ggplot2",   quietly = TRUE)) install.packages("ggplot2")
+  if (!requireNamespace("patchwork", quietly = TRUE)) install.packages("patchwork")
+  library(ggplot2)
+  library(patchwork)
+
+  for (v in c(y_vars, bottom_col, group_col))
+    if (!v %in% names(df)) stop(paste("Colonna non trovata:", v))
+  if (!is.null(color_var) && !color_var %in% names(df))
+    stop(paste("color_var non trovato:", color_var))
+
+  col_data   <- if (!is.null(color_var)) df[[color_var]] else NULL
+  is_discrete <- is.null(col_data) || is.factor(col_data) ||
+                 is.character(col_data) || is.logical(col_data)
+  n_levels   <- if (is_discrete && !is.null(col_data))
+                  length(unique(na.omit(col_data))) else 0L
+
+  make_panel <- function(y_var) {
+    d <- df[!is.na(df[[y_var]]) & !is.na(df[[bottom_col]]), ]
+    if (log_y) {
+      d[[y_var]] <- log(d[[y_var]])
+      y_label <- paste0("log(", y_var, ")")
+    } else {
+      y_label <- y_var
+    }
+
+    p <- ggplot(d, aes(x = .data[[bottom_col]], y = .data[[y_var]],
+                       group = .data[[group_col]]))
+
+    if (is.null(color_var)) {
+      p <- p + geom_line(alpha = 0.5, color = "steelblue") +
+               geom_point(size = 1.2, alpha = 0.7, color = "steelblue")
+    } else if (is_discrete && n_levels <= 8) {
+      p <- p + geom_line(aes(color = .data[[color_var]]), alpha = 0.6) +
+               geom_point(aes(color = .data[[color_var]]), size = 1.2, alpha = 0.8) +
+               scale_color_brewer(palette = "Set1", name = color_var)
+    } else if (is_discrete) {
+      p <- p + geom_line(aes(color = .data[[color_var]]), alpha = 0.5) +
+               geom_point(aes(color = .data[[color_var]]), size = 1.0, alpha = 0.7) +
+               scale_color_viridis_d(option = "turbo", name = color_var)
+    } else {
+      p <- p + geom_line(aes(color = .data[[color_var]]), alpha = 0.6) +
+               geom_point(aes(color = .data[[color_var]]), size = 1.2, alpha = 0.8) +
+               scale_color_viridis_c(name = color_var)
+    }
+
+    p + labs(x = paste0(bottom_col, " (cm)"), y = y_label, title = y_label) +
+        theme_minimal(base_size = 11) +
+        theme(legend.position = if (length(y_vars) == 1) "right" else "none")
+  }
+
+  panels <- lapply(y_vars, make_panel)
+
+  if (length(panels) > 1 && !is.null(color_var))
+    panels[[length(panels)]] <- panels[[length(panels)]] +
+      theme(legend.position = "right")
+
+  wrap_plots(panels, ncol = ncol, guides = "collect") +
+    plot_annotation(
+      title    = paste0("Profili verticali",
+                        if (!is.null(color_var)) paste0(" — per ", color_var)),
+      subtitle = if (log_y) "Scala logaritmica: linee rette ≈ decadimento esponenziale"
+    )
+}
+
 #setup grafico :
 colori_zone <- c(
   "Cl"     = "#B37A5C",  
