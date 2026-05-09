@@ -970,3 +970,134 @@ colori_zone <- c(
 # 2. Abbassa l'opacità dei colori al 50% (alpha.f = 0.5)
 colori_trasparenti <- adjustcolor(colori_zone, alpha.f = 0.8)
 
+plot_texture_triangle <- function(df,
+                                   sand_col  = "PercSand",
+                                   clay_col  = "PercClay",
+                                   silt_col  = "PercSilt",
+                                   color_var = NULL,
+                                   palette   = NULL,
+                                   version   = c("ggtern", "ttplot")) {
+  version <- match.arg(version)
+
+  for (col in c(sand_col, clay_col, silt_col))
+    if (!col %in% names(df)) stop(paste("Colonna non trovata:", col))
+  if (!is.null(color_var) && !color_var %in% names(df))
+    stop(paste("color_var non trovato:", color_var))
+
+  tex <- data.frame(SAND = df[[sand_col]], CLAY = df[[clay_col]], SILT = df[[silt_col]])
+
+  if (!is.null(color_var)) {
+    col_data <- df[[color_var]]
+    lvls <- if (is.factor(col_data)) levels(col_data)
+            else sort(unique(na.omit(as.character(col_data))))
+    if (is.null(palette)) {
+      base_pal <- c("#2166ac", "#4393c3", "#1a9850", "#74c476", "#fdae61",
+                    "#d73027", "#762a83", "#e08214", "#a6761d", "#666666",
+                    "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e")
+      palette <- setNames(base_pal[seq_len(min(length(lvls), length(base_pal)))], lvls)
+    }
+  }
+
+  # ── versione TT.plot ────────────────────────────────────────────────────────
+  if (version == "ttplot") {
+    pt_col <- if (is.null(color_var)) "black"
+              else palette[as.character(df[[color_var]])]
+    soiltexture::TT.plot(
+      class.sys      = "USDA.TT",
+      tri.data       = tex,
+      main           = paste0("Soil Texture Triangle – USDA",
+                              if (!is.null(color_var)) paste0("\n(", color_var, ")")),
+      bg             = "white",
+      frame.bg.col   = "white",
+      class.p.bg.col = colori_trasparenti,
+      class.line.col = "#6B4226",
+      class.lab.show = "full",
+      class.lab.col  = "#3A2408",
+      cex.lab        = 0.85,
+      pch            = 16,
+      col            = pt_col,
+      cex            = 1.3
+    )
+    if (!is.null(color_var))
+      legend("topright", legend = lvls, col = palette, pch = 16,
+             title = color_var, bty = "n", cex = 0.8)
+    return(invisible(NULL))
+  }
+
+  # ── versione ggtern ─────────────────────────────────────────────────────────
+  if (!requireNamespace("ggtern", quietly = TRUE))
+    stop("Installa ggtern con: install.packages('ggtern')")
+  library(ggtern)
+
+  step    <- 0.5
+  grid_bg <- expand.grid(CLAY = seq(0, 100, by = step),
+                         SILT = seq(0, 100, by = step))
+  grid_bg <- grid_bg[grid_bg$CLAY + grid_bg$SILT <= 100, ]
+  grid_bg$SAND <- 100 - grid_bg$CLAY - grid_bg$SILT
+
+  mat <- soiltexture::TT.points.in.classes(tri.data = grid_bg, class.sys = "USDA.TT")
+  grid_bg$classe <- apply(mat, 1, function(x) {
+    nm <- names(x)[x > 0]
+    if (length(nm) == 0L) NA_character_ else nm[1L]
+  })
+  grid_bg <- grid_bg[!is.na(grid_bg$classe), ]
+
+  centroids <- do.call(rbind, lapply(split(grid_bg, grid_bg$classe), function(d)
+    data.frame(classe = d$classe[1],
+               CLAY   = mean(d$CLAY),
+               SILT   = mean(d$SILT),
+               SAND   = mean(d$SAND))
+  ))
+
+  crop_tex <- tex
+  if (!is.null(color_var)) crop_tex[[color_var]] <- df[[color_var]]
+
+  p <- ggtern(grid_bg, aes(x = SAND, y = CLAY, z = SILT)) +
+    geom_point(aes(colour = classe), shape = 15, size = 1.1, alpha = 0.85) +
+    scale_colour_manual(values = colori_zone, guide = "none")
+
+  if (!is.null(color_var)) {
+    p <- p +
+      geom_point(
+        data        = crop_tex,
+        aes(x = SAND, y = CLAY, z = SILT, fill = .data[[color_var]]),
+        shape       = 21, size = 2.8, stroke = 0.7, colour = "black",
+        inherit.aes = FALSE
+      ) +
+      scale_fill_manual(values = palette, name = color_var)
+  } else {
+    p <- p +
+      geom_point(
+        data        = tex,
+        aes(x = SAND, y = CLAY, z = SILT),
+        shape = 21, size = 2.8, stroke = 0.7,
+        fill = alpha("white", 0.8), colour = "black",
+        inherit.aes = FALSE
+      )
+  }
+
+  p +
+    geom_label(
+      data          = centroids,
+      aes(x = SAND, y = CLAY, z = SILT, label = classe),
+      size          = 2.8, fontface = "bold",
+      label.padding = unit(0.12, "lines"),
+      label.size    = NA,
+      fill          = alpha("white", 0.55),
+      colour        = "gray10",
+      inherit.aes   = FALSE
+    ) +
+    theme_bw() +
+    theme_showarrows() +
+    labs(
+      title  = paste0("Soil Texture Triangle – USDA",
+                      if (!is.null(color_var)) paste0("  (", color_var, ")")),
+      xarrow = "Sand (%)", yarrow = "Clay (%)", zarrow = "Silt (%)"
+    ) +
+    theme(
+      plot.title   = element_text(face = "bold", size = 14, hjust = 0.5),
+      legend.title = element_text(face = "bold"),
+      legend.key   = element_rect(colour = "gray80")
+    )
+}
+
