@@ -1056,43 +1056,49 @@ plot_texture_triangle <- function(df,
     geom_point(aes(colour = classe), shape = 15, size = 1.1, alpha = 0.85) +
     scale_colour_manual(values = colori_zone, guide = "none")
 
+  # inherit.aes = TRUE: eredita x/y/z dal ggtern parent, evita i warning su "z"
   if (!is.null(color_var)) {
     p <- p +
       geom_point(
         data        = crop_tex,
-        aes(x = SAND, y = CLAY, z = SILT, fill = .data[[color_var]]),
+        aes(fill    = .data[[color_var]]),
         shape       = 21, size = 2.8, stroke = 0.7, colour = "black",
-        inherit.aes = FALSE
+        inherit.aes = TRUE
       ) +
       scale_fill_manual(values = palette, name = color_var)
   } else {
     p <- p +
       geom_point(
         data        = tex,
-        aes(x = SAND, y = CLAY, z = SILT),
-        shape = 21, size = 2.8, stroke = 0.7,
-        fill = alpha("white", 0.8), colour = "black",
-        inherit.aes = FALSE
+        shape       = 21, size = 2.8, stroke = 0.7,
+        fill        = alpha("white", 0.8), colour = "black",
+        inherit.aes = TRUE
       )
   }
 
+  # Etichette: due geom_text sovrapposti (halo bianco + testo scuro)
+  # position_identity() esplicito evita che ggtern rimuova il layer per PositionNudge
   p +
-    geom_label(
-      data          = centroids,
-      aes(x = SAND, y = CLAY, z = SILT, label = classe),
-      size          = 2.8, fontface = "bold",
-      label.padding = unit(0.12, "lines"),
-      label.size    = NA,
-      fill          = alpha("white", 0.55),
-      colour        = "gray10",
-      inherit.aes   = FALSE
+    geom_text(
+      data        = centroids,
+      aes(label   = classe),
+      size        = 3.2, fontface = "bold", colour = "white",
+      inherit.aes = TRUE,
+      position    = position_identity()
+    ) +
+    geom_text(
+      data        = centroids,
+      aes(label   = classe),
+      size        = 2.8, fontface = "bold", colour = "gray15",
+      inherit.aes = TRUE,
+      position    = position_identity()
     ) +
     theme_bw() +
     theme_showarrows() +
     labs(
-      title  = paste0("Soil Texture Triangle – USDA",
-                      if (!is.null(color_var)) paste0("  (", color_var, ")")),
-      xarrow = "Sand (%)", yarrow = "Clay (%)", zarrow = "Silt (%)"
+      title = paste0("Soil Texture Triangle – USDA",
+                     if (!is.null(color_var)) paste0("  (", color_var, ")")),
+      x = "Sand (%)", y = "Clay (%)", z = "Silt (%)"
     ) +
     theme(
       plot.title   = element_text(face = "bold", size = 14, hjust = 0.5),
