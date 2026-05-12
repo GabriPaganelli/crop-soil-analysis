@@ -4,15 +4,11 @@
 
 - Misure ripetute lungo il profilo verticale:
   
-  \[
-  \text{osservazioni nested in Field}
-  \]
+  `osservazioni nested in Field`
 
 - Possibile struttura reale:
 
-  \[
-  \text{Field} \subset \text{Farm}
-  \]
+  `Field ⊂ Farm`
 
   ma `Farm` non è osservato.
 
@@ -35,7 +31,7 @@
 
 - `Bottom` rappresenta:
   - il limite inferiore dello strato?
-  - oppure il valore medio dell’intervallo?
+  - oppure il valore medio dell'intervallo?
 
 - Gli strati non sembrano avere ampiezza uniforme:
   - 20, 30, 40, 50, 60, 80 cm;
@@ -60,12 +56,7 @@
 
 - Possibile eteroschedasticità lungo la profondità:
   
-  \[
-  Var(Y \mid Bottom)
-  \downarrow
-  \]
-
-  all’aumentare della profondità.
+  `Var(Y | Bottom)` decresce all'aumentare della profondità.
 
 ---
 
@@ -73,9 +64,7 @@
 
 Dal mixed model:
 
-\[
-\text{slope} \propto \text{intercept}
-\]
+`slope ∝ intercept`
 
 con correlazione negativa intercept–slope:
 
@@ -92,37 +81,27 @@ Da confrontare:
 
 ## Lineare
 
-\[
-Y \sim Bottom
-\]
+`Y ~ Bottom`
 
 oppure
 
-\[
-\log(Y) \sim Bottom
-\]
+`log(Y) ~ Bottom`
 
 ---
 
 ## Potenza
 
-\[
-\log(Y) \sim \log(Bottom)
-\]
+`log(Y) ~ log(Bottom)`
 
 ---
 
 ## Decadimento esponenziale
 
-\[
-Y \sim e^{-k \cdot Bottom}
-\]
+`Y ~ exp(-k · Bottom)`
 
 oppure con parametri dipendenti da covariate:
 
-\[
-Y \sim A(x)e^{-k(x)\cdot Bottom}
-\]
+`Y ~ A(x) · exp(-k(x) · Bottom)`
 
 ---
 
@@ -150,17 +129,13 @@ Possibile utilizzo di `nlme` per:
 
 `Landuse` è quasi deterministicamente funzione di:
 
-\[
-Landuse = f(Irrigate, Fertilised, OnFarm)
-\]
+`Landuse = f(Irrigate, Fertilised, OnFarm)`
 
 tranne:
 - `Landuse 3` e `Landuse 4`,
   che condividono la stessa tripla:
 
-\[
-(Irrigate,Fertilised,OnFarm)=(0,0,0)
-\]
+`(Irrigate, Fertilised, OnFarm) = (0, 0, 0)`
 
 ---
 
@@ -174,9 +149,7 @@ tranne:
 
 In particolare:
 
-\[
-OnFarm = 1 \Rightarrow Fertilised = 1
-\]
+`OnFarm = 1 ⟹ Fertilised = 1`
 
 quindi:
 - alcuni effetti non sono separabili.
@@ -199,9 +172,7 @@ Possibile quasi-esperimento naturale per distinguere:
 
 - Texture composizionale:
   
-  \[
-  Sand + Silt + Clay = 100
-  \]
+  `Sand + Silt + Clay = 100`
 
 - Necessario evitare pseudoreplicazione composizionale:
   - ILR;
@@ -212,8 +183,8 @@ Possibile quasi-esperimento naturale per distinguere:
   - overlap parziale ma non completo.
 
 Nel simplesso:
-- `Landuse 3,6,7` concentrati verso un estremo;
-- `5,2,1,4` distribuiti più centralmente.
+- `Landuse 3, 6, 7` concentrati verso un estremo;
+- `5, 2, 1, 4` distribuiti più centralmente.
 
 Quindi:
 - texture e management sono fortemente associati;
@@ -229,9 +200,7 @@ Correlazioni globali:
 
 Ma:
 
-\[
-Corr(Y_1,Y_2 \mid group) \neq Corr(Y_1,Y_2)
-\]
+`Corr(Y1, Y2 | group) ≠ Corr(Y1, Y2)`
 
 Le correlazioni cambiano molto dopo stratificazione:
 - per landuse;
@@ -239,7 +208,7 @@ Le correlazioni cambiano molto dopo stratificazione:
 - per profondità.
 
 Possibile:
-- Simpson’s paradox;
+- Simpson's paradox;
 - struttura gerarchica forte.
 
 ---
@@ -250,11 +219,11 @@ Dataset osservazionale.
 
 Non è possibile distinguere chiaramente:
 
-> “c’è più SOC perché è coltivato”
+> "c'è più SOC perché è coltivato"
 
 da
 
-> “è coltivato perché il suolo ha già più SOC”.
+> "è coltivato perché il suolo ha già più SOC".
 
 Possibili:
 - confondimento;
@@ -281,9 +250,7 @@ Interpretazioni causali da formulare con cautela.
 
 5. Decomposizione di `Landuse`:
    
-   \[
-   Irrigate * Fertilised * OnFarm
-   \]
+   `Irrigate * Fertilised * OnFarm`
 
    con attenzione a:
    - singolarità;
@@ -302,5 +269,5 @@ Interpretazioni causali da formulare con cautela.
 8. Bayesian hierarchical models:
    - pooling parziale;
    - random slopes;
-   - propagazione dell’incertezza;
+   - propagazione dell'incertezza;
    - strutture gerarchiche complesse.
