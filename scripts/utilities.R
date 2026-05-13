@@ -746,3 +746,435 @@ plot_x_vs_y <- function(df, y_var_names,
   
   invisible(NULL)
 }
+
+plot_density_y_by_x <- function(df, y_var_names,
+                                test_type    = c("parametric", "non_parametric"),
+                                numeric_x_bins = c("none", "quartile")) {
+  # ── Validazione input ──────────────────────────────────────────────────────
+  if (!is.data.frame(df) && !inherits(df, c("tbl_df", "tbl", "data.table")))
+    stop("L'input deve essere un dataframe, tibble o data.table")
+  df <- as.data.frame(df)
+  if (nrow(df) == 0 || ncol(df) == 0) stop("Il dataframe non può essere vuoto")
+  
+  for (pkg in c("ggplot2", "patchwork", "ggridges")) {
+    if (!requireNamespace(pkg, quietly = TRUE)) install.packages(pkg)
+  }
+  library(ggplot2)
+  library(patchwork)
+  library(ggridges)
+  
+  test_type      <- match.arg(test_type)
+  numeric_x_bins <- match.arg(numeric_x_bins)
+  
+  # Validazione variabili Y
+  for (yn in y_var_names) {
+    if (!yn %in% names(df))
+      stop(paste("La variabile y_var_name (", yn, ") non esiste nel dataframe."))
+    if (!is.numeric(df[[yn]]))
+      stop(paste("La variabile y (", yn, ") deve essere numerica."))
+  }
+  
+  single_y <- length(y_var_names) == 1
+  x_cols   <- setdiff(names(df), y_var_names)
+  
+  # Palette discreta (fino a 15 livelli)
+  PALETTE <- c(
+    "#4E79A7","#F28E2B","#E15759","#76B7B2","#59A14F",
+    "#EDC948","#B07AA1","#FF9DA7","#9C755F","#BAB0AC",
+    "#D37295","#FABFD2","#8CD17D","#86BCB6","#499894"
+  )
+  
+  # ── Helper: statistiche per caption ───────────────────────────────────────
+  compute_test_text <- function(col_name, y_var_name, tmp, single) {
+    grp_counts <- table(tmp[[col_name]])
+    valid_grps <- names(grp_counts)[grp_counts >= 2]
+    if (length(valid_grps) < 2)
+      return(if (single) "Test non applicabile (<2 gruppi validi)" else "<2 gruppi")
+    
+    td <- tmp[tmp[[col_name]] %in% valid_grps, ]
+    td[[col_name]] <- droplevels(td[[col_name]])
+    nl  <- length(levels(td[[col_name]]))
+    frm <- as.formula(paste(y_var_name, "~", col_name))
+    
+    tryCatch({
+      if (test_type == "parametric") {
+        if (nl == 2) {
+          res <- t.test(frm, data = td)
+          if (single) paste0("T-test p = ", format.pval(res$p.value, digits = 3))
+          else        paste0("t=", format.pval(res$p.value, digits = 3))
+        } else {
+          res <- aov(frm, data = td)
+          pv  <- summary(res)[[1]]$`Pr(>F)`[1]
+          if (single) paste0("ANOVA p = ", format.pval(pv, digits = 3))
+          else        paste0("ANOVA=", format.pval(pv, digits = 3))
+        }
+      } else {
+        if (nl == 2) {
+          res <- wilcox.test(frm, data = td)
+          if (single) paste0("Wilcoxon p = ", format.pval(res$p.value, digits = 3))
+          else        paste0("W=", format.pval(res$p.value, digits = 3))
+        } else {
+          res <- kruskal.test(frm, data = td)
+          if (single) paste0("Kruskal-Wallis p = ", format.pval(res$p.value, digits = 3))
+          else        paste0("KW=", format.pval(res$p.value, digits = 3))
+        }
+      }
+    }, error = function(e) if (single) "Test non applicabile (errore)" else "errore")
+  }
+  
+  # ── Helper: costruisce UN plot densità ────────────────────────────────────
+  make_density_plot <- function(col_name, y_var_name) {
+    x_raw <- df[[col_name]]
+    
+    # Gestione numerica: binning a quartili (opzionale)
+    if (is.numeric(x_raw)) {
+      if (numeric_x_bins == "none") return(NULL)
+      q   <- quantile(x_raw, probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
+      lbl <- c("Q1","Q2","Q3","Q4")
+      tmp <- df
+      tmp[[col_name]] <- cut(x_raw, breaks = q, labels = lbl,
+                             include.lowest = TRUE)
+      if (all(is.na(tmp[[col_name]]))) return(NULL)
+      bin_note <- paste0("(binned in quartili)")
+    } else {
+      tmp      <- df
+      bin_note <- NULL
+    }
+    
+    # Preparazione del fattore
+    x_vals <- tmp[[col_name]]
+    x_vals <- as.character(x_vals)
+    x_vals[is.na(x_vals)] <- "NA"
+    orig_levels <- if (is.factor(df[[col_name]])) levels(df[[col_name]])
+    else unique(na.omit(as.character(df[[col_name]])))
+    all_levels  <- c(orig_levels[orig_levels != "NA"], "NA")
+    # Limita a 15 categorie
+    max_cat <- 15
+    if (length(all_levels) > max_cat) {
+      ft   <- table(x_vals[x_vals != "NA"])
+      top  <- names(sort(ft, decreasing = TRUE))[1:(max_cat - 1)]
+      x_vals[!x_vals %in% c(top, "NA")] <- "Altri"
+      all_levels <- c(top, "Altri")
+      if (any(x_vals == "NA")) all_levels <- c(all_levels, "NA")
+    }
+    tmp[[col_name]] <- factor(x_vals, levels = all_levels)
+    
+    # Rimuovi NA in y
+    tmp <- tmp[!is.na(tmp[[y_var_name]]), ]
+    if (nrow(tmp) == 0) return(NULL)
+    if (length(unique(tmp[[col_name]])) < 2) return(NULL)
+    
+    n_lvl   <- length(levels(tmp[[col_name]]))
+    palette <- PALETTE[seq_len(min(n_lvl, length(PALETTE)))]
+    
+    # Titolo e test
+    test_txt <- compute_test_text(col_name, y_var_name, tmp, single_y)
+    title_str <- if (single_y)
+      paste("Densità di", y_var_name, "per", col_name,
+            if (!is.null(bin_note)) bin_note else "")
+    else y_var_name
+    
+    subtitle_str <- paste0(test_txt,
+                           if (!is.null(bin_note)) paste0(" — ", bin_note) else "")
+    
+    # Ridge plot: y = livelli di X, x = valori di Y
+    # Ordine top->bottom segue l'ordine dei livelli
+    tmp[[col_name]] <- factor(tmp[[col_name]],
+                              levels = rev(levels(tmp[[col_name]])))
+    
+    p <- ggplot(tmp, aes(
+      x    = .data[[y_var_name]],
+      y    = .data[[col_name]],
+      fill = .data[[col_name]])) +
+      geom_density_ridges(alpha = 0.70, scale = 1.1,
+                          color = "white", linewidth = 0.3,
+                          quantile_lines = TRUE, quantiles = 2) +
+      scale_fill_manual(values = palette, guide = "none") +
+      labs(title    = title_str,
+           subtitle = subtitle_str,
+           x        = y_var_name,
+           y        = col_name) +
+      theme_minimal(base_size = 11) +
+      theme(
+        plot.title    = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 9, color = "red"),
+        axis.text.y   = element_text(size = 8)
+      )
+    p
+  }
+  
+  # ── Modalità Y singola ────────────────────────────────────────────────────
+  if (single_y) {
+    y_var_name <- y_var_names[[1]]
+    plot_list  <- list()
+    
+    for (col_name in x_cols) {
+      if (length(unique(na.omit(df[[col_name]]))) <= 1) next
+      p <- make_density_plot(col_name, y_var_name)
+      if (!is.null(p)) plot_list[[col_name]] <- p
+    }
+    
+    if (length(plot_list) == 0) { message("Nessun plot generato."); return(invisible(NULL)) }
+    
+    n <- length(plot_list)
+    if (n == 1)       return(plot_list[[1]])
+    else if (n <= 4)  return(wrap_plots(plot_list, ncol = 2))
+    else if (n <= 9)  return(wrap_plots(plot_list, ncol = 3))
+    else {
+      ppp    <- 6          # ridge plots sono alti, meglio 6 per pagina
+      npages <- ceiling(n / ppp)
+      message(paste("Generando", npages, "pagine..."))
+      pages  <- lapply(seq_len(npages), function(pg) {
+        idx <- seq((pg - 1) * ppp + 1, min(pg * ppp, n))
+        wrap_plots(plot_list[idx], ncol = 2)
+      })
+      for (i in seq_along(pages)[-1]) { cat("\n\n"); print(pages[[i]]) }
+      return(pages[[1]])
+    }
+  }
+  
+  # ── Modalità Y multipla ───────────────────────────────────────────────────
+  for (col_name in x_cols) {
+    if (length(unique(na.omit(df[[col_name]]))) <= 1) next
+    plots_for_x <- Filter(Negate(is.null),
+                          lapply(y_var_names, function(y) make_density_plot(col_name, y)))
+    if (length(plots_for_x) == 0) next
+    
+    combined <- wrap_plots(plots_for_x, nrow = 1) +
+      plot_annotation(
+        title = paste("X:", col_name),
+        theme = theme(plot.title = element_text(face = "bold", size = 13))
+      )
+    print(combined)
+    cat("\n")
+  }
+  invisible(NULL)
+}
+
+plot_depth_profiles <- function(df,
+                                y_vars,
+                                color_var  = NULL,
+                                bottom_col = "Bottom",
+                                group_col  = "Field",
+                                log_y      = FALSE,
+                                ncol       = 1) {
+  if (!requireNamespace("ggplot2",   quietly = TRUE)) install.packages("ggplot2")
+  if (!requireNamespace("patchwork", quietly = TRUE)) install.packages("patchwork")
+  library(ggplot2)
+  library(patchwork)
+
+  for (v in c(y_vars, bottom_col, group_col))
+    if (!v %in% names(df)) stop(paste("Colonna non trovata:", v))
+  if (!is.null(color_var) && !color_var %in% names(df))
+    stop(paste("color_var non trovato:", color_var))
+
+  col_data   <- if (!is.null(color_var)) df[[color_var]] else NULL
+  is_discrete <- is.null(col_data) || is.factor(col_data) ||
+                 is.character(col_data) || is.logical(col_data)
+  n_levels   <- if (is_discrete && !is.null(col_data))
+                  length(unique(na.omit(col_data))) else 0L
+
+  make_panel <- function(y_var) {
+    d <- df[!is.na(df[[y_var]]) & !is.na(df[[bottom_col]]), ]
+    if (log_y) {
+      d[[y_var]] <- log(d[[y_var]])
+      y_label <- paste0("log(", y_var, ")")
+    } else {
+      y_label <- y_var
+    }
+
+    p <- ggplot(d, aes(x = .data[[bottom_col]], y = .data[[y_var]],
+                       group = .data[[group_col]]))
+
+    if (is.null(color_var)) {
+      p <- p + geom_line(alpha = 0.5, color = "steelblue") +
+               geom_point(size = 1.2, alpha = 0.7, color = "steelblue")
+    } else if (is_discrete && n_levels <= 8) {
+      p <- p + geom_line(aes(color = .data[[color_var]]), alpha = 0.6) +
+               geom_point(aes(color = .data[[color_var]]), size = 1.2, alpha = 0.8) +
+               scale_color_brewer(palette = "Set1", name = color_var)
+    } else if (is_discrete) {
+      p <- p + geom_line(aes(color = .data[[color_var]]), alpha = 0.5) +
+               geom_point(aes(color = .data[[color_var]]), size = 1.0, alpha = 0.7) +
+               scale_color_viridis_d(option = "turbo", name = color_var)
+    } else {
+      p <- p + geom_line(aes(color = .data[[color_var]]), alpha = 0.6) +
+               geom_point(aes(color = .data[[color_var]]), size = 1.2, alpha = 0.8) +
+               scale_color_viridis_c(name = color_var)
+    }
+
+    p + labs(x = paste0(bottom_col, " (cm)"), y = y_label, title = y_label) +
+        theme_minimal(base_size = 11) +
+        theme(legend.position = if (length(y_vars) == 1) "right" else "none")
+  }
+
+  panels <- lapply(y_vars, make_panel)
+
+  if (length(panels) > 1 && !is.null(color_var))
+    panels[[length(panels)]] <- panels[[length(panels)]] +
+      theme(legend.position = "right")
+
+  wrap_plots(panels, ncol = ncol, guides = "collect") +
+    plot_annotation(
+      title    = paste0("Profili verticali",
+                        if (!is.null(color_var)) paste0(" — per ", color_var)),
+      subtitle = if (log_y) "Scala logaritmica: linee rette ≈ decadimento esponenziale"
+    )
+}
+
+#setup grafico :
+colori_zone <- c(
+  "Cl"     = "#B37A5C",  
+  "SiCl"   = "#9F9A83",  
+  "SaCl"   = "#C3A482",  
+  "ClLo"   = "#9C7355",  
+  "SiClLo" = "#826A4D",  
+  "SaClLo" = "#B89B74",  
+  "Lo"     = "#D1B993",  
+  "SiLo"   = "#BCAD92",  
+  "SaLo"   = "#CBAA7B",  
+  "Si"     = "#A9A590",  
+  "LoSa"   = "#D6C5A0",  
+  "Sa"     = "#DFD4B6"   
+)
+
+# 2. Abbassa l'opacità dei colori al 50% (alpha.f = 0.5)
+colori_trasparenti <- adjustcolor(colori_zone, alpha.f = 0.8)
+
+plot_texture_triangle <- function(df,
+                                   sand_col  = "PercSand",
+                                   clay_col  = "PercClay",
+                                   silt_col  = "PercSilt",
+                                   color_var = NULL,
+                                   palette   = NULL,
+                                   version   = c("ggtern", "ttplot")) {
+  version <- match.arg(version)
+
+  for (col in c(sand_col, clay_col, silt_col))
+    if (!col %in% names(df)) stop(paste("Colonna non trovata:", col))
+  if (!is.null(color_var) && !color_var %in% names(df))
+    stop(paste("color_var non trovato:", color_var))
+
+  tex <- data.frame(SAND = df[[sand_col]], CLAY = df[[clay_col]], SILT = df[[silt_col]])
+
+  if (!is.null(color_var)) {
+    col_data <- df[[color_var]]
+    lvls <- if (is.factor(col_data)) levels(col_data)
+            else sort(unique(na.omit(as.character(col_data))))
+    if (is.null(palette)) {
+      base_pal <- c("#2166ac", "#4393c3", "#1a9850", "#74c476", "#fdae61",
+                    "#d73027", "#762a83", "#e08214", "#a6761d", "#666666",
+                    "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e")
+      palette <- setNames(base_pal[seq_len(min(length(lvls), length(base_pal)))], lvls)
+    }
+  }
+
+  # ── versione TT.plot ────────────────────────────────────────────────────────
+  if (version == "ttplot") {
+    pt_col <- if (is.null(color_var)) "black"
+              else palette[as.character(df[[color_var]])]
+    soiltexture::TT.plot(
+      class.sys      = "USDA.TT",
+      tri.data       = tex,
+      main           = paste0("Soil Texture Triangle – USDA",
+                              if (!is.null(color_var)) paste0("\n(", color_var, ")")),
+      bg             = "white",
+      frame.bg.col   = "white",
+      class.p.bg.col = colori_trasparenti,
+      class.line.col = "#6B4226",
+      class.lab.show = "full",
+      class.lab.col  = "#3A2408",
+      cex.lab        = 0.85,
+      pch            = 16,
+      col            = pt_col,
+      cex            = 1.3
+    )
+    if (!is.null(color_var))
+      legend("topright", legend = lvls, col = palette, pch = 16,
+             title = color_var, bty = "n", cex = 0.8)
+    return(invisible(NULL))
+  }
+
+  # ── versione ggtern ─────────────────────────────────────────────────────────
+  if (!requireNamespace("ggtern", quietly = TRUE))
+    stop("Installa ggtern con: install.packages('ggtern')")
+  library(ggtern)
+
+  step    <- 0.5
+  grid_bg <- expand.grid(CLAY = seq(0, 100, by = step),
+                         SILT = seq(0, 100, by = step))
+  grid_bg <- grid_bg[grid_bg$CLAY + grid_bg$SILT <= 100, ]
+  grid_bg$SAND <- 100 - grid_bg$CLAY - grid_bg$SILT
+
+  mat <- soiltexture::TT.points.in.classes(tri.data = grid_bg, class.sys = "USDA.TT")
+  grid_bg$classe <- apply(mat, 1, function(x) {
+    nm <- names(x)[x > 0]
+    if (length(nm) == 0L) NA_character_ else nm[1L]
+  })
+  grid_bg <- grid_bg[!is.na(grid_bg$classe), ]
+
+  centroids <- do.call(rbind, lapply(split(grid_bg, grid_bg$classe), function(d)
+    data.frame(classe = d$classe[1],
+               CLAY   = mean(d$CLAY),
+               SILT   = mean(d$SILT),
+               SAND   = mean(d$SAND))
+  ))
+
+  crop_tex <- tex
+  if (!is.null(color_var)) crop_tex[[color_var]] <- df[[color_var]]
+
+  p <- ggtern(grid_bg, aes(x = SAND, y = CLAY, z = SILT)) +
+    geom_point(aes(colour = classe), shape = 15, size = 1.1, alpha = 0.85) +
+    scale_colour_manual(values = colori_zone, guide = "none")
+
+  # inherit.aes = TRUE: eredita x/y/z dal ggtern parent, evita i warning su "z"
+  if (!is.null(color_var)) {
+    p <- p +
+      geom_point(
+        data        = crop_tex,
+        aes(fill    = .data[[color_var]]),
+        shape       = 21, size = 2.8, stroke = 0.7, colour = "black",
+        inherit.aes = TRUE
+      ) +
+      scale_fill_manual(values = palette, name = color_var)
+  } else {
+    p <- p +
+      geom_point(
+        data        = tex,
+        shape       = 21, size = 2.8, stroke = 0.7,
+        fill        = alpha("white", 0.8), colour = "black",
+        inherit.aes = TRUE
+      )
+  }
+
+  # Etichette: due geom_text sovrapposti (halo bianco + testo scuro)
+  # position_identity() esplicito evita che ggtern rimuova il layer per PositionNudge
+  p +
+    geom_text(
+      data        = centroids,
+      aes(label   = classe),
+      size        = 3.2, fontface = "bold", colour = "white",
+      inherit.aes = TRUE,
+      position    = position_identity()
+    ) +
+    geom_text(
+      data        = centroids,
+      aes(label   = classe),
+      size        = 2.8, fontface = "bold", colour = "gray15",
+      inherit.aes = TRUE,
+      position    = position_identity()
+    ) +
+    theme_bw() +
+    theme_showarrows() +
+    labs(
+      title = paste0("Soil Texture Triangle – USDA",
+                     if (!is.null(color_var)) paste0("  (", color_var, ")")),
+      x = "Sand (%)", y = "Clay (%)", z = "Silt (%)"
+    ) +
+    theme(
+      plot.title   = element_text(face = "bold", size = 14, hjust = 0.5),
+      legend.title = element_text(face = "bold"),
+      legend.key   = element_rect(colour = "gray80")
+    )
+}
+

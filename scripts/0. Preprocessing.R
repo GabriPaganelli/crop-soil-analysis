@@ -1,33 +1,29 @@
 # ── 1. CARICAMENTO ────────────────────────────────────────────────────────────
 
+library(tidyverse)
 library(soiltexture)
 library(here)
 
-crop <- read.csv(here("data", "crop.csv"))
+crop <- read.csv(here("data", "crop.csv"), sep = ";")
 
-# ── 2. PREPROCESSING ──────────────────────────────────────────────────────────
+# ── 2. TIPI ───────────────────────────────────────────────────────────────────
 crop <- crop |>
   select(-OwnId) |>
   mutate(across(c(Landuse, Field, Plot, OnFarm, Irrigate,
                   Fertilised, N_Natural, Class), as.factor))
 
-# Prepara il dataframe con i nomi colonna richiesti dal pacchetto
-# (Assicurati di sostituire df$sand, df$silt, df$clay con i nomi esatti delle tue colonne)
+# ── 3. CLASSIFICAZIONE TEXTURE USDA ───────────────────────────────────────────
+# I punti sul bordo tra due classi vengono assegnati alla prima classe adiacente.
 tex_data <- data.frame(
   SAND = crop$PercSand,
   SILT = crop$PercSilt,
   CLAY = crop$PercClay
 )
 
-# Classifica i punti usando il sistema USDA
 classes <- TT.points.in.classes(tri.data = tex_data, class.sys = "USDA.TT")
 
-# Estrae il nome della classe per ogni riga (se un punto è sul bordo, prende la prima classe)
 crop$texture_class <- apply(classes, 1, function(x) names(x)[which(x > 0)][1])
 
-head(crop)
-
-# Vettore di conversione per le 12 classi USDA
 usda_lookup <- c(
   "Cl"     = "clay",
   "SiCl"   = "silty clay",
@@ -43,12 +39,19 @@ usda_lookup <- c(
   "Sa"     = "sand"
 )
 
-# Applica la conversione alla colonna creata in precedenza
 crop$texture <- usda_lookup[crop$texture_class]
+crop$Class <- NULL
+crop$texture_class <- NULL
+crop <- rename(crop, Texture = texture)
 
-crop$Class = NULL
-crop$texture_class = NULL
-colnames(crop) = c(colnames(crop)[1:18],'Texture')
+# ── 4. OUTPUT ─────────────────────────────────────────────────────────────────
+# crop  → dataset completo (tutte le variabili originali + Texture)
+# dati  → subset analitico (identificatori di campo + variabili numeriche)
 
-head(crop)
-#saveRDS(crop, file = "crop.rds")
+dati <- crop |>
+  select(Field, OnFarm, Irrigate, Fertilised, N_Natural,
+         Bottom, PH, PercClay, PercSilt, PercSand,
+         PercTotNitro, PercSOC, PercTotPhos, BulkDensity)
+
+saveRDS(crop, here("data", "crop.rds"))
+saveRDS(dati, here("data", "dati.rds"))
