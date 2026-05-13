@@ -146,3 +146,90 @@ crop |>
     color    = "Blocco Field"
   ) +
   theme(panel.grid.minor = element_blank())
+
+
+# ── 9. LINEARITÀ DI LOG(TARGET) VS BOTTOM ────────────────────────────────────
+# Per ogni field × target: R² del modello lineare e test F lineare vs quadratico.
+# Se R² è alto e il termine quadratico non è significativo (p ≥ 0.05),
+# la relazione log-lineare con la profondità è supportata.
+
+lin_results <- crop |>
+  pivot_longer(cols = all_of(target_vars), names_to = "target", values_to = "value") |>
+  group_by(Field, target) |>
+  summarise(
+    r2 = {
+      y  <- log(value)
+      x  <- Bottom
+      ok <- is.finite(y) & !is.na(x)
+      if (sum(ok) < 4) NA_real_
+      else summary(lm(y[ok] ~ x[ok]))$r.squared
+    },
+    p_quad = {
+      y  <- log(value)
+      x  <- Bottom
+      ok <- is.finite(y) & !is.na(x)
+      if (sum(ok) < 5) NA_real_
+      else anova(lm(y[ok] ~ x[ok]),
+                 lm(y[ok] ~ x[ok] + I(x[ok]^2)))$`Pr(>F)`[2]
+    },
+    .groups = "drop"
+  ) |>
+  mutate(sig_quad = p_quad < 0.05)
+
+# Etichette leggibili per i grafici
+target_labels <- c(
+  PercSOC      = "SOC (%)",
+  PercTotNitro = "Azoto totale (%)",
+  PercTotPhos  = "Fosforo totale (%)"
+)
+
+# ── Pannello 1: R² ────────────────────────────────────────────────────────────
+make_r2_plot <- function(tgt) {
+  lin_results |>
+    filter(target == tgt) |>
+    mutate(Field = reorder(Field, r2)) |>
+    ggplot(aes(x = r2, y = Field)) +
+    geom_point(size = 2, colour = "#2166ac") +
+    geom_vline(xintercept = 0.7, linetype = "dashed", colour = "gray50") +
+    scale_x_continuous(limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.7, 0.75, 1)) +
+    labs(title = target_labels[tgt], x = "R²", y = NULL) +
+    theme_minimal(base_size = 10) +
+    theme(plot.title = element_text(face = "bold"))
+}
+
+wrap_plots(map(target_vars, make_r2_plot), nrow = 1) +
+  plot_annotation(
+    title    = "R² di lm(log(target) ~ Bottom) per field",
+    subtitle = "Linea tratteggiata = soglia orientativa 0.7",
+    theme    = theme(plot.title = element_text(face = "bold", size = 13))
+  )
+
+# ── Pannello 2: test F (lineare vs quadratico) ────────────────────────────────
+make_ftest_plot <- function(tgt) {
+  lin_results |>
+    filter(target == tgt) |>
+    mutate(Field = reorder(Field, p_quad)) |>
+    ggplot(aes(x = p_quad, y = Field, colour = sig_quad)) +
+    geom_point(size = 2) +
+    geom_vline(xintercept = 0.05, linetype = "dashed", colour = "gray50") +
+    scale_colour_manual(
+      values = c("TRUE" = "#d73027", "FALSE" = "#1a9850"),
+      labels = c("TRUE" = "p < 0.05  (quadratico significativo)",
+                 "FALSE" = "p ≥ 0.05  (lineare OK)"),
+      name   = NULL
+    ) +
+    scale_x_continuous(limits = c(0, 1)) +
+    labs(title = target_labels[tgt], x = "p-value termine quadratico", y = NULL) +
+    theme_minimal(base_size = 10) +
+    theme(
+      plot.title     = element_text(face = "bold"),
+      legend.position = "bottom"
+    )
+}
+
+wrap_plots(map(target_vars, make_ftest_plot), nrow = 1) +
+  plot_annotation(
+    title    = "Test F: modello lineare vs quadratico per field",
+    subtitle = "Rosso = il termine quadratico migliora significativamente il fit",
+    theme    = theme(plot.title = element_text(face = "bold", size = 13))
+  )
