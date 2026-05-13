@@ -55,3 +55,4 @@ dati <- crop |>
 
 saveRDS(crop, here("data", "crop.rds"))
 saveRDS(dati, here("data", "dati.rds"))
+
