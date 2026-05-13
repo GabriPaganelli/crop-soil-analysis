@@ -22,8 +22,8 @@ crop_long <- crop |>
 
 
 # ── ANALISI UNIVARIATA ────────────────────────────────────────────────────────
-analizza_dataset(crop)
-grafico_distribuzioni(crop[, !names(crop) %in% c("Field", "Plot", "Lat", "Long")])
+analizza_dataset(dati)
+grafico_distribuzioni(dati[, !names(dati) %in% "Field"])
 
 
 # ── TESSITURA ─────────────────────────────────────────────────────────────────
