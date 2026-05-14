@@ -379,7 +379,6 @@ mod4rr <- '
 
 fit4rr <- sem(mod4rr, data = dati_full, cluster = "Field", estimator = "MLR")
 summary(fit4rr, fit.measures = TRUE, standardized = TRUE)
-saveRDS(fit4rr, here("stan", "fit4rr_freq.rds"))
 
 
 # ── CONFRONTO M4r vs M4rr ────────────────────────────────────────────────────────

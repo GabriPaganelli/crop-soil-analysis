@@ -26,6 +26,7 @@ if (.Platform$OS.type == "windows") {
 
 if (requireNamespace("posterior",  quietly = TRUE)) library(posterior)
 if (requireNamespace("bayesplot",  quietly = TRUE)) library(bayesplot)
+if (requireNamespace("lavaan",     quietly = TRUE)) library(lavaan)
 
 
 # ── 1. DATI ──────────────────────────────────────────────────────────────────────
@@ -102,7 +103,27 @@ cat("Distanze inter-field (km): min =", round(min(dist_mat[dist_mat > 0]), 2),
     " max =", round(max(dist_mat), 1), "\n")
 
 
-# ── 4. HORSESHOE HYPERPARAMETRI ──────────────────────────────────────────────────
+# ── 4. LAMBDA_N FISSO ────────────────────────────────────────────────────────────
+# lambda_N è il loading di logN sul fattore organico.
+# Nel run MCMC con lambda_N campionato (prior N(0.63,0.25)), il termine
+# lambda_N * eta_org_B[j] creava un accoppiamento bilineare in 41 dimensioni:
+# la posterior ha forma di cresta iperbolica e NUTS non riesce a percorrerla
+# (ESS~7, Rhat~1.53 per tutti i parametri organici).
+# Soluzione: fissare lambda_N al MLE di M4rr (lavaan, MLR).
+# La stima è precisa (SE=0.059) quindi la perdita di informazione è minima.
+
+if (exists("fit4rr")) {
+  lambda_N_fixed <- parameterEstimates(fit4rr) |>
+    filter(label == "a", op == "=~") |>
+    slice(1) |>
+    pull(est)
+} else {
+  lambda_N_fixed <- 0.6355  # MLE da M4rr (lavaan MLR), SE=0.059
+}
+cat(sprintf("lambda_N fisso: %.4f\n", lambda_N_fixed))
+
+
+# ── 5. HORSESHOE HYPERPARAMETRI ─────────────────────────────────────────────────
 # tau0 = (p0 / (K_W - p0)) * sigma_noise / sqrt(N)
 # p0=3 (logBottom, Texture2, BulkDensity attesi non-nulli)
 
@@ -116,7 +137,7 @@ slab_scale <- 2.0
 slab_df    <- 4.0
 
 
-# ── 5. LISTA DATI STAN ───────────────────────────────────────────────────────────
+# ── 6. LISTA DATI STAN ───────────────────────────────────────────────────────────
 
 stan_data <- list(
   N          = N,
@@ -132,13 +153,14 @@ stan_data <- list(
   dist_mat   = dist_mat,
   tau0       = tau0,
   slab_scale = slab_scale,
-  slab_df    = slab_df
+  slab_df    = slab_df,
+  lambda_N   = lambda_N_fixed   # loading fisso (vedi sezione 4)
 )
 
 rm(X_W, X_B, dist_mat); gc()
 
 
-# ── 6. COMPILAZIONE MODELLO ──────────────────────────────────────────────────────
+# ── 7. COMPILAZIONE MODELLO ──────────────────────────────────────────────────────
 
 stan_file <- here("stan", "m4rr_gp.stan")
 cat("\nCompilazione del modello Stan (usa cache se già compilato)...\n")
@@ -146,19 +168,19 @@ mod <- cmdstan_model(stan_file, compile = TRUE)
 cat("OK. CmdStan version:", cmdstan_version(), "\n")
 
 
-# ── 7. TEST RUN ──────────────────────────────────────────────────────────────────
+# ── 8. TEST RUN ──────────────────────────────────────────────────────────────────
 # Decommenta per verificare che il modello giri prima del run completo.
 
 # fit_test <- mod$sample(
 #   data = stan_data, seed = 42, chains = 1, parallel_chains = 1,
 #   iter_warmup = 200, iter_sampling = 50, adapt_delta = 0.90, refresh = 50
 # )
-# print(fit_test$summary(c("lambda_N","tau_hs","sigma_GP_org","rho_org","sigma_GP_P","rho_P")))
+# print(fit_test$summary(c("tau_hs","sigma_GP_org","rho_org","sigma_GP_P","rho_P")))
 # cat("Divergenze test:", sum(fit_test$sampler_diagnostics()[,,"divergent__"]), "\n")
 # rm(fit_test); gc()
 
 
-# ── 8. MCMC: run o carica da file ────────────────────────────────────────────────
+# ── 9. MCMC: run o carica da file ────────────────────────────────────────────────
 
 fit_path <- here("stan", "fit_m4rr_gp.rds")
 
@@ -184,6 +206,12 @@ if (!file.exists(fit_path)) {
   fit$save_object(fit_path)
   cat("\nFit salvato in:", fit_path, "\n")
 
+  # Elimina i CSV e JSON delle catene (ridondanti dopo save_object)
+  csv_files  <- list.files(here("stan"), pattern = "\\.csv$",  full.names = TRUE)
+  json_files <- list.files(here("stan"), pattern = "\\.json$", full.names = TRUE)
+  invisible(file.remove(c(csv_files, json_files)))
+  cat("CSV e JSON delle catene eliminati.\n")
+
 } else {
   cat("\nCarico fit salvato da:", fit_path, "\n")
   fit <- readRDS(fit_path)
@@ -192,7 +220,7 @@ if (!file.exists(fit_path)) {
 rm(stan_data); gc()
 
 
-# ── 9. ANALISI: calcola o carica da file ─────────────────────────────────────────
+# ── 10. ANALISI: calcola o carica da file ────────────────────────────────────────
 
 risultati_path <- here("stan", "risultati_bayesiano.RData")
 
@@ -224,8 +252,10 @@ if (!file.exists(risultati_path)) {
   # ── 9b. Summary parametri strutturali ───────────────────────────────────────
   cat("\nCalcolo summary parametri...\n")
 
+  # lambda_N è fisso (dato), non appare nei draw MCMC
+  cat(sprintf("\nlambda_N fissato a: %.4f (MLE M4rr, SE=0.059)\n", lambda_N_fixed))
+
   vars_key <- c(
-    "lambda_N",
     "gamma_org",    # [1]=logBottom [2]=PH [3]=Texture1 [4]=Texture2 [5]=BulkDensity
     "gamma_P_B",    # [1]=OnFarm [2]=Irrigate [3]=Fertilised [4]=N_Natural
     "psi_W_org", "psi_W_P", "theta_W_SOC", "theta_W_N",
@@ -305,11 +335,12 @@ if (!file.exists(risultati_path)) {
 }
 
 
-# ── 10. TRACE PLOTS ─────────────────────────────────────────────────────────────
+# ── 11. TRACE PLOTS ─────────────────────────────────────────────────────────────
 # Richiede il fit in memoria. Decommenta per visualizzare.
 
 # if (requireNamespace("bayesplot", quietly = TRUE)) {
-#   params_key <- c("lambda_N", "gamma_org[1]", "gamma_org[2]", "gamma_org[3]",
+#   # lambda_N e' dato fisso, non appare nei draw
+#   params_key <- c("gamma_org[1]", "gamma_org[2]", "gamma_org[3]",
 #                   "gamma_org[4]", "gamma_org[5]",
 #                   "sigma_GP_org", "rho_org", "sigma_GP_P", "rho_P", "tau_hs")
 #   draws_key <- fit$draws(variables = params_key)
@@ -318,7 +349,7 @@ if (!file.exists(risultati_path)) {
 # }
 
 
-# ── 11. PLOT SPAZIALE FACTOR SCORES ─────────────────────────────────────────────
+# ── 12. PLOT SPAZIALE FACTOR SCORES ─────────────────────────────────────────────
 
 if (exists("spatial_df") && nrow(spatial_df) > 0) {
   p_org <- ggplot(spatial_df, aes(x = x_km, y = y_km, fill = eta_org_mean)) +

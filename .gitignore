@@ -7,7 +7,8 @@
 stan/*.csv
 stan/*.json
 stan/*.exe
-stan/fit_m4rr_gp.rds
+stan/fit_*.rds
+stan/risultati_*.RData
 
 # File temporanei
 scripts/_tmp_*.R

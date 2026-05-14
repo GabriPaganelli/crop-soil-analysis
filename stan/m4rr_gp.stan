@@ -6,6 +6,18 @@
 //   - GP Matern 3/2 sui fattori between, range separati rho_org e rho_P
 //   - hard zeros da M4rr: phi^W = phi^B = 0, gamma^W_P = 0, gamma^B_org = 0
 //
+// NOTA su lambda_N (loading logN sul fattore organico)
+// -------------------------------------------------------
+// lambda_N è trattato come DATO fisso (non campionato).
+// Motivazione: nella versione con lambda_N ~ normal(0.63, 0.25) il termine
+// lambda_N * eta_org_B[j] crea un accoppiamento bilineare in 41 dimensioni
+// (1 loading × 40 field), che genera una posterior a forma di cresta iperbolica.
+// NUTS non riesce a percorrerla: nel run precedente ESS~7 e Rhat~1.53 per tutti
+// i parametri del fattore organico, pur con E-BFMI>0.6 e solo 4 divergenze.
+// La stima frequentista da M4rr (MLR, lavaan) è lambda_N = 0.636, SE = 0.059,
+// molto precisa; fissarla perde pochissima informazione rispetto al guadagno
+// computazionale. Il valore è passato da R in stan_data$lambda_N.
+//
 // Struttura del modello:
 //
 //   WITHIN (N=220 osservazioni, indice n, campo j[n]):
@@ -76,6 +88,9 @@ data {
   real<lower=0> slab_scale;   // larghezza dello slab (default 2)
   real<lower=0> slab_df;      // df dello slab (default 4)
 
+  // Loading fisso (vedi nota in testa al file)
+  real<lower=0> lambda_N;     // loading logN su fattore organico (MLE da M4rr)
+
 }
 
 transformed data {
@@ -85,10 +100,8 @@ transformed data {
 
 parameters {
 
-  // ── Loading --------------------------------------------------------------
-  real<lower=0> lambda_N;    // loading condiviso logN (>0 per identificabilita')
-
   // ── Horseshoe su gamma_W_org (predittori within per fattore organico) ----
+  // (lambda_N rimosso dai parameters: ora e' un dato fisso, vedi blocco data)
   vector[K_W] z_gamma_org;            // non-centered: N(0,1)
   vector<lower=0>[K_W] lambda_hs;     // local scales (half-Cauchy)
   real<lower=0> tau_hs;               // global scale
@@ -184,11 +197,8 @@ transformed parameters {
 
 model {
 
-  // ── Prior: loading -------------------------------------------------------
-  // Empirical Bayes centrato sull'output di M4rr (lambda_N ≈ 0.633)
-  lambda_N ~ normal(0.63, 0.25);
-
   // ── Prior: horseshoe regolarizzato su gamma_org -------------------------
+  // (lambda_N non ha prior: e' un dato fisso, vedi blocco data)
   z_gamma_org ~ std_normal();
   lambda_hs   ~ cauchy(0, 1);
   tau_hs      ~ normal(0, tau0);
@@ -253,9 +263,7 @@ generated quantities {
   vector[J] eta_org_B_out = eta_org_B;
   vector[J] eta_P_B_out   = eta_P_B;
 
-  // ── Parametri strutturali chiave (per confronto con M4rr frequentista) --
-  // gamma_org gia' disponibile come transformed parameter
-  // Calcoliamo std.all approssimativo (scala standardizzata y)
+  // ── lambda_N fissato: lo riecoheggamo per tracciabilita' nei draw --------
   real lambda_N_out = lambda_N;
 
   // ── Log-likelihood per LOO-CV (se necessario) ---------------------------
