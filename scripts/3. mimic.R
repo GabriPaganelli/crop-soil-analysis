@@ -283,6 +283,121 @@ cat("\nDelta AIC (M3 - M4):", tab_fit_ml$aic[1] - tab_fit_ml$aic[2], "\n")
 cat("Delta BIC (M3 - M4):", tab_fit_ml$bic[1] - tab_fit_ml$bic[2], "\n")
 
 
+# ── MODELLO 4r: MIMIC multilevel 2F — versione ristretta ────────────────────────
+#
+# Specifica statistica:
+#   Identico a M4 tranne per le seguenti restrizioni (motivate empiricamente):
+#
+#   1. phi^W = 0: covarianza within tra fertil_org_W e fertil_P_W fissata a zero.
+#      Motivazione: in M7 la correlazione within SOC-N era 0.068 e SOC-P -0.002;
+#      i due fattori sono indipendenti dentro il profilo verticale.
+#
+#   2. phi^B = 0: covarianza between tra fertil_org_B e fertil_P_B fissata a zero.
+#      Motivazione: z = 0.77 in M4, non significativo.
+#
+#   3. gamma^W(P) = 0: nessun predittore within per fertil_P_W.
+#      Motivazione: tutti i coefficienti non significativi in M4 (max |z| = 1.52);
+#      il fosforo non mostra profilo verticale sistematico dopo il random Field.
+#
+#   4. gamma^B(org) = 0: nessun predittore between per fertil_org_B.
+#      Motivazione: tutti i coefficienti non significativi in M4 (max |z| = 0.78);
+#      la gestione attuale non spiega la variazione between del fattore organico.
+#      Interpretazione biologica: la fertilita' organica tra Field e' determinata
+#      da storia d'uso e pedologia, non dallo status gestionale corrente.
+#
+#   Parametri rimossi: 11 (2 covarianze + 5 gamma^W_P + 4 gamma^B_org)
+#   Parametri liberi: 32 - 11 = 21
+#   df residui: df_M4 + 11 = 21
+#   M4r e' nested in M4 -> confronto via LRT Satorra-Bentler valido.
+
+mod4r <- '
+  level: 1
+    fertil_org_W =~ logSOC + a*logN
+    fertil_P_W   =~ 1*logP
+    logP         ~~ 0*logP
+    fertil_org_W ~~ 0*fertil_P_W
+    fertil_org_W ~ logBottom + PH + Texture1 + Texture2 + BulkDensity
+
+  level: 2
+    fertil_org_B =~ logSOC + a*logN
+    fertil_P_B   =~ 1*logP
+    logP         ~~ 0*logP
+    fertil_org_B ~~ 0*fertil_P_B
+    fertil_P_B   ~ OnFarm + Irrigate + Fertilised + N_Natural
+'
+
+fit4r <- sem(mod4r, data = dati_full, cluster = "Field", estimator = "MLR")
+summary(fit4r, fit.measures = TRUE, standardized = TRUE)
+
+
+# ── CONFRONTO M4 vs M4r ─────────────────────────────────────────────────────────
+
+tab_m4_m4r <- bind_rows(
+  estrai_fit_lavaan(fit4,  "M4:  ML 2F completo"),
+  estrai_fit_lavaan(fit4r, "M4r: ML 2F ristretto")
+)
+cat("\n── Confronto M4 vs M4r ──────────────────────────────────────────────\n")
+print(tab_m4_m4r)
+cat("\nDelta AIC (M4r - M4):", round(tab_m4_m4r$aic[2] - tab_m4_m4r$aic[1], 1), "\n")
+cat("Delta BIC (M4r - M4):", round(tab_m4_m4r$bic[2] - tab_m4_m4r$bic[1], 1), "\n")
+
+# LRT Satorra-Bentler: M4r nested in M4 (11 restrizioni)
+cat("\n── LRT Satorra-Bentler (M4r vs M4) ─────────────────────────────────\n")
+print(lavTestLRT(fit4r, fit4))
+
+
+# ── MODELLO 4rr: MIMIC multilevel 2F — versione ulteriormente ristretta ──────────
+#
+# Rispetto a M4r, si aggiunge:
+#   5. gamma^W_org(PH) = 0: z = -0.83 in M4r, std.all = -0.04.
+#      PH non ha effetto sul fattore organico within; fissato esplicitamente (0*PH)
+#      per mantenere PH nell'insieme delle variabili osservate e rendere il
+#      confronto LRT valido (stesso saturated model di M4r).
+#
+#   Candidate non rimosse:
+#   - gamma^W_org(Texture1): z = -1.53 in M4r (p=0.127): borderline; LRT
+#     M4rr_b vs M4rr_a ha p=0.154 e AIC peggiora di +1.7 -> si mantiene.
+#
+#   Parametri liberi: 21 - 1 = 20  |  df residui: 22
+#   M4rr nested in M4r -> LRT Satorra-Bentler vs M4r.
+
+mod4rr <- '
+  level: 1
+    fertil_org_W =~ logSOC + a*logN
+    fertil_P_W   =~ 1*logP
+    logP         ~~ 0*logP
+    fertil_org_W ~~ 0*fertil_P_W
+    fertil_org_W ~ logBottom + 0*PH + Texture1 + Texture2 + BulkDensity
+
+  level: 2
+    fertil_org_B =~ logSOC + a*logN
+    fertil_P_B   =~ 1*logP
+    logP         ~~ 0*logP
+    fertil_org_B ~~ 0*fertil_P_B
+    fertil_P_B   ~ OnFarm + Irrigate + Fertilised + N_Natural
+'
+
+fit4rr <- sem(mod4rr, data = dati_full, cluster = "Field", estimator = "MLR")
+summary(fit4rr, fit.measures = TRUE, standardized = TRUE)
+saveRDS(fit4rr, here("stan", "fit4rr_freq.rds"))
+
+
+# ── CONFRONTO M4r vs M4rr ────────────────────────────────────────────────────────
+
+tab_m4r_m4rr <- bind_rows(
+  estrai_fit_lavaan(fit4r,  "M4r:  ML 2F ristretto (21 par)"),
+  estrai_fit_lavaan(fit4rr, "M4rr: ML 2F min        (20 par)")
+)
+cat("\n── Confronto M4r vs M4rr ─────────────────────────────────────────────\n")
+print(tab_m4r_m4rr)
+cat("\nDelta AIC (M4rr - M4r):", round(tab_m4r_m4rr$aic[2] - tab_m4r_m4rr$aic[1], 1), "\n")
+cat("Delta BIC (M4rr - M4r):", round(tab_m4r_m4rr$bic[2] - tab_m4r_m4rr$bic[1], 1), "\n")
+
+# LRT Satorra-Bentler: M4rr nested in M4r (1 restrizione: PH=0)
+cat("\n── LRT Satorra-Bentler (M4rr vs M4r) ───────────────────────────────\n")
+print(lavTestLRT(fit4rr, fit4r))
+
+
 # ── MODELLO 5: galamm, 1 fattore ────────────────────────────────────────────────
 #
 # Specifica statistica:
@@ -374,11 +489,13 @@ summary(fit6)
 # ── TABELLA RIASSUNTIVA FIT ──────────────────────────────────────────────────────
 
 tab_lavaan <- bind_rows(
-  estrai_fit_lavaan(fit1,    "M1: flat 1F"),
-  estrai_fit_lavaan(fit1_mi, "M1mi: flat 1F + MI"),
-  estrai_fit_lavaan(fit2,    "M2: flat 2F"),
-  estrai_fit_lavaan(fit3,    "M3: ML 1F"),
-  estrai_fit_lavaan(fit4,    "M4: ML 2F")
+  estrai_fit_lavaan(fit1,    "M1:  flat 1F"),
+  estrai_fit_lavaan(fit1_mi, "M1mi:flat 1F + MI"),
+  estrai_fit_lavaan(fit2,    "M2:  flat 2F"),
+  estrai_fit_lavaan(fit3,    "M3:  ML 1F"),
+  estrai_fit_lavaan(fit4,    "M4:  ML 2F"),
+  estrai_fit_lavaan(fit4r,   "M4r: ML 2F ristretto"),
+  estrai_fit_lavaan(fit7,    "M7:  ML 3F (multivariata)")
 )
 
 tab_galamm <- bind_rows(
@@ -398,6 +515,139 @@ bind_rows(
   tab_lavaan |> select(modello, aic, bic),
   tab_galamm |> select(modello, aic, bic)
 ) |> arrange(aic) |> print()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODELLO 7: BASELINE MULTIVARIATA (ML, 3 fattori = nessuna struttura latente)
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Specifica statistica:
+#   Ogni indicatore ha il proprio fattore con misura perfetta (lambda=1, theta=0):
+#     eta_SOC =~ 1*logSOC;  logSOC ~~ 0*logSOC  =>  eta_SOC = logSOC esattamente
+#     eta_N   =~ 1*logN;    logN   ~~ 0*logN
+#     eta_P   =~ 1*logP;    logP   ~~ 0*logP
+#   Covarianza libera tra tutti e tre i fattori a entrambi i livelli.
+#   Struttura equivalente a un LMM multivariato senza compressione latente:
+#     ogni risposta e' modellata indipendentemente, con matrice di covarianza libera.
+#
+# M4 e' una versione vincolata di M7: impone (a) covarianza residua SOC-N = 0
+# tramite il fattore condiviso, e (b) proporzionalita' dei coefficienti strutturali
+# su SOC e N (effetto_N = lambda_N * effetto_SOC per ogni covariata).
+#
+# Tre confronti:
+#   1. AIC/BIC: M4 vs M7 — la struttura fattoriale paga in parsimonia?
+#   2. Correlazione SOC-N nei fattori di M7: se grande, il vincolo di M4 e' rigido
+#   3. Proporzionalita' dei gamma in M7: se gamma_N/gamma_SOC ~ lambda_N (M4),
+#      il fattore condiviso e' una buona sintesi dei dati
+
+mod7 <- '
+  level: 1
+    eta_SOC_W =~ 1*logSOC
+    eta_N_W   =~ 1*logN
+    eta_P_W   =~ 1*logP
+    logSOC    ~~ 0*logSOC
+    logN      ~~ 0*logN
+    logP      ~~ 0*logP
+    eta_SOC_W ~~ eta_N_W
+    eta_SOC_W ~~ eta_P_W
+    eta_N_W   ~~ eta_P_W
+    eta_SOC_W ~ logBottom + PH + Texture1 + Texture2 + BulkDensity
+    eta_N_W   ~ logBottom + PH + Texture1 + Texture2 + BulkDensity
+    eta_P_W   ~ logBottom + PH + Texture1 + Texture2 + BulkDensity
+
+  level: 2
+    eta_SOC_B =~ 1*logSOC
+    eta_N_B   =~ 1*logN
+    eta_P_B   =~ 1*logP
+    logSOC    ~~ 0*logSOC
+    logN      ~~ 0*logN
+    logP      ~~ 0*logP
+    eta_SOC_B ~~ eta_N_B
+    eta_SOC_B ~~ eta_P_B
+    eta_N_B   ~~ eta_P_B
+    eta_SOC_B ~ OnFarm + Irrigate + Fertilised + N_Natural
+    eta_N_B   ~ OnFarm + Irrigate + Fertilised + N_Natural
+    eta_P_B   ~ OnFarm + Irrigate + Fertilised + N_Natural
+'
+
+fit7 <- sem(mod7, data = dati_full, cluster = "Field", estimator = "MLR")
+summary(fit7, fit.measures = TRUE, standardized = TRUE)
+
+
+# ── 1. AIC/BIC: M4 vs M7 ────────────────────────────────────────────────────
+
+tab_m4_m7 <- bind_rows(
+  estrai_fit_lavaan(fit4, "M4: ML 2F (fattoriale)"),
+  estrai_fit_lavaan(fit7, "M7: ML 3F (multivariata)")
+)
+cat("\n── Confronto M4 vs M7 ──────────────────────────────────────────────\n")
+print(tab_m4_m7)
+cat("\nDelta AIC (M4 - M7):", round(tab_m4_m7$aic[1] - tab_m4_m7$aic[2], 1), "\n")
+cat("Delta BIC (M4 - M7):", round(tab_m4_m7$bic[1] - tab_m4_m7$bic[2], 1), "\n")
+
+# Test chi-quadrato (Satorra-Bentler scaled): M4 e M7 non sono nested in modo
+# standard (parameterizzazioni diverse), ma lavaan prova il confronto se i df
+# sono compatibili. Se restituisce errore, si usa solo AIC/BIC.
+tryCatch(
+  { cat("\n── lavTestLRT (Satorra-Bentler) ──\n"); print(lavTestLRT(fit4, fit7)) },
+  error = function(e) cat("LRT non applicabile: modelli non nested nella stessa parametrizzazione.\n")
+)
+
+
+# ── 2. Correlazione residua SOC-N in M7 ─────────────────────────────────────
+# In M7 la covarianza tra eta_SOC e eta_N e' libera: e' la correlazione tra logSOC
+# e logN che RIMANE dopo aver rimosso i predittori e la struttura gerarchica.
+# Se e' alta => M4 (che la forza a zero tramite il fattore) e' troppo rigido.
+
+vc_m7 <- lavInspect(fit7, "est")
+
+# Covarianza within (livello 1)
+psi_W <- vc_m7$within$psi
+cat("\n── Matrice di covarianza fattori within (M7, livello 1) ──\n")
+print(round(psi_W, 4))
+
+# Correlazione within
+sd_W    <- sqrt(diag(psi_W))
+cor_W   <- psi_W / outer(sd_W, sd_W)
+cat("\n── Correlazione tra fattori within (M7) ──\n")
+print(round(cor_W, 3))
+
+# Covarianza between (livello 2)
+psi_B <- vc_m7$Field$psi
+cat("\n── Matrice di covarianza fattori between (M7, livello 2) ──\n")
+print(round(psi_B, 4))
+
+sd_B  <- sqrt(diag(psi_B))
+cor_B <- psi_B / outer(sd_B, sd_B)
+cat("\n── Correlazione tra fattori between (M7) ──\n")
+print(round(cor_B, 3))
+
+
+# ── 3. Proporzionalita' dei gamma strutturali M7 vs M4 ──────────────────────
+# In M4: effetto di ogni covariata su logN = lambda_N * effetto su logSOC.
+# Verifica: il rapporto gamma_N / gamma_SOC in M7 e' circa costante (= lambda_N)?
+# Se si => il fattore condiviso e' giustificato.
+# Se no => le due risposte reagiscono diversamente alle covariate => 3F preferibile.
+
+lambda_N_m4 <- coef(fit4)["a"]  # loading stimato in M4
+
+pe_m7 <- parameterEstimates(fit7, standardized = FALSE) |>
+  filter(op == "~", level == 1) |>
+  select(lhs, rhs, est, se) |>
+  filter(lhs %in% c("eta_SOC_W", "eta_N_W")) |>
+  tidyr::pivot_wider(names_from = lhs,
+                     values_from = c(est, se),
+                     names_sep   = "_") |>
+  mutate(
+    rapporto   = round(est_eta_N_W / est_eta_SOC_W, 3),
+    lambda_N   = round(lambda_N_m4, 3),
+    delta      = round(rapporto - lambda_N_m4, 3)
+  )
+
+cat("\n── Proporzionalita' gamma_N / gamma_SOC vs lambda_N di M4 (within) ──\n")
+cat("lambda_N stimato in M4:", round(lambda_N_m4, 3), "\n\n")
+print(as.data.frame(pe_m7 |> select(rhs, est_eta_SOC_W, est_eta_N_W,
+                                     rapporto, lambda_N, delta)))
 
 
 # ── SENSITIVITY ANALYSIS: con e senza outlier PercTotPhos ────────────────────────

@@ -2,3 +2,12 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# CmdStan output: chain CSVs, compiled binary, large MCMC fit
+stan/*.csv
+stan/*.json
+stan/*.exe
+stan/fit_m4rr_gp.rds
+
+# File temporanei
+scripts/_tmp_*.R
