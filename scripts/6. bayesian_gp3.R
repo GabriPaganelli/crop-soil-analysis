@@ -17,15 +17,6 @@
 # cattura il gradiente con parsimonia: ~221 -> ~181 parametri (-43 GP, +2 trend).
 # Il GP Matern 3/2 per eta_org_B (SOC) rimane invariato (rho_org = 3.85 km,
 # ben identificato nel run gp2).
-#
-# RISULTATO run gp3 (motivazione abbandono):
-# beta_N_x = -0.106, CI [-0.963, +0.769]; beta_N_y = -0.040, CI [-0.939, +0.853].
-# Entrambi attraversano zero ampiamente: nessun gradiente direzionale.
-# sigma_B_N risale a 2.10 (identico al caso i.i.d. senza struttura spaziale).
-# Interpretazione: la variazione between di logN e' organizzata per cluster di
-# tipo di suolo (terreni diversi in zone diverse), non come gradiente continuo.
-# Ne' GP Matern ne' piano inclinato possono catturare cluster discreti.
-# Modello successivo: scripts/7. bayesian_gp7.R (covariati di management between).
 # =============================================================================
 
 

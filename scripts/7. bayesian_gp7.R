@@ -3,7 +3,7 @@
 #
 # Rispetto a scripts/6. bayesian_gp3.R, unica modifica strutturale:
 # il trend lineare sulle coordinate (beta_N_x, beta_N_y) viene sostituito
-# da covariati di management between per logN: gamma_N_B * X_B.
+# da covariate di management between per logN: gamma_N_B * X_B.
 #
 # Motivazione:
 # gp3 ha mostrato beta_N_x = -0.106 [CI -0.96, +0.77] e
