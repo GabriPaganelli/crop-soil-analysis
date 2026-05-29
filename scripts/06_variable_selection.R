@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # 06_variable_selection.R  —  Projection predictive variable selection
 #
 # COME FUNZIONA projpred (NON fitta modelli Stan per ogni subset):
@@ -10,7 +10,7 @@
 #   3. LOO approssimato: confronta i sottmodelli con il reference tramite
 #      PSIS-LOO, cerca il più piccolo indistinguibile dal reference.
 #
-# REFERENCE MODEL: M-SP (fit_v2_ri_slope_mu.rds) via draws cmdstanr.
+# REFERENCE MODEL: M-SP (fit_msp.rds) via draws cmdstanr.
 #   Per ogni risposta (SOC, N, P) separatamente, costruisce la matrice
 #   mu (draws × osservazioni) dal fit già salvato.
 #
@@ -25,7 +25,7 @@
 #   in un submodel semplice è una perdita accettabile per la selezione
 #   degli effetti fissi. La selezione riguarda gamma_r e beta_r.
 #
-# Dipende da: stan/fit_v2_ri_slope_mu.rds, scripts/00_utilities.R
+# Dipende da: stan/fit_msp.rds, scripts/00_utilities.R
 # =============================================================================
 
 
@@ -81,7 +81,7 @@ cat(sprintf("N = %d | J = %d\n", N, J))
 
 # ── 2. CARICA FIT M-SP ────────────────────────────────────────────────────────
 
-fit_path <- here("stan", "fit_v2_ri_slope_mu.rds")
+fit_path <- here("stan", "fit_msp.rds")
 cat("Carico M-SP da:", fit_path, "\n")
 fit20 <- readRDS(fit_path)
 

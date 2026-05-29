@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # 03_model_proportional_slope.R  —  Modello M-SP (Slope Proporzionale, finale)
 #
 # STRUTTURA (stan/m4rr_v2_ri_slope_mu.stan):
@@ -18,7 +18,7 @@
 #   eta_P   = 0.096 (CI90 [0.019, 0.179]): segnale debole ma presente.
 #
 # CONFRONTO LOO: M-SP vs M-RI vs M-GPS vs M-GP  →  M-SP è il migliore.
-# Fit salvato in: stan/fit_v2_ri_slope_mu.rds
+# Fit salvato in: stan/fit_msp.rds
 # =============================================================================
 
 
@@ -101,7 +101,7 @@ cat("OK. CmdStan version:", cmdstan_version(), "\n")
 
 # ── 3. MCMC ───────────────────────────────────────────────────────────────────
 
-fit_path <- here("stan", "fit_v2_ri_slope_mu.rds")
+fit_path <- here("stan", "fit_msp.rds")
 
 if (!file.exists(fit_path)) {
 
@@ -241,9 +241,9 @@ if (requireNamespace("loo", quietly = TRUE)) {
   cat("\nM-SP (modello finale):\n"); print(loo_cur)
 
   modelli <- list(
-    `M-RI`  = here("stan", "fit_v2_no_gp_mu.rds"),
-    `M-GPS` = here("stan", "fit_m4rr_gp8.rds"),
-    `M-GP`  = here("stan", "fit_gp_v2_full.rds")
+    `M-RI`  = here("stan", "fit_mri.rds"),
+    `M-GPS` = here("stan", "fit_mgps.rds"),
+    `M-GP`  = here("stan", "fit_mgp.rds")
   )
 
   loos <- list(`M-SP` = loo_cur)
