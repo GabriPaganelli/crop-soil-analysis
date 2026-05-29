@@ -120,9 +120,8 @@ stan_data <- list(
   X_B      = X_B
 )
 
-cat(sprintf("Parametri totali attesi: 3×%d + %d = %d\n",
-            J, 3 * J + 3 * (4 + length(X_B_cols)) + 12,
-            3 * J + 3 * length(X_W_cols) + 3 * length(X_B_cols) + 12))
+n_extra <- 3 * length(X_W_cols) + 3 * length(X_B_cols) + 12  # = 3*4 + 3*6 + 12 = 42
+cat(sprintf("Parametri totali attesi: 3×%d + %d = %d\n", J, n_extra, 3 * J + n_extra))
 rm(X_W, X_B); gc()
 
 
