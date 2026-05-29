@@ -1,3 +1,72 @@
+# =============================================================================
+# 00_utilities.R  —  Funzioni condivise tra gli script del progetto
+# =============================================================================
+#
+# Struttura:
+#   1. Helper di progetto  (setup_rtools, carica_dati, fit_field)
+#   2. EDA generica        (analizza_dataset, correlazione_*, grafico_*, plot_*)
+#   3. Visualizzazioni     (plot_depth_profiles, plot_texture_triangle)
+# =============================================================================
+
+
+# ── 1. HELPER DI PROGETTO ─────────────────────────────────────────────────────
+
+# Configura PATH per Rtools su Windows (necessario per cmdstanr).
+setup_rtools <- function() {
+  if (.Platform$OS.type != "windows") return(invisible(NULL))
+  rtools_path <- Sys.getenv("RTOOLS45_HOME", unset = "C:/rtools45")
+  Sys.setenv(
+    PATH = paste(file.path(rtools_path, "ucrt64/bin"),
+                 file.path(rtools_path, "usr/bin"),
+                 Sys.getenv("PATH"), sep = ";"),
+    RTOOLS44_HOME = rtools_path
+  )
+  invisible(NULL)
+}
+
+# Carica dati.rds e applica le trasformazioni standard usate in tutti gli script.
+# Restituisce un tibble con colonne log*, Field come factor, covariate scalate.
+carica_dati <- function() {
+  readRDS(here::here("data", "dati.rds")) |>
+    dplyr::mutate(dplyr::across(c(OnFarm, Irrigate, Fertilised, N_Natural),
+                                ~ as.integer(as.character(.x)))) |>
+    dplyr::mutate(
+      logSOC    = log(PercSOC),
+      logN      = log(PercTotNitro),
+      logP      = log(PercTotPhos),
+      logBottom = log(Bottom)
+    ) |>
+    dplyr::mutate(dplyr::across(c(logBottom, Texture1, Texture2, BulkDensity),
+                                ~ c(scale(.x)))) |>
+    dplyr::mutate(Field = factor(Field))
+}
+
+# OLS per campo: log_y_var ~ logBottom centrato.
+# Restituisce tibble con Field, n_obs, int (intercetta), slope, r2, slope_se.
+fit_field <- function(df, y_var) {
+  mu_logB <- mean(log(df$Bottom))
+  if (!"logBottom_c" %in% names(df))
+    df <- dplyr::mutate(df, logBottom_c = log(Bottom) - mu_logB)
+  df |>
+    dplyr::group_by(Field) |>
+    dplyr::summarise(
+      n_obs    = dplyr::n(),
+      fit      = list(lm(stats::reformulate("logBottom_c", response = y_var),
+                         data = dplyr::cur_data())),
+      .groups  = "drop"
+    ) |>
+    dplyr::mutate(
+      int      = purrr::map_dbl(fit, ~ stats::coef(.x)[1]),
+      slope    = purrr::map_dbl(fit, ~ stats::coef(.x)[2]),
+      r2       = purrr::map_dbl(fit, ~ summary(.x)$r.squared),
+      slope_se = purrr::map_dbl(fit, ~ summary(.x)$coefficients[2, 2])
+    ) |>
+    dplyr::select(-fit)
+}
+
+
+# ── 2. EDA GENERICA ───────────────────────────────────────────────────────────
+
 # Funzioni
 
 analizza_dataset <- function(data) {

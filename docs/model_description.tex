@@ -1,0 +1,448 @@
+\documentclass[11pt, a4paper]{article}
+
+% ── pacchetti ─────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\geometry{margin=2.5cm, top=3cm, bottom=3cm}
+
+\usepackage{amsmath, amssymb, bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, backgrounds}
+
+% ── colori ────────────────────────────────────────────────────────────────────
+\definecolor{myblue}{HTML}{2C5F8A}
+\definecolor{mygreen}{HTML}{2E7D5B}
+\definecolor{myorange}{HTML}{C25B00}
+\definecolor{mygray}{HTML}{5A5A5A}
+\definecolor{mylightblue}{HTML}{D9E8F5}
+\definecolor{mylightgreen}{HTML}{D5EDE3}
+\definecolor{mylightorange}{HTML}{FAE6D0}
+
+% ── hyperref ──────────────────────────────────────────────────────────────────
+\hypersetup{
+  colorlinks = true,
+  linkcolor  = myblue,
+  citecolor  = myblue,
+  urlcolor   = myblue
+}
+
+% ── stile sezioni ─────────────────────────────────────────────────────────────
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries\color{myblue}}{\thesection.}{0.5em}{}[\vspace{-2pt}\rule{\linewidth}{0.4pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{mygray}}{\thesubsection.}{0.5em}{}
+
+% ── comandi matematici ────────────────────────────────────────────────────────
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\HN}{\mathcal{N}^+}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\SOC}{\mathrm{SOC}}
+\renewcommand{\vec}[1]{\bm{#1}}
+
+% ── intestazione ──────────────────────────────────────────────────────────────
+\title{%
+  {\large Descrizione del modello}\\[4pt]
+  {\LARGE\color{myblue} M-SP: Slope Proporzionale}\\[4pt]
+  {\normalsize Analisi bayesiana dei profili verticali di SOC, N e P}
+}
+\author{}
+\date{\today}
+
+% =============================================================================
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+\tableofcontents
+\bigskip
+
+% =============================================================================
+\section{Motivazione}
+
+Il carbonio organico del suolo (SOC), l'azoto totale (N) e il fosforo totale (P)
+decadono tipicamente con la profondità seguendo una legge di potenza:
+$y \propto \text{Bottom}^{\beta}$, linearizzabile con la trasformazione log-log
+($\log y \sim \beta \log\text{Bottom}$).
+
+Un'analisi esplorativa (OLS per campo, BLUP lmer) rivela che:
+\begin{itemize}
+  \item la correlazione tra l'intercetta per campo (livello a profondità media)
+        e la slope (velocità di decadimento) è fortemente positiva per il SOC
+        ($r \approx {+}0.93$ con lmer, Bottom centrato);
+  \item i campi con SOC alto alla profondità media decadono \emph{più lentamente};
+  \item per N questa correlazione è trascurabile; per P è debole ma presente.
+\end{itemize}
+
+Il modello M-SP cattura direttamente questo pattern: la deviazione del campo
+dalla media globale ha un'ampiezza che cambia con la profondità in modo
+proporzionale al livello del campo.
+
+% =============================================================================
+\section{Dati}
+
+\subsection{Struttura}
+
+$N \approx 220$ osservazioni, $J = 40$ campi, fino a 6 profondità per campo.
+
+\medskip
+\begin{tabular}{@{}lll@{}}
+\toprule
+File & Formato & Contenuto \\
+\midrule
+\texttt{data/crop.csv} & CSV & dati grezzi \\
+\texttt{data/dati.rds} & R & preprocessati (ILR, log, scala) \\
+\bottomrule
+\end{tabular}
+
+\subsection{Variabili risposta}
+
+\[
+  y_{r,ij} = \log(\text{risposta}_{r,ij}), \quad r \in \{\SOC,\, N,\, P\}
+\]
+
+\subsection{Covariati within-field $X_W$ ($N \times 4$)}
+
+\medskip
+\begin{tabular}{@{}clll@{}}
+\toprule
+$k$ & Covariato & Descrizione & Trasformazione \\
+\midrule
+1 & \texttt{logBottom} & $\log(\text{profondità [cm]})$ & standardizzato \\
+2 & \texttt{Texture1}  & ILR\textsubscript{1}(Clay, Silt, Sand) & standardizzato \\
+3 & \texttt{Texture2}  & ILR\textsubscript{2}(Clay, Silt, Sand) & standardizzato \\
+4 & \texttt{BulkDensity} & densità apparente & standardizzato \\
+\bottomrule
+\end{tabular}
+
+\medskip
+Le coordinate ILR (Isometric Log-Ratio) eliminano il vincolo compositionale
+$\text{Clay} + \text{Silt} + \text{Sand} = 100\%$. Calcolate via
+\texttt{compositions::ilr(acomp(Clay, Silt, Sand))} con base di Helmert standard:
+\[
+  T_1 = \sqrt{\tfrac{1}{2}} \log\!\frac{\text{Clay}}{\text{Silt}},
+  \qquad
+  T_2 = \sqrt{\tfrac{2}{3}} \log\!\frac{\sqrt{\text{Clay}\cdot\text{Silt}}}{\text{Sand}}.
+\]
+
+\subsection{Covariati between-field $X_B$ ($J \times 4$)}
+
+\medskip
+\begin{tabular}{@{}cll@{}}
+\toprule
+$k$ & Covariato & Descrizione \\
+\midrule
+1 & \texttt{OnFarm} & gestione organica in loco (0/1) \\
+2 & \texttt{Irrigate} & irrigazione (0/1) \\
+3 & \texttt{Fertilised} & fertilizzazione minerale (0/1) \\
+4 & \texttt{N\_Natural} & apporto naturale di azoto (0/1) \\
+\bottomrule
+\end{tabular}
+
+% =============================================================================
+\section{Struttura del modello}
+
+\subsection{Likelihood}
+
+Per ogni risposta $r$, osservazione $i$ nel campo $j$:
+\[
+  y_{r,ij} \sim \N\!\left(\mu_{r,ij},\; \sigma_r^2\right)
+\]
+
+\subsection{Predittore lineare}
+
+\[
+  \boxed{
+  \mu_{r,ij} =
+    \underbrace{\alpha_r}_{\text{media globale}}
+    +\;
+    \underbrace{z_{\nu,r,j}\,\bigl(\psi_r + \eta_r \cdot x_{\text{logB},i}\bigr)}_{\text{RI + slope proporzionale}}
+    +\;
+    \underbrace{\vec{\gamma}_r^\top \vec{x}_{W,i}}_{\text{within fissi}}
+    +\;
+    \underbrace{\vec{\beta}_r^\top \vec{x}_{B,j}}_{\text{between fissi}}
+  }
+\]
+
+dove $x_{\text{logB},i}$ è la prima colonna di $X_W$ (logBottom standardizzato).
+
+\subsection{Parametrizzazione non centrata (NCP)}
+
+\[
+  z_{\nu,r,j} \sim \N(0,\,1), \qquad j = 1,\ldots,J
+\]
+
+L'effetto casuale vero è $\nu_{r,j} = z_{\nu,r,j}\,(\psi_r + \eta_r \cdot x_{\text{logB},i})$,
+ma a profondità media ($x_{\text{logB}} = 0$):
+$\nu_{r,j}\big|_{x=0} = z_{\nu,r,j}\,\psi_r$.
+
+La NCP è necessaria per l'efficienza del campionatore NUTS con prior diffusi
+sugli effetti casuali.
+
+\subsection{Interpretazione di $\eta_r$}
+
+\[
+  \Var[\nu_{r,j} \mid x_{\text{logB}}]
+  = \left(\psi_r + \eta_r \, x_{\text{logB}}\right)^2
+\]
+
+\begin{itemize}
+  \item $\eta_r > 0$: la variabilità between-field \emph{aumenta} alle profondità
+        maggiori → i campi più ricchi a profondità media decadono più lentamente.
+  \item $\eta_r = 0$: profilo verticale uguale per tutti i campi (slope fissa).
+  \item Il coefficiente di proporzionalità è $b_r = \eta_r / \psi_r$.
+\end{itemize}
+
+\subsection{Intercetta globale $\alpha_r$}
+
+L'effetto casuale $z_{\nu,r,j}$ ha media zero per costruzione (NCP).
+Senza $\alpha_r$, i coefficienti $\vec{\beta}_r$ (management) assorbirebbero
+la media globale di $\log r$, esplodendo a valori $|\beta| \approx 2$.
+L'intercetta globale è quindi un componente \emph{necessario} del modello.
+
+% =============================================================================
+\section{Modello completo}
+
+\subsection{Parametri e prior}
+
+\medskip
+\begin{tabular}{@{}lll@{}}
+\toprule
+Parametro & Dimensione & Prior \\
+\midrule
+$\alpha_r$ & scalare & $\N(0,\;1)$ \\
+$z_{\nu,r,j}$ & vettore $J$ & $\N(0,\;1)$ (NCP) \\
+$\psi_r$ & scalare $>0$ & $\HN(0,\;1)$ \\
+$\eta_r$ & scalare & $\N(0,\;1)$ \\
+$\vec{\gamma}_r$ & vettore $K_W = 4$ & $\N(\vec{0},\;\vec{I})$ \\
+$\vec{\beta}_r$ & vettore $K_B = 4$ & $\N(\vec{0},\;\vec{I})$ \\
+$\sigma_r$ & scalare $>0$ & $\HN(0,\;1)$ \\
+\midrule
+Totale & $3J + 36 = 156$ & (con $J = 40$) \\
+\bottomrule
+\end{tabular}
+
+\subsection{Quantità derivate}
+
+\[
+  b_r = \frac{\eta_r}{\psi_r} \qquad \text{(generated quantity in Stan)}
+\]
+
+Il coefficiente $b_r$ è il rapporto tra la sensibilità della slope al livello
+del campo ($\eta_r$) e la dispersione degli effetti casuali ($\psi_r$).
+
+\subsection{Modello completo in notazione probabilistica}
+
+\[
+\begin{aligned}
+\alpha_r &\sim \N(0,\;1) \\
+\psi_r,\,\sigma_r &\sim \HN(0,\;1) \\
+\eta_r &\sim \N(0,\;1) \\
+\gamma_{r,k} &\sim \N(0,\;1) \quad k = 1,\ldots,K_W \\
+\beta_{r,k} &\sim \N(0,\;1) \quad k = 1,\ldots,K_B \\
+z_{\nu,r,j} &\sim \N(0,\;1) \quad j = 1,\ldots,J \\[4pt]
+\mu_{r,ij} &= \alpha_r + z_{\nu,r,j}\,(\psi_r + \eta_r\,x_{\text{logB},i})
+             + \vec{\gamma}_r^\top \vec{x}_{W,i}
+             + \vec{\beta}_r^\top \vec{x}_{B,j} \\[4pt]
+y_{r,ij} &\sim \N(\mu_{r,ij},\;\sigma_r^2)
+\end{aligned}
+\]
+
+% =============================================================================
+\section{Schema covariate}
+
+\begin{center}
+\begin{tabular}{@{}p{5.5cm}p{6.5cm}@{}}
+\toprule
+\textbf{Covariati within-field} $X_W$ & \textbf{Covariati between-field} $X_B$ \\
+variano per osservazione & un valore per campo \\
+\midrule
+logBottom (profondità)\newline
+\phantom{logBottom}→ anche nella slope prop. & OnFarm \\
+Texture1 (ILR$_1$: sand/silt/clay) & Irrigate \\
+Texture2 (ILR$_2$: silt/clay) & Fertilised \\
+BulkDensity & N\_Natural \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =============================================================================
+\section{Grafo diretto aciclico (DAG)}
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance = 1.4cm and 2.0cm,
+    lat/.style    = {circle, draw=myorange, fill=mylightorange,
+                     thick, minimum size=1.0cm, font=\small},
+    resp/.style   = {circle, draw=mygreen, fill=mylightgreen,
+                     thick, minimum size=1.0cm, font=\small},
+    hp/.style     = {rectangle, rounded corners=3pt,
+                     draw=mygray, fill=white,
+                     thick, minimum width=1.0cm, minimum height=0.7cm,
+                     font=\small\itshape},
+    fixed/.style  = {rectangle, draw=myblue, fill=mylightblue,
+                     thick, minimum width=1.1cm, minimum height=0.7cm,
+                     font=\small},
+    >=Stealth
+  ]
+
+  % Hyperparametri
+  \node[hp] (psi)   at (0, 0)    {$\psi_r$};
+  \node[hp] (eta)   at (2, 0)    {$\eta_r$};
+  \node[hp] (alpha) at (-2, 0)   {$\alpha_r$};
+  \node[hp] (sigma) at (6, 0)    {$\sigma_r$};
+
+  % Effetto casuale
+  \node[lat] (znu) at (1, -2)    {$z_{\nu,r,j}$};
+
+  % Predittore e risposta
+  \node[lat] (mu)  at (3, -2)    {$\mu_{r,ij}$};
+  \node[resp] (y)  at (5, -2)    {$y_{r,ij}$};
+
+  % Covariati fissi
+  \node[fixed] (XW) at (3, -4)   {$X_W$};
+  \node[fixed] (XB) at (1, -4)   {$X_B$};
+  \node[fixed] (gam) at (4.2, -3.2) {\small$\vec{\gamma}_r$};
+  \node[fixed] (bet) at (2.2, -3.2) {\small$\vec{\beta}_r$};
+
+  % Frecce
+  \draw[->] (psi)   -- (znu);
+  \draw[->] (eta)   -- (mu);
+  \draw[->] (psi)   -- (mu);
+  \draw[->] (znu)   -- (mu);
+  \draw[->] (alpha) -- (mu);
+  \draw[->] (mu)    -- (y);
+  \draw[->] (sigma) -- (y);
+  \draw[->] (XW)    -- (mu);
+  \draw[->] (XB)    -- (mu);
+  \draw[->] (gam)   -- (mu);
+  \draw[->] (bet)   -- (mu);
+
+  % Plate per j
+  \begin{scope}[on background layer]
+    \node[draw=myorange, dashed, rounded corners=6pt,
+          fit=(znu), inner sep=8pt,
+          label={[font=\footnotesize\color{myorange}]below right:$j=1\ldots J$}
+         ] {};
+  \end{scope}
+
+  % Plate per ij
+  \begin{scope}[on background layer]
+    \node[draw=mygreen, dashed, rounded corners=6pt,
+          fit=(mu)(y), inner sep=8pt,
+          label={[font=\footnotesize\color{mygreen}]below right:$i=1\ldots N_j$}
+         ] {};
+  \end{scope}
+
+\end{tikzpicture}
+\end{center}
+
+\medskip
+\noindent
+\begin{tabular}{@{}ll@{}}
+\toprule
+Colore & Significato \\
+\midrule
+Arancione (cerchio) & variabile latente / effetto casuale \\
+Verde (cerchio) & risposta osservata \\
+Grigio (rettangolo) & iperparametro (prior) \\
+Blu (rettangolo) & covariato fisso \\
+\bottomrule
+\end{tabular}
+
+% =============================================================================
+\section{Configurazione MCMC}
+
+\begin{tabular}{@{}ll@{}}
+\toprule
+Impostazione & Valore \\
+\midrule
+Software & Stan via \texttt{cmdstanr} \\
+Catene & 4 \\
+Iterazioni warmup & 2\,000 \\
+Iterazioni sampling & 5\,000 \\
+\texttt{adapt\_delta} & 0.97 \\
+\texttt{max\_treedepth} & 11 \\
+Seed & 2024 \\
+Parametri totali & 156 (con $J = 40$) \\
+\bottomrule
+\end{tabular}
+
+% =============================================================================
+\section{Risultati}
+
+\subsection{Parametro $\eta_r$: correlazione slope-intercetta}
+
+\begin{center}
+\begin{tabular}{@{}lrrll@{}}
+\toprule
+Risposta & $\hat{\eta}_r$ (mediana) & SD & CI 90\% & Interpretazione \\
+\midrule
+logSOC & $+0.209$ & $0.055$ & $[0.125,\; 0.302]$ & forte, ben identificato \\
+logN   & $-0.051$ & $0.064$ & $[\approx{-}0.15,\; +0.06]$ & trascurabile \\
+logP   & $+0.096$ & $0.049$ & $[0.019,\; 0.179]$ & debole ma presente \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+Il coefficiente $b_{\SOC} = \eta_{\SOC}/\psi_{\SOC} \approx 0.47$:
+per ogni unità di deviazione standard nel livello del campo,
+la slope di decadimento verticale cambia di circa $0.47\,\psi_{\SOC}$.
+
+\subsection{Confronto modelli (LOO-CV)}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Modello & Descrizione & $\Delta$ELPD & Ranking \\
+\midrule
+\textbf{M-SP} & RI + slope proporzionale & --- & \textbf{1°} \\
+M-RI & Random intercept i.i.d. & $<0$ & 2° \\
+M-GPS & GP spaziale + slope fissa & $<0$ & 3° \\
+M-GP & GP spaziale completo & $<0$ & 4° \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent La struttura proporzionale cattura il segnale principale con il minor numero di
+parametri. Il processo Gaussiano spaziale non è necessario: l'eterogeneità between-field
+è già spiegata dal random intercept.
+
+\subsection{Selezione variabili (projpred)}
+
+Reference model: M-SP. Metodo: forward search con PSIS-LOO interno.
+logBottom sempre incluso (nell'intercetta casuale proporzionale).
+
+I risultati dettagliati si trovano in \texttt{scripts/06\_variable\_selection.R}.
+In generale, pochi covariati fissi sono necessari oltre alla struttura random:
+la maggior parte della variabilità è catturata da $z_{\nu,r,j}$.
+
+% =============================================================================
+\section{File del progetto}
+
+\begin{tabular}{@{}ll@{}}
+\toprule
+File & Contenuto \\
+\midrule
+\texttt{scripts/01\_preprocessing.R} & crop.csv → dati.rds (ILR, pulizia) \\
+\texttt{scripts/01b\_eda\_texture.R} & EDA composizionale tessitura \\
+\texttt{stan/m4rr\_v2\_ri\_slope\_mu.stan} & codice Stan M-SP \\
+\texttt{stan/fit\_v2\_ri\_slope\_mu.rds} & fit MCMC salvato \\
+\texttt{scripts/03\_model\_proportional\_slope.R} & fit, diagnostica, LOO \\
+\texttt{scripts/04\_eda\_depth\_profiles.R} & motivazione EDA \\
+\texttt{scripts/06\_variable\_selection.R} & selezione variabili \\
+\texttt{CLAUDE.md} & riferimento tecnico per agenti AI \\
+\texttt{docs/note\_progetto.md} & note per umani \\
+\bottomrule
+\end{tabular}
+
+\end{document}
