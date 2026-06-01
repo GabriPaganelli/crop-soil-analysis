@@ -233,12 +233,14 @@ necessario e ben identificato.}
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.8\linewidth]{fig03_scatter.pdf}
-  \caption{Scatter intercetta vs.\ slope OLS per i 40 campi (SOC, N, P).
-    La figura mostra $r_\mathrm{OLS}\approx 0.39$ per SOC (stima per campo
-    con $n=4$--6, rumore di misura attenua la correlazione).
-    \todo{Nel testo: la stima BLUP da lmer d\`a $r\approx 0.93$ --- valore
-    pi\`u robusto all'attenuazione. Valutare se rigenarare la figura con i
-    BLUP (script 02, sezione 0c).}}
+  \caption{Relazione intercetta--slope per i 40 campi (BLUP lmer,
+    \texttt{logBottom} centrato).
+    SOC: $r=+0.62$ ($p<0.001$), correlazione moderata--forte che motiva
+    il modello M-SP.
+    N: $r\approx +0.11$, nessun pattern sistematico.
+    P: fit singolare nel modello lmer
+    ($\widehat{\mathrm{Var}}(\text{slope})\approx 0$), coerente con $\eta_P$
+    borderline in M-SP.}
   \label{fig:scatter}
 \end{figure}
 
