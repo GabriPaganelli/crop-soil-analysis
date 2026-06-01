@@ -195,37 +195,72 @@ cat("  eta_N   = -0.051 (≈0)   → atteso Corr ≈ 0\n")
 cat("  eta_P   = +0.096 (debole)→ atteso Corr positiva debole\n")
 
 
-# ── 4. SCATTER PLOT: INTERCETTA vs SLOPE ─────────────────────────────────────
+# ── 4. SCATTER PLOT: INTERCETTA vs SLOPE (BLUP lmer) ─────────────────────────
+# Usa BLUP invece di OLS per-campo: con n=4-6 per gruppo le stime OLS hanno
+# molta varianza → correlazione intercetta-slope attenuata da errore di misura.
+# I BLUP sono stime condizionali shrinkate verso la media di gruppo (Empirical
+# Bayes): riducono il rumore senza introdurre bias sistematico.
+#
+# Confronto: OLS dà Pearson ≈ 0.39 per SOC; BLUP atteso ≈ +0.93.
 
-corr_labels <- corr_tbl |>
+blup_list <- lapply(
+  setNames(c("logSOC", "logN", "logP"), c("SOC", "N", "P")),
+  function(y_var) {
+    m <- lmer(
+      as.formula(paste(y_var, "~ logBottom_c + (logBottom_c | Field)")),
+      data = dati, REML = TRUE
+    )
+    b           <- as.data.frame(ranef(m)$Field)
+    names(b)    <- c("u0_intercept", "u1_slope")
+    b$Field     <- rownames(b)
+    b$risposta  <- switch(y_var, logSOC = "SOC", logN = "N", logP = "P")
+    b
+  }
+)
+
+blup_df <- bind_rows(blup_list) |>
+  mutate(risposta = factor(risposta, levels = c("SOC", "N", "P")))
+
+corr_blup <- blup_df |>
+  group_by(risposta) |>
+  summarise(
+    pearson  = cor(u0_intercept, u1_slope),
+    spearman = cor(u0_intercept, u1_slope, method = "spearman"),
+    n        = n(),
+    .groups  = "drop"
+  ) |>
   mutate(label = sprintf("Pearson = %+.3f\nSpearman = %+.3f", pearson, spearman))
 
-# Coordinate per le etichette (angolo in alto a destra/sinistra per ogni pannello)
-label_pos <- ols_all |>
-  group_by(risposta) |>
-  summarise(x = min(int) + 0.05 * diff(range(int)),
-            y = max(slope) - 0.05 * diff(range(slope)),
-            .groups = "drop") |>
-  left_join(corr_labels, by = "risposta")
+cat("\n═══ CORRELAZIONE INTERCETTA–SLOPE (BLUP lmer) ═══════════════════\n")
+print(corr_blup)
 
-p_scatter <- ggplot(ols_all, aes(int, slope)) +
+label_pos_blup <- blup_df |>
+  group_by(risposta) |>
+  summarise(
+    x = min(u0_intercept) + 0.05 * diff(range(u0_intercept)),
+    y = max(u1_slope) - 0.05 * diff(range(u1_slope)),
+    .groups = "drop"
+  ) |>
+  left_join(corr_blup, by = "risposta")
+
+p_scatter_blup <- ggplot(blup_df, aes(u0_intercept, u1_slope)) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "grey60") +
   geom_point(size = 2.5, alpha = 0.7, color = "steelblue") +
   geom_smooth(method = "lm", se = TRUE, color = "tomato", fill = "tomato", alpha = 0.15) +
-  geom_text(data = label_pos, aes(x = x, y = y, label = label),
+  geom_text(data = label_pos_blup, aes(x = x, y = y, label = label),
             hjust = 0, vjust = 1, size = 3.2, color = "grey30") +
   facet_wrap(~ risposta, scales = "free", ncol = 3) +
   labs(
-    title    = "Relazione intercetta-slope per campo (OLS empirica)",
-    subtitle = "Intercetta = livello medio alla profondita' media | Slope = decadimento con log(profondita')",
-    x        = "Intercetta empirica (log-risposta alla profondita' media)",
-    y        = "Slope empirica con logBottom"
+    title    = "Relazione intercetta-slope per campo (BLUP lmer)",
+    subtitle = "BLUP = stime condizionali shrinkate; meno attenuazione da rumore di misura rispetto a OLS",
+    x        = "BLUP intercetta di campo (livello alla profondita' media)",
+    y        = "BLUP slope di campo con logBottom"
   ) +
   theme_minimal(base_size = 11) +
   theme(strip.text = element_text(face = "bold"))
 
-print(p_scatter)
-save_fig("fig_02_scatter_intercetta_slope.pdf", p_scatter, w = 18, h = 7)
+print(p_scatter_blup)
+save_fig("fig_02_scatter_intercetta_slope.pdf", p_scatter_blup, w = 18, h = 7)
 
 
 # ── 5. SPAGHETTI PLOT: PROFILI VERTICALI COLORATI PER LIVELLO ────────────────
