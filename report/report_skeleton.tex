@@ -50,17 +50,16 @@
 % ── Sezioni ────────────────────────────────────────────────────────────────────
 \usepackage{titlesec}
 \titleformat{\section}
-  {\large\bfseries\color{myblue}}{\thesection.}{0.5em}{}
-  [\vspace{-2pt}\rule{\linewidth}{0.4pt}]
+  {\large\bfseries}{\thesection.}{0.5em}{}
 \titleformat{\subsection}
-  {\normalsize\bfseries\color{mygray}}{\thesubsection.}{0.5em}{}
+  {\normalsize\bfseries}{\thesubsection.}{0.5em}{}
 
 % ── Intestazioni ───────────────────────────────────────────────────────────────
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small\color{mygray} Profili verticali di nutrienti del suolo — Analisi bayesiana}
-\fancyhead[R]{\small\color{mygray}\thepage}
+\fancyhead[L]{\small Profili verticali di nutrienti del suolo --- Analisi bayesiana}
+\fancyhead[R]{\small\thepage}
 \renewcommand{\headrulewidth}{0.3pt}
 
 % ── Bibliografia ───────────────────────────────────────────────────────────────
@@ -82,7 +81,7 @@
 % ── Titolo ─────────────────────────────────────────────────────────────────────
 \title{%
   {\large Analisi gerarchica bayesiana dei}\\[4pt]
-  {\LARGE\bfseries\color{myblue} Profili verticali di nutrienti del suolo}\\[4pt]
+  {\LARGE\bfseries Profili verticali di nutrienti del suolo}\\[4pt]
   {\large SOC, N e P in 40 campi agricoli in Tanzania}
 }
 \author{
@@ -139,14 +138,14 @@ per campo (Bottom 10--120\,cm).}
   y_r = \log(\text{Perc}_r), \quad r \in \{\SOC, N, P\}.
 \]
 
-\subsection{Covariati}
+\subsection{Covariate}
 
 \paragraph{Within-field.}
 
 \medskip
 \begin{tabular}{@{}clll@{}}
 \toprule
-$k$ & Covariato & Descrizione & Pre-elaborazione \\
+$k$ & Covariata & Descrizione & Pre-elaborazione \\
 \midrule
 1 & \texttt{logBottom}   & $\log(\text{profondit\`a [cm]})$    & standardizzato \\
 2 & \texttt{Texture1}    & ILR$_1$ (argilla vs limo)           & standardizzato \\
@@ -205,6 +204,7 @@ OnFarm, Irrigate, Fertilised, N\_Natural.
 
 \begin{figure}[htbp]
   \centering
+  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
   \includegraphics[width=0.8\linewidth]{fig01_aic.pdf}
   \caption{Confronto AIC per quattro forme funzionali (log-log, quadratica,
     lineare, factor). La forma log-log ottiene l'AIC pi\`u basso per tutte
@@ -233,9 +233,12 @@ necessario e ben identificato.}
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.8\linewidth]{fig03_scatter.pdf}
-  \caption{Scatter plot intercetta BLUP vs.\ slope BLUP per i 40 campi
-    (SOC, N, P). Correlazione forte per SOC ($r \approx 0.93$), trascurabile
-    per N, debole per P.}
+  \caption{Scatter intercetta vs.\ slope OLS per i 40 campi (SOC, N, P).
+    La figura mostra $r_\mathrm{OLS}\approx 0.39$ per SOC (stima per campo
+    con $n=4$--6, rumore di misura attenua la correlazione).
+    \todo{Nel testo: la stima BLUP da lmer d\`a $r\approx 0.93$ --- valore
+    pi\`u robusto all'attenuazione. Valutare se rigenarare la figura con i
+    BLUP (script 02, sezione 0c).}}
   \label{fig:scatter}
 \end{figure}
 
@@ -337,6 +340,7 @@ per tutti i parametri.}
 
 \begin{figure}[htbp]
   \centering
+  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
   \includegraphics[width=0.8\linewidth]{fig04_eta.pdf}
   \caption{Distribuzioni a posteriori di $\eta_r$ per SOC, N e P.
     $\hat\eta_\SOC = 0.21$ con CI\,90\% $[0.12, 0.30]$ (lontano da zero);
@@ -357,24 +361,24 @@ per tutti i parametri.}
     \midrule
     $\alpha_r$ &
       $-0.240\ \CI{-0.527}{0.049}$ &
-      $-2.594\ \CI{-2.800}{-2.381}$ &
-      $-2.611\ \CI{-2.959}{-2.257}$ \\[2pt]
+      $\mathbf{-2.594}\ \CI{-2.800}{-2.381}$ &
+      $\mathbf{-2.611}\ \CI{-2.959}{-2.257}$ \\[2pt]
     $\psi_r$ &
-      $0.323\ \CI{0.231}{0.436}$ &
-      $0.197\ \CI{0.131}{0.274}$ &
-      $0.392\ \CI{0.293}{0.515}$ \\[2pt]
+      $\mathbf{0.323}\ \CI{0.231}{0.436}$ &
+      $\mathbf{0.197}\ \CI{0.131}{0.274}$ &
+      $\mathbf{0.392}\ \CI{0.293}{0.515}$ \\[2pt]
     $\boldsymbol{\eta_r}$ &
       $\mathbf{0.209}\ \CI{0.125}{0.302}$ &
       $-0.051\ \CI{-0.124}{0.021}$ &
-      $0.096\ \CI{0.019}{0.179}$ \\[2pt]
+      $\mathbf{0.096}\ \CI{0.019}{0.179}$ \\[2pt]
     $b_r = \eta_r/\psi_r$ &
-      $0.645\ \CI{0.388}{0.990}$ &
+      $\mathbf{0.645}\ \CI{0.388}{0.990}$ &
       $-0.252\ \CI{-0.748}{0.103}$ &
-      $0.244\ \CI{0.048}{0.461}$ \\[2pt]
+      $\mathbf{0.244}\ \CI{0.048}{0.461}$ \\[2pt]
     $\sigma_r$ &
-      $0.531\ \CI{0.486}{0.582}$ &
-      $0.345\ \CI{0.316}{0.378}$ &
-      $0.548\ \CI{0.502}{0.599}$ \\
+      $\mathbf{0.531}\ \CI{0.486}{0.582}$ &
+      $\mathbf{0.345}\ \CI{0.316}{0.378}$ &
+      $\mathbf{0.548}\ \CI{0.502}{0.599}$ \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -383,6 +387,7 @@ per tutti i parametri.}
 
 \begin{figure}[htbp]
   \centering
+  \noindent\todo{VALUTARE rimozione (incerto)}\
   \includegraphics[width=0.8\linewidth]{fig05_gamma.pdf}
   \caption{Forest plot degli effetti fissi within-field $\hat\gamma_{r,k}$
     (mediana e CI\,90\%) per SOC (blu), N (verde), P (rosso).}
@@ -397,7 +402,7 @@ per tutti i parametri.}
   \small
   \begin{tabular}{@{}lrrr@{}}
     \toprule
-    Covariato & SOC & N & P \\
+    Covariata & SOC & N & P \\
     \midrule
     logBottom &
       $\mathbf{-0.378}\ [-0.472,\ -0.286]$ &
@@ -424,6 +429,7 @@ per tutti i parametri.}
 
 \begin{figure}[htbp]
   \centering
+  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
   \includegraphics[width=0.8\linewidth]{fig08_ppc.pdf}
   \caption{Posterior predictive check: densit\`a osservata (linea nera spessa)
     vs.\ 100 repliche a posteriori per le tre risposte.}
@@ -435,6 +441,7 @@ per tutti i parametri.}
 
 \begin{figure}[htbp]
   \centering
+  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
   \includegraphics[width=0.8\linewidth]{fig10_sensitivity.pdf}
   \caption{Confronto di $\eta_r$ (mediana e CI\,90\%) tra M-SP completo e
     M-SP rifittato dopo rimozione delle 10 osservazioni con Pareto $k \geq 0.7$.}
@@ -455,6 +462,7 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
 
 \begin{figure}[htbp]
   \centering
+  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
   \includegraphics[width=0.8\linewidth]{fig07_loo4.pdf}
   \caption{Confronto LOO-CV dei quattro modelli architetturali.
     M-SP ottiene il miglior ELPD con meno parametri dei modelli GP.}
@@ -463,6 +471,7 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
 
 \begin{table}[htbp]
   \centering
+  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}
   \caption{LOO-CV per i quattro modelli ($\Delta$ELPD rispetto a M-SP;
     $|z|=|\Delta\text{ELPD}|/\text{SE}$).}
   \label{tab:loo4}
@@ -504,6 +513,7 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
 
 \begin{table}[htbp]
   \centering
+  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}
   \caption{Selezione projpred (forward search, $\alpha=0.10$).
     $n^*$: numero suggerito di predittori.}
   \label{tab:projpred}
@@ -533,6 +543,7 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
 
 \begin{figure}[htbp]
   \centering
+  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
   \includegraphics[width=0.8\linewidth]{fig11_proj_vs_msp.pdf}
   \caption{Confronto $\hat\gamma_r$: M-SP vs.\ posterior proiettate (projpred).
     Accordo sostanziale per le variabili selezionate.}
@@ -541,6 +552,7 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
 
 \begin{figure}[htbp]
   \centering
+  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
   \includegraphics[width=0.8\linewidth]{fig12_nonselected_gamma.pdf}
   \caption{$\hat\gamma_r$ per le variabili \emph{non selezionate} da projpred:
     tutti con CI\,90\% compatibili con zero.}
@@ -551,6 +563,7 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
 
 \begin{figure}[htbp]
   \centering
+  \noindent\todo{VALUTARE rimozione (incerto)}\
   \includegraphics[width=0.8\linewidth]{fig09_loo_ab.pdf}
   \caption{LOO-CV per M-SP, Modello A (ridotto) e Modello B
     (response-specific). Differenze nell'ordine del rumore numerico.}
@@ -559,6 +572,7 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
 
 \begin{table}[htbp]
   \centering
+  \noindent\todo{VALUTARE rimozione (incerto)}
   \caption{LOO-CV per M-SP e modelli semplificati
     ($\Delta$ELPD rispetto a B).}
   \label{tab:loo_ab}
@@ -636,7 +650,7 @@ Implicazioni pratiche per la gestione del suolo in Tanzania.}
   \small
   \begin{tabular}{@{}lrrr@{}}
     \toprule
-    Covariato & SOC & N & P \\
+    Covariata & SOC & N & P \\
     \midrule
     OnFarm     &
       $-0.081\ [-0.443,\ 0.304]$ &
