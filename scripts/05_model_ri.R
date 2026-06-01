@@ -1,5 +1,5 @@
 ﻿# =============================================================================
-# 02_model_random_intercept.R  —  Modello M-RI (Intercetta Casuale, confronto)
+# 05_model_ri.R  —  Modello M-RI (Random Intercept, confronto baseline)
 #
 # STRUTTURA (stan/m4rr_v2_no_gp_mu.stan):
 #   Per r ∈ {SOC, N, P}:
@@ -103,14 +103,14 @@ fit_path <- here("stan", "fit_mri.rds")
 
 if (!file.exists(fit_path)) {
 
-  cat("\nAvvio MCMC (4 catene × 5000 sampling + 2000 warmup)...\n\n")
+  cat("\nAvvio MCMC (4 catene × 5000 sampling + 3000 warmup)...\n\n")
 
   fit <- mod$sample(
     data            = stan_data,
     seed            = 2024,
     chains          = 4,
     parallel_chains = 4,
-    iter_warmup     = 2000,
+    iter_warmup     = 3000,
     iter_sampling   = 5000,
     adapt_delta     = 0.95,
     max_treedepth   = 10,

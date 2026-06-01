@@ -1,5 +1,5 @@
 # =============================================================================
-# 05_eda_depth_profiles_detail.R  —  Analisi approfondita N e P
+# 03_eda_profili_np.R  —  EDA: analisi approfondita profili N e P
 #
 # Motivazione: dallo script 04 emergono due pattern:
 #   - N: pochi campi erratici sembrano mascherare un segnale nei campi "ricchi"

@@ -1,0 +1,33 @@
+\begin{thebibliography}{}
+
+\bibitem[Aitchison, 1982]{aitchison1982}
+Aitchison, J. (1982).
+\newblock The statistical analysis of compositional data.
+\newblock {\em Journal of the Royal Statistical Society: Series B}, 44(2):139--177.
+
+\bibitem[Jobbágy and Jackson, 2000]{jobbagy2000}
+Jobbágy, E.~G. and Jackson, R.~B. (2000).
+\newblock The vertical distribution of soil organic carbon and its relation to climate and vegetation.
+\newblock {\em Ecological Applications}, 10(2):423--436.
+
+\bibitem[Minasny et~al., 2017]{minasny2017}
+Minasny, B., Malone, B.~P., McBratney, A.~B., et~al. (2017).
+\newblock Soil carbon 4 per mille.
+\newblock {\em Geoderma}, 292:59--86.
+
+\bibitem[Piironen and Vehtari, 2017]{piironen2017}
+Piironen, J. and Vehtari, A. (2017).
+\newblock Comparison of {Bayesian} predictive methods for model selection.
+\newblock {\em Statistics and Computing}, 27(3):711--735.
+
+\bibitem[{Stan Development Team}, 2023]{stan2023}
+{Stan Development Team} (2023).
+\newblock Stan modeling language users guide and reference manual.
+\newblock Version 2.32. \url{https://mc-stan.org}.
+
+\bibitem[Vehtari et~al., 2017]{vehtari2017}
+Vehtari, A., Gelman, A., and Gabry, J. (2017).
+\newblock Practical {Bayesian} model evaluation using leave-one-out cross-validation and {WAIC}.
+\newblock {\em Statistics and Computing}, 27(5):1413--1432.
+
+\end{thebibliography}

@@ -1,5 +1,5 @@
 # =============================================================================
-# 07_eda_spatial_gp.R  —  Struttura spaziale e motivazione per abbandonare il GP
+# 04_eda_spaziale.R  —  EDA spaziale: Moran's I, semivariogramma, no GP
 #
 # DOMANDE:
 #   A. C'è autocorrelazione spaziale nei residui between-field? (variogramma,

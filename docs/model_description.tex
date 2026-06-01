@@ -218,13 +218,13 @@ L'intercetta globale è quindi un componente \emph{necessario} del modello.
 \toprule
 Parametro & Dimensione & Prior \\
 \midrule
-$\alpha_r$ & scalare & $\N(0,\;1)$ \\
+$\alpha_r$ & scalare & $\N(0,\;2)$ \\
 $z_{\nu,r,j}$ & vettore $J$ & $\N(0,\;1)$ (NCP) \\
-$\psi_r$ & scalare $>0$ & $\HN(0,\;1)$ \\
-$\eta_r$ & scalare & $\N(0,\;1)$ \\
+$\psi_r$ & scalare $>0$ & $\HN(0,\;0.5)$ \\
+$\eta_r$ & scalare & $\N(0,\;0.3)$ \\
 $\vec{\gamma}_r$ & vettore $K_W = 4$ & $\N(\vec{0},\;\vec{I})$ \\
 $\vec{\beta}_r$ & vettore $K_B = 4$ & $\N(\vec{0},\;\vec{I})$ \\
-$\sigma_r$ & scalare $>0$ & $\HN(0,\;1)$ \\
+$\sigma_r$ & scalare $>0$ & $\HN(0,\;0.5)$ \\
 \midrule
 Totale & $3J + 36 = 156$ & (con $J = 40$) \\
 \bottomrule
@@ -243,9 +243,9 @@ del campo ($\eta_r$) e la dispersione degli effetti casuali ($\psi_r$).
 
 \[
 \begin{aligned}
-\alpha_r &\sim \N(0,\;1) \\
-\psi_r,\,\sigma_r &\sim \HN(0,\;1) \\
-\eta_r &\sim \N(0,\;1) \\
+\alpha_r &\sim \N(0,\;2) \\
+\psi_r,\,\sigma_r &\sim \HN(0,\;0.5) \\
+\eta_r &\sim \N(0,\;0.3) \\
 \gamma_{r,k} &\sim \N(0,\;1) \quad k = 1,\ldots,K_W \\
 \beta_{r,k} &\sim \N(0,\;1) \quad k = 1,\ldots,K_B \\
 z_{\nu,r,j} &\sim \N(0,\;1) \quad j = 1,\ldots,J \\[4pt]
@@ -367,7 +367,7 @@ Impostazione & Valore \\
 \midrule
 Software & Stan via \texttt{cmdstanr} \\
 Catene & 4 \\
-Iterazioni warmup & 2\,000 \\
+Iterazioni warmup & 3\,000 \\
 Iterazioni sampling & 5\,000 \\
 \texttt{adapt\_delta} & 0.97 \\
 \texttt{max\_treedepth} & 11 \\
@@ -387,16 +387,16 @@ Parametri totali & 156 (con $J = 40$) \\
 Risposta & $\hat{\eta}_r$ (mediana) & SD & CI 90\% & Interpretazione \\
 \midrule
 logSOC & $+0.209$ & $0.055$ & $[0.125,\; 0.302]$ & forte, ben identificato \\
-logN   & $-0.051$ & $0.064$ & $[\approx{-}0.15,\; +0.06]$ & trascurabile \\
+logN   & $-0.051$ & $0.044$ & $[-0.124,\; +0.021]$ & trascurabile (CI include 0) \\
 logP   & $+0.096$ & $0.049$ & $[0.019,\; 0.179]$ & debole ma presente \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \medskip
-Il coefficiente $b_{\SOC} = \eta_{\SOC}/\psi_{\SOC} \approx 0.47$:
+Il coefficiente $b_{\SOC} = \eta_{\SOC}/\psi_{\SOC} = 0.645$ (CI\,90\%: $[0.388,\; 0.990]$):
 per ogni unità di deviazione standard nel livello del campo,
-la slope di decadimento verticale cambia di circa $0.47\,\psi_{\SOC}$.
+la slope di decadimento verticale cambia di circa $0.65\,\psi_{\SOC}$.
 
 \subsection{Confronto modelli (LOO-CV)}
 

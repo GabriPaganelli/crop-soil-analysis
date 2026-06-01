@@ -115,7 +115,7 @@ Abbandonate per:
 
 ### 5. Esplorazione spaziale e abbandono del GP
 
-Analisi spaziale in 07_eda_spatial_gp.R:
+Analisi spaziale in 04_eda_spaziale.R:
 - **SOC**: debole autocorrelazione spaziale (Moran's I positivo, significativo)
 - **N, P**: nessuna autocorrelazione spaziale rilevante
 - Il GP spaziale (modelli M-GPS e M-GP) non migliora il LOO rispetto a M-SP
@@ -182,3 +182,123 @@ una volta che l'eterogeneità between-field è catturata dal random intercept.
 6. **projpred sui soli effetti fissi**: la struttura proporzionale (η_r) è già nel
    reference model; i submodelli di proiezione usano (1|Field) come approssimazione
    accettabile per selezionare gamma_r e beta_r.
+
+---
+
+## Risultati script 10 — Confronto modelli A / B / M-SP (LOO-CV)
+
+### LOO — tutti e tre statisticamente equivalenti
+
+| Modello | elpd_loo | p_loo | elpd_diff | se_diff | ratio |
+|---------|----------|-------|-----------|---------|-------|
+| B (resp-spec) | −504.3 | 110.4 | 0.0 | — | — |
+| A (ridotto) | −504.7 | 119.6 | −0.4 | 4.6 | 0.09 |
+| M-SP | −506.7 | 126.7 | −2.3 | 7.2 | 0.32 |
+
+**Soglia standard**: |elpd_diff / se_diff| ≥ 2. Tutti i rapporti ≪ 2 → nessun modello è
+predittivamente superiore. B vince formalmente solo per parsimonia (meno parametri effettivi).
+
+### Confronto parametri chiave (mediana [CI90%])
+
+**SOC — risultato solido**
+
+| Parametro | M-SP | A (ridotto) | B (resp-spec) | C (projpred) |
+|-----------|------|-------------|---------------|--------------|
+| eta_SOC | 0.209 [0.125, 0.302] | 0.214 [0.132, 0.306] | 0.207 [0.127, 0.300] | — |
+| gamma logBottom | −0.378 | −0.383 | −0.432 | −0.447 |
+| gamma Texture2 | −0.529 | −0.494 | −0.588 | −0.477 |
+| gamma BulkDensity | −0.223 | −0.189 | — | — |
+
+eta_SOC è **invariante** su tutti i modelli e sempre lontano da zero. Conclusione robusta.
+
+**N — confermato piatto tra campi**
+
+| Parametro | M-SP | A (ridotto) | B (resp-spec) |
+|-----------|------|-------------|---------------|
+| eta_N | −0.051 [−0.124, 0.021] | −0.023 [−0.096, 0.050] | — (no eta in B) |
+
+Segno variabile, CI sempre spanno zero. Nessuna evidenza di slope proporzionale per N.
+
+**P — evidenza moderata, dipendente dal modello**
+
+| Parametro | M-SP | A (ridotto) | B (resp-spec) |
+|-----------|------|-------------|---------------|
+| eta_P | 0.096 [0.019, 0.179] | 0.105 [0.031, 0.185] | 0.054 [−0.016, 0.126] |
+| psi_P | 0.392 | 0.474 | 0.568 |
+| gamma_P_logB | — | — | −0.121 [−0.185, −0.056] |
+
+In M-SP e A eta_P è chiaramente positivo. In B (che separa l'effetto fisso di logBottom),
+eta_P si riduce e il CI include zero. Il motivo: in M-SP/A la componente fissa e casuale
+della profondità per P non sono distinguibili, gonfiando eta_P. In B sono separate → il segnale
+proporzionale per P è più debole di quello per SOC. **Conclusione: moderata evidenza per P.**
+
+**Nota su alpha_r**: in M-SP, alpha_SOC = −0.240 con CI larghissimo [−0.527, 0.049]; in A/B
+si stringe (−0.116/−0.126). Normale: in M-SP l'intercetta globale è aggiustata dai beta_r
+(management); rimuovendo X_B, alpha_r assorbe quegli effetti e diventa più precisa.
+
+---
+
+## Risultati script 11 — Sensitivity analysis (Pareto k)
+
+### Distribuzione dei k
+
+| Categoria | N osservazioni |
+|-----------|---------------|
+| k < 0.5 (buono) | 189 |
+| 0.5 ≤ k < 0.7 (moderato) | 21 |
+| 0.7 ≤ k < 1.0 (alto) | 9 |
+| k ≥ 1.0 (molto alto) | 1 |
+
+**10 osservazioni rimosse** (k ≥ 0.7). Obs più influente: obs 146, Field 26, Bottom=20cm,
+k=1.253. Campi con più influenti: Field 23 (3 obs), Field 26 (2 obs), Field 33 (2 obs).
+Concentrazione sulle profondità intermedie-profonde (40–80cm), dove i profili sono più variabili.
+
+### Diagnostica MCMC post-rimozione
+Divergenze: 0 | Max treedepth: 9 | Rhat>1.05: 0 | ESS<400: 0 ✅
+
+### Confronto parametri full vs no-influential
+
+**Flag ATTENZIONE** (mediana no-infl fuori dal CI90% full):
+
+| Parametro | Full | No-influential | Variazione |
+|-----------|------|----------------|-----------|
+| sigma_SOC | 0.531 [0.486, 0.582] | 0.440 [0.402, 0.484] | −17% |
+| sigma_N | 0.345 [0.316, 0.378] | 0.266 [0.243, 0.292] | −23% |
+
+Le obs influenti sono outlier di residuo (valori anomali di SOC e N), non leve nella struttura.
+La riduzione di sigma è attesa e non preoccupante per l'inferenza sui parametri di interesse.
+
+**Parametri eta_r — tutti OK o moderati:**
+
+| Parametro | Full [CI90%] | No-infl [CI90%] | Flag |
+|-----------|-------------|-----------------|------|
+| eta_SOC | 0.209 [0.125, 0.302] | 0.160 [0.089, 0.239] | OK |
+| eta_N | −0.051 [−0.124, 0.021] | 0.016 [−0.033, 0.061] | nota |
+| eta_P | 0.096 [0.019, 0.179] | 0.119 [0.039, 0.206] | OK |
+
+- **eta_SOC**: si riduce leggermente (0.209 → 0.160) ma CI rimane chiaramente positivo → robusto.
+- **eta_N**: cambia segno (−0.051 → +0.016), entrambi vicini a zero → conclusione invariata (N piatto).
+- **eta_P**: leggermente più forte senza influenti (0.096 → 0.119) → evidenza si consolida.
+
+**Tutti i gamma** (Texture2, BulkDensity, logBottom) sono stabili (flag OK) tra full e no-infl.
+
+### Sintesi robustezza
+
+| Risultato | Robustezza |
+|-----------|-----------|
+| eta_SOC > 0 (campi con SOC alto decadono meno) | ✅ Molto robusto |
+| eta_N ≈ 0 (N uniforme tra campi) | ✅ Molto robusto |
+| eta_P > 0 (evidenza moderata) | ⚠️ Moderato — dipende dal modello, si consolida senza influenti |
+| gamma Texture2 < 0 (più argilla/limo → più SOC/N/P) | ✅ Robusto |
+| gamma BulkDensity < 0 (densità maggiore → meno nutrienti) | ✅ Robusto |
+| Effetti management (beta_r) deboli | ✅ Confermato da LOO su A e B |
+
+---
+
+## Strategia per il report (Opzione C)
+
+- **Modello principale**: M-SP (interpretazione biologica piena, beta management inclusi)
+- **Model comparison**: A e B come evidenza di parsimonia (LOO equivalente con meno parametri)
+- **Sensitivity**: script 11 come sezione di robustezza (le conclusioni chiave reggono)
+- **Narrativa**: dalla domanda scientifica (il decadimento dipende dal livello medio del campo?)
+  ai dati, al modello, ai risultati, alla loro robustezza

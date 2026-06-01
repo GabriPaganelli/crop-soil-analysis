@@ -1,5 +1,5 @@
-﻿# =============================================================================
-# 06_variable_selection.R  —  Projection predictive variable selection
+# =============================================================================
+# 08_selezione_variabili.R  —  Selezione variabili con projpred (reference: M-SP)
 #
 # COME FUNZIONA projpred (NON fitta modelli Stan per ogni subset):
 #   1. Reference model: usa le draws già in memoria da M-SP (script 03).
@@ -39,6 +39,19 @@ if (!requireNamespace("projpred", quietly = TRUE)) install.packages("projpred")
 library(projpred)
 
 setup_rtools()
+
+dir.create(here("output", "figures"), recursive = TRUE, showWarnings = FALSE)
+dir.create(here("output", "cache"),   recursive = TRUE, showWarnings = FALSE)
+fig_dir   <- here("output", "figures")
+cache_dir <- here("output", "cache")
+
+save_fig <- function(fname, p, w = 14, h = 9, u = "cm") {
+  ggplot2::ggsave(file.path(fig_dir, fname), plot = p,
+                  width = w, height = h, units = u, device = "pdf")
+  cat(sprintf("  [fig] Salvato: %s\n", fname))
+}
+
+projpred_cache_path <- file.path(cache_dir, "projpred_varsel.rds")
 
 
 # ── 1. DATI (identici a script 20) ────────────────────────────────────────────
@@ -296,14 +309,30 @@ run_projpred <- function(mu_draws, sigma_draws, y_vec, risposta,
   invisible(vs)
 }
 
-vs_SOC <- run_projpred(res_SOC$mu, res_SOC$sigma,
-                       dati_int$logSOC, "SOC", data_pp, formula_full)
+# ── Cache: carica se esiste, altrimenti calcola e salva ──────────────────────
+if (file.exists(projpred_cache_path)) {
+  cat("\nCarico projpred cache:", projpred_cache_path, "\n")
+  vs_cache <- readRDS(projpred_cache_path)
+  vs_SOC   <- vs_cache$SOC
+  vs_N     <- vs_cache$N
+  vs_P     <- vs_cache$P
+  rm(vs_cache)
+} else {
+  cat("\nCache projpred non trovata — avvio calcolo (può richiedere 15-30 min)...\n")
 
-vs_N   <- run_projpred(res_N$mu,   res_N$sigma,
-                       dati_int$logN,   "N",   data_pp, formula_full)
+  vs_SOC <- run_projpred(res_SOC$mu, res_SOC$sigma,
+                         dati_int$logSOC, "SOC", data_pp, formula_full)
 
-vs_P   <- run_projpred(res_P$mu,   res_P$sigma,
-                       dati_int$logP,   "P",   data_pp, formula_full)
+  vs_N   <- run_projpred(res_N$mu,   res_N$sigma,
+                         dati_int$logN,   "N",   data_pp, formula_full)
+
+  vs_P   <- run_projpred(res_P$mu,   res_P$sigma,
+                         dati_int$logP,   "P",   data_pp, formula_full)
+
+  cat("\nSalvo projpred cache...\n")
+  saveRDS(list(SOC = vs_SOC, N = vs_N, P = vs_P), projpred_cache_path)
+  cat("  Cache salvata:", projpred_cache_path, "\n")
+}
 
 
 # ── 6. RIEPILOGO ─────────────────────────────────────────────────────────────
@@ -330,5 +359,41 @@ cat("  - n=0: solo (1|Field) + intercetta è sufficiente\n")
 cat("  - n=k: le prime k variabili nell'ordine di selezione sono necessarie\n")
 cat("  - 'necessario' = aggiungere altre variabili non migliora la predizione\n")
 cat("    rispetto al reference (M-SP) in modo statisticamente rilevante\n")
+
+# ── Salva figure projpred ─────────────────────────────────────────────────────
+cat("\nSalvo figure projpred...\n")
+risposta_nomi <- list(SOC = vs_SOC, N = vs_N, P = vs_P)
+pp_plots <- list()
+
+for (nm in names(risposta_nomi)) {
+  vs_obj <- risposta_nomi[[nm]]
+  if (!is.null(vs_obj)) {
+    p <- tryCatch(
+      plot(vs_obj, stats = "elpd", deltas = TRUE) +
+        ggtitle(sprintf("ELPD path — log%s (reference = M-SP)", nm)) +
+        labs(subtitle = "ΔELPD rispetto al reference model M-SP",
+             x = "Numero di predittori inclusi", y = "ΔELPD") +
+        theme_minimal(base_size = 11) +
+        theme(plot.title = element_text(face = "bold")),
+      error = function(e) { cat("  Errore plot", nm, ":", conditionMessage(e), "\n"); NULL }
+    )
+    pp_plots[[nm]] <- p
+    if (!is.null(p)) save_fig(sprintf("fig_08_projpred_%s.pdf", tolower(nm)), p, w = 12, h = 8)
+  }
+}
+
+# Salva anche summary strutturato come RDS per uso in script 08
+projpred_summary <- lapply(names(risposta_nomi), function(nm) {
+  vs_obj <- risposta_nomi[[nm]]
+  if (is.null(vs_obj)) return(NULL)
+  list(
+    risposta   = nm,
+    ordine     = tryCatch(solution_terms(vs_obj), error = function(e) character(0)),
+    n_suggerito = tryCatch(suggest_size(vs_obj, alpha = 0.1), error = function(e) NA_integer_)
+  )
+})
+names(projpred_summary) <- names(risposta_nomi)
+saveRDS(projpred_summary, file.path(cache_dir, "projpred_summary.rds"))
+cat("  Sommario projpred salvato in output/cache/projpred_summary.rds\n")
 
 cat("\n── Fine script 06 ──────────────────────────────────────────────\n")

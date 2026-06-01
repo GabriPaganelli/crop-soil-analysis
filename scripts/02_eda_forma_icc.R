@@ -1,5 +1,5 @@
 # =============================================================================
-# 04_eda_depth_profiles.R  —  EDA profili verticali e relazione intercetta-slope
+# 02_eda_forma_icc.R  —  EDA: forma funzionale, ICC, correlazione intercetta-slope
 #
 # STRUTTURA:
 #   Sezione 0 — Verifiche preliminari: ICC, forma funzionale del profilo
@@ -26,6 +26,15 @@ library(tidyverse)
 library(here)
 library(lme4)
 source(here("scripts", "00_utilities.R"))
+
+dir.create(here("output", "figures"), recursive = TRUE, showWarnings = FALSE)
+fig_dir <- here("output", "figures")
+
+save_fig <- function(fname, p, w = 16, h = 9, u = "cm") {
+  ggplot2::ggsave(file.path(fig_dir, fname), plot = p,
+                  width = w, height = h, units = u, device = "pdf")
+  cat(sprintf("  [fig] Salvato: %s\n", fname))
+}
 
 
 # ── 0. VERIFICHE PRELIMINARI (motivazione del modello) ────────────────────────
@@ -74,6 +83,33 @@ cat(" 0b. CONFRONTO AIC — FORMA FUNZIONALE (logSOC)\n")
 cat("══════════════════════════════════════════════════════\n")
 print(aic_tbl[order(aic_tbl$AIC), ])
 cat("  → log(Bottom) = forma power-law: la migliore tra le parametriche.\n\n")
+
+# Figura AIC
+aic_df <- data.frame(
+  forma = rownames(aic_tbl),
+  AIC   = aic_tbl$AIC
+) |>
+  mutate(
+    delta_AIC = AIC - min(AIC),
+    forma     = factor(forma, levels = forma[order(delta_AIC, decreasing = TRUE)])
+  )
+
+p_aic <- ggplot(aic_df, aes(x = delta_AIC, y = forma)) +
+  geom_col(aes(fill = delta_AIC < 2), show.legend = FALSE, alpha = 0.85, width = 0.6) +
+  scale_fill_manual(values = c("TRUE" = "steelblue", "FALSE" = "grey60")) +
+  geom_text(aes(label = sprintf("AIC diff = %.1f", delta_AIC)), hjust = -0.15, size = 3.2) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.25))) +
+  labs(
+    title    = "Confronto AIC - forma funzionale del profilo verticale",
+    subtitle = "Risposta: logSOC  |  Modello base: (1 | Field)  |  Stima: ML",
+    x        = "AIC - min(AIC)",
+    y        = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(panel.grid.major.y = element_blank())
+
+print(p_aic)
+save_fig("fig_01_aic_forma_funzionale.pdf", p_aic, w = 14, h = 8)
 
 # ── 0c. RANDOM SLOPE: "chi parte alto decade più lentamente" ──────────────────
 # Con Bottom centrato: correlazione intercetta-slope positiva (campo ricco
@@ -180,15 +216,16 @@ p_scatter <- ggplot(ols_all, aes(int, slope)) +
             hjust = 0, vjust = 1, size = 3.2, color = "grey30") +
   facet_wrap(~ risposta, scales = "free", ncol = 3) +
   labs(
-    title    = "Relazione intercetta–slope per campo (OLS empirica)",
-    subtitle = "Intercetta = livello medio alla profondità media | Slope = decadimento con log(profondità)",
-    x        = "Intercetta empirica (log-risposta alla profondità media)",
+    title    = "Relazione intercetta-slope per campo (OLS empirica)",
+    subtitle = "Intercetta = livello medio alla profondita' media | Slope = decadimento con log(profondita')",
+    x        = "Intercetta empirica (log-risposta alla profondita' media)",
     y        = "Slope empirica con logBottom"
   ) +
   theme_minimal(base_size = 11) +
   theme(strip.text = element_text(face = "bold"))
 
 print(p_scatter)
+save_fig("fig_02_scatter_intercetta_slope.pdf", p_scatter, w = 18, h = 7)
 
 
 # ── 5. SPAGHETTI PLOT: PROFILI VERTICALI COLORATI PER LIVELLO ────────────────
@@ -212,24 +249,58 @@ make_spaghetti <- function(ols_df, dati_df, y_var, titolo) {
     geom_line(alpha = 0.7, linewidth = 0.8) +
     geom_point(size = 1.2, alpha = 0.6) +
     scale_color_viridis_c(
-      name   = "Rank livello\n(basso → alto)",
+      name   = "Rank livello\n(basso -> alto)",
       option = "plasma"
     ) +
     labs(
       title    = titolo,
-      subtitle = "Colore: dal viola (campo più povero) al giallo (più ricco)",
-      x        = "log(profondità in cm)",
+      subtitle = "Colore: dal viola (campo piu' povero) al giallo (piu' ricco)",
+      x        = "log(profondita' in cm)",
       y        = paste0("log(", y_var, ")")
     ) +
     theme_minimal(base_size = 11)
 }
 
-print(make_spaghetti(ols_SOC, dati, "logSOC",
-                     "Profili verticali SOC — pattern intercetta-slope"))
-print(make_spaghetti(ols_N, dati, "logN",
-                     "Profili verticali N — atteso no pattern"))
-print(make_spaghetti(ols_P, dati, "logP",
-                     "Profili verticali P — atteso pattern debole"))
+p_sp_SOC <- make_spaghetti(ols_SOC, dati, "logSOC",
+                           "Profili verticali SOC — pattern intercetta-slope")
+p_sp_N   <- make_spaghetti(ols_N,   dati, "logN",
+                           "Profili verticali N — atteso no pattern")
+p_sp_P   <- make_spaghetti(ols_P,   dati, "logP",
+                           "Profili verticali P — atteso pattern debole")
+
+print(p_sp_SOC)
+print(p_sp_N)
+print(p_sp_P)
+
+# Figure combinate per il report
+if (requireNamespace("patchwork", quietly = TRUE)) {
+  library(patchwork)
+  # Fig principale: SOC (segnale forte) e N (no segnale) affiancati
+  p_spagh_soc_n <- (p_sp_SOC + theme(legend.position = "none")) +
+                   (p_sp_N   + theme(legend.position = "right")) +
+                   plot_annotation(
+                     title    = "Profili verticali di SOC e N nei 40 campi",
+                     subtitle = "Colore: dal viola (campo piu' povero) al giallo (piu' ricco)"
+                   )
+  print(p_spagh_soc_n)
+  save_fig("fig_03_spaghetti_soc_n.pdf", p_spagh_soc_n, w = 18, h = 9)
+
+  # Fig completa: tutte e 3 le risposte
+  p_spagh_all <- (p_sp_SOC + theme(legend.position = "none")) +
+                 (p_sp_N   + theme(legend.position = "none")) +
+                 (p_sp_P   + theme(legend.position = "right")) +
+                 plot_layout(ncol = 3) +
+                 plot_annotation(
+                   title    = "Profili verticali di SOC, N e P nei 40 campi",
+                   subtitle = "Colore: dal viola (campo piu' povero) al giallo (piu' ricco)"
+                 )
+  print(p_spagh_all)
+  save_fig("fig_03b_spaghetti_all.pdf", p_spagh_all, w = 22, h = 8)
+} else {
+  save_fig("fig_03a_spaghetti_soc.pdf", p_sp_SOC, w = 10, h = 8)
+  save_fig("fig_03b_spaghetti_n.pdf",   p_sp_N,   w = 10, h = 8)
+  save_fig("fig_03c_spaghetti_p.pdf",   p_sp_P,   w = 10, h = 8)
+}
 
 
 # ── 6. DISTRIBUZIONE DELLE SLOPE ─────────────────────────────────────────────

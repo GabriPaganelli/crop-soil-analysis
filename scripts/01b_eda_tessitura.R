@@ -1,5 +1,5 @@
 # =============================================================================
-# 01b_eda_texture.R  —  EDA composizionale della tessitura
+# 01b_eda_tessitura.R  —  EDA composizionale tessitura (ILR, triangolo)
 #
 # Motivazione: PercClay, PercSilt, PercSand sommano sempre a 100% → vivono su
 # un simplesso 2D, non in R³. Usarle grezze in un modello causa due problemi:
