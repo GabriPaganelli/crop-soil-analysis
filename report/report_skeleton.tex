@@ -622,6 +622,29 @@ effetto fisso vs casuale di logBottom). Cautela nell'interpretazione.}
 equivalente a M-SP. La variabilit\`a tra campi \`e catturata dalla struttura
 proporzionale pi\`u che dalle pratiche osservate.}
 
+\subsection{Indipendenza condizionale dei residui (M-SP-MV)}
+
+Per verificare se i residui dei tre nutrienti alla stessa osservazione
+covariassero, M-SP \`e stato esteso a un modello con residui multivariati
+(M-SP-MV): $\vec{\varepsilon}_{ij} \sim \mathcal{N}_3(\vec{0},\,\Sigma)$
+con $\Sigma = \mathrm{diag}(\vec\sigma)\,\Omega\,\mathrm{diag}(\vec\sigma)$
+e prior $\Omega \sim \mathrm{LKJ}(2)$.
+
+Le tre correlazioni residue a posteriori sono tutte vicine a zero:
+$\hat\rho_{\SOC\text{-}N} = 0.067\ [-0.063, 0.197]$,
+$\hat\rho_{\SOC\text{-}P} = 0.001\ [-0.122, 0.126]$,
+$\hat\rho_{N\text{-}P}   = 0.021\ [-0.105, 0.148]$.
+I parametri $\eta_r$ sono invariati ($\leq 0.005$ di variazione in mediana).
+Il confronto LOO indica che M-SP \`e migliore di M-SP-MV
+($\Delta\text{ELPD} = +4.7$, SE~$=1.4$, $|z|=3.4$):
+aggiungere le correlazioni residue peggiora la predizione perch\'e
+introduce parametri con segnale nullo.
+
+\textbf{Conclusione}: i tre nutrienti sono condizionalmente indipendenti
+dato il modello M-SP. La co-variazione osservata tra SOC, N e P \`e
+interamente catturata dai predittori comuni (profondit\`a, tessitura, campo).
+M-SP rimane il modello finale.
+
 
 % ==============================================================================
 \section{Conclusioni}
