@@ -1,5 +1,5 @@
 ﻿# =============================================================================
-# 06_model_msp.R  —  Modello M-SP (Slope Proporzionale, modello finale)
+# 09_model_msp.R  —  Modello M-SP (Slope Proporzionale, modello finale)
 #
 # STRUTTURA (stan/m4rr_v2_ri_slope_mu.stan):
 #   Per r ∈ {SOC, N, P}:

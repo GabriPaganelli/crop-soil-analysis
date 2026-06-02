@@ -5,8 +5,9 @@
 rm(list = ls())
 library(nlme)
 library(tidyverse)
+library(here)
 
-crop <- readRDS("C:\\Users\\piero\\Downloads\\dati.rds")
+crop <- readRDS(here("data", "dati.rds"))
 
 crop <- crop %>%
   mutate(

@@ -1,5 +1,5 @@
 # =============================================================================
-# 13_figure_report.R  —  Export figure per script 10/11 + copia in report/images/
+# 18_figure_report.R  —  Export figure per script 14/15 + copia in report/images/
 #
 # Produce:
 #   output/figures/fig_15_loo_ab_comparison.pdf   — LOO: A / B / M-SP
@@ -10,8 +10,8 @@
 # (con nomi puliti: fig01_aic.pdf … appfig02_trace.pdf)
 #
 # Dipende da:
-#   output/tables/tab_10_loo.csv         (LOO comparison A/B/M-SP)
-#   output/tables/tab_11_sensitivity.csv (sensitivity analysis)
+#   output/tables/tab_14_loo.csv         (LOO comparison A/B/M-SP)
+#   output/tables/tab_15_sensitivity.csv (sensitivity analysis)
 #   output/cache/projpred_varsel.rds     (varsel objects SOC/N/P)
 # =============================================================================
 
@@ -41,7 +41,7 @@ resp_colors <- c("SOC" = "#2166AC", "N" = "#1A9850", "P" = "#D73027")
 
 cat("=== Fig 15: LOO comparison A / B / M-SP ===\n")
 
-loo_ab <- read.csv(here("output", "tables", "tab_10_loo.csv")) |>
+loo_ab <- read.csv(here("output", "tables", "tab_14_loo.csv")) |>
   mutate(
     modello  = factor(modello, levels = rev(c("B (resp-spec)", "A (ridotto)", "M-SP"))),
     ci_lo    = elpd_diff - se_diff,
@@ -78,7 +78,7 @@ save_fig("fig_15_loo_ab_comparison.pdf", p_loo_ab, w = 14, h = 7)
 
 cat("\n=== Fig 16: Sensitivity η_r ===\n")
 
-sens_raw <- read.csv(here("output", "tables", "tab_11_sensitivity.csv"))
+sens_raw <- read.csv(here("output", "tables", "tab_15_sensitivity.csv"))
 
 eta_df <- sens_raw |>
   filter(grepl("^eta_", variable)) |>

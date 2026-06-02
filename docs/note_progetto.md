@@ -43,8 +43,8 @@ lineare in log-log (legge di potenza: nutriente ∝ profondità^β).
 
 **ILR (Isometric Log-Ratio)**: trasformazione composizionale per trattare Sand/Silt/Clay
 come variabili reali, eliminando il vincolo a somma 100%:
-- Texture1 = √(2/3) · log(Sand / √(Silt·Clay))
-- Texture2 = √(1/2) · log(Silt / Clay)
+- Texture1 = √(1/2) · log(Clay / Silt)          ← contrasto argilla vs limo
+- Texture2 = √(2/3) · log(√(Clay·Silt) / Sand)  ← gradiente finezza vs sabbia
 
 **Nota**: crop.csv non contiene Texture1/Texture2. Vengono calcolate da 01_preprocessing.R
 partendo dalle percentuali grezze. I dati grezzi della tessitura (PercSand, PercSilt, PercClay)
@@ -152,6 +152,26 @@ La semplicità del modello proporzionale è una virtù, non un compromesso.
 In generale deboli dopo aver controllato per i covariati within-field.
 Il management (irrigazione, fertilizzazione) non spiega grandi differenze nei profili
 una volta che l'eterogeneità between-field è catturata dal random intercept.
+
+### Robustezza: M-SP-MV (script 10)
+
+Estensione multivariata di M-SP: i residui (eps_SOC, eps_N, eps_P) alla stessa osservazione
+sono modellati con MVNormal e matrice di correlazione Omega_3×3 (3 parametri rho aggiuntivi).
+**Stan file**: `stan/m_msp_mv.stan` | **Fit**: `stan/fit_msp_mv.rds`
+
+| Correlazione | Mediana | CI90% | Interpretazione |
+|--------------|---------|-------|-----------------|
+| rho_SOC_N | +0.067 | [−0.063, +0.197] | copre zero |
+| rho_SOC_P | ≈ 0 | — | copre zero |
+| rho_N_P | ≈ 0 | — | copre zero |
+
+**eta_r invariante**: Δmediana < 0.005 per tutte e tre le risposte → la struttura proporzionale
+non dipende dall'ipotesi di indipendenza dei residui.
+
+**LOO**: M-SP vince su M-SP-MV di ΔELPD = +4.7 (SE=1.4, |z|=3.4) → aggiungere
+correlazioni quasi-zero penalizza la predizione.
+
+**Conclusione**: i tre nutrienti sono condizionalmente indipendenti dati i predittori di M-SP.
 
 ---
 

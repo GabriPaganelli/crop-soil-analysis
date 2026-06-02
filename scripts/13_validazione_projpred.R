@@ -1,5 +1,5 @@
 # =============================================================================
-# 09_validazione_projpred.R  —  Validazione: posteriors proiettati da projpred vs M-SP
+# 13_validazione_projpred.R  —  Validazione: posteriors proiettati da projpred vs M-SP
 #
 # Per ogni risposta r, costruisce il "modello finale" come il sottosistema
 # selezionato da projpred (script 06) e ne verifica la coerenza con M-SP.

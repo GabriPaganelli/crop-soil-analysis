@@ -434,12 +434,13 @@ la maggior parte della variabilità è catturata da $z_{\nu,r,j}$.
 File & Contenuto \\
 \midrule
 \texttt{scripts/01\_preprocessing.R} & crop.csv → dati.rds (ILR, pulizia) \\
-\texttt{scripts/01b\_eda\_texture.R} & EDA composizionale tessitura \\
+\texttt{scripts/01b\_eda\_tessitura.R} & EDA composizionale tessitura \\
+\texttt{scripts/02\_eda\_forma\_icc.R} & forma funzionale, ICC, motivazione M-SP \\
 \texttt{stan/m4rr\_v2\_ri\_slope\_mu.stan} & codice Stan M-SP \\
-\texttt{stan/fit\_v2\_ri\_slope\_mu.rds} & fit MCMC salvato \\
-\texttt{scripts/03\_model\_proportional\_slope.R} & fit, diagnostica, LOO \\
-\texttt{scripts/04\_eda\_depth\_profiles.R} & motivazione EDA \\
-\texttt{scripts/06\_variable\_selection.R} & selezione variabili \\
+\texttt{stan/fit\_msp.rds} & fit MCMC salvato \\
+\texttt{scripts/06\_model\_msp.R} & fit M-SP, diagnostica, LOO \\
+\texttt{scripts/06b\_model\_msp\_mv.R} & robustezza: residui multivariati (M-SP-MV) \\
+\texttt{scripts/08\_selezione\_variabili.R} & selezione variabili (projpred) \\
 \texttt{CLAUDE.md} & riferimento tecnico per agenti AI \\
 \texttt{docs/note\_progetto.md} & note per umani \\
 \bottomrule

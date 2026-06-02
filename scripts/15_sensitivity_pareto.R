@@ -1,5 +1,5 @@
 # =============================================================================
-# 11_sensitivity_pareto.R  —  Sensitivity analysis: rimozione osservazioni influenti
+# 15_sensitivity_pareto.R  —  Sensitivity analysis: rimozione osservazioni influenti
 #
 # Usa i Pareto k dal LOO di M-SP per identificare le osservazioni più influenti
 # (k > 0.7), le rimuove dal dataset e rifita M-SP sullo stesso file Stan.
@@ -14,8 +14,8 @@
 # Output:
 #   stan/fit_msp_noinfl.rds                → fit M-SP senza osservazioni influenti
 #   output/cache/pareto_k.rds              → vettore k per M-SP
-#   output/tables/tab_11_influential.csv   → lista osservazioni con k > 0.5
-#   output/tables/tab_11_sensitivity.csv   → confronto parametri full vs no-infl
+#   output/tables/tab_15_influential.csv   → lista osservazioni con k > 0.5
+#   output/tables/tab_15_sensitivity.csv   → confronto parametri full vs no-infl
 #
 # MCMC: identici a M-SP (4 catene × 3000wu + 5000samp, adapt_delta=0.97, seed=2024)
 # Dipende da: stan/fit_msp.rds, data/dati.rds
@@ -127,8 +127,8 @@ print(infl_df |> select(obs_idx, pareto_k, categoria, Field, Bottom) |>
       mutate(pareto_k = round(pareto_k, 3)) |> as.data.frame())
 
 write.csv(infl_df |> mutate(across(where(is.numeric), ~round(.x, 3))),
-          file.path(tab_dir, "tab_11_influential.csv"), row.names = FALSE)
-cat("  Salvato: output/tables/tab_11_influential.csv\n")
+          file.path(tab_dir, "tab_15_influential.csv"), row.names = FALSE)
+cat("  Salvato: output/tables/tab_15_influential.csv\n")
 
 if (length(remove_idx) == 0) {
   cat("\nNessuna osservazione con k ≥ 0.7. Sensitivity analysis non necessaria.\n")
@@ -328,8 +328,8 @@ if (nrow(attenzione) > 0) {
   cat("\nNessun parametro cambia significativamente. Conclusioni robuste.\n")
 }
 
-write.csv(compare_tab, file.path(tab_dir, "tab_11_sensitivity.csv"), row.names = FALSE)
-cat("  Salvato: output/tables/tab_11_sensitivity.csv\n")
+write.csv(compare_tab, file.path(tab_dir, "tab_15_sensitivity.csv"), row.names = FALSE)
+cat("  Salvato: output/tables/tab_15_sensitivity.csv\n")
 
 
 # ── 8. SINTESI ────────────────────────────────────────────────────────────────

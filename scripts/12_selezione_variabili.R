@@ -1,5 +1,5 @@
 # =============================================================================
-# 08_selezione_variabili.R  —  Selezione variabili con projpred (reference: M-SP)
+# 12_selezione_variabili.R  —  Selezione variabili con projpred (reference: M-SP)
 #
 # COME FUNZIONA projpred (NON fitta modelli Stan per ogni subset):
 #   1. Reference model: usa le draws già in memoria da M-SP (script 03).

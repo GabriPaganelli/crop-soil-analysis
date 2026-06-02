@@ -1,5 +1,5 @@
 # =============================================================================
-# 10_confronto_modelli.R  —  Confronto modelli A / B / M-SP (LOO + parametri)
+# 14_confronto_modelli.R  —  Confronto modelli A / B / M-SP (LOO + parametri)
 #
 # Stima e confronta tre versioni semplificate del modello M-SP:
 #
@@ -21,8 +21,8 @@
 #   stan/fit_final_A.rds              → fit Stan modello A
 #   stan/fit_final_B.rds              → fit Stan modello B
 #   output/cache/loo_all_models.rds   → lista LOO: M-SP, A, B
-#   output/tables/tab_10_params.csv   → tabella confronto parametri
-#   output/tables/tab_10_loo.csv      → tabella confronto LOO
+#   output/tables/tab_14_params.csv   → tabella confronto parametri
+#   output/tables/tab_14_loo.csv      → tabella confronto LOO
 #
 # MCMC: 4 catene × 2000 warmup + 5000 sampling, adapt_delta=0.97, seed=2024
 # (identici a M-SP per confronto LOO diretto)
@@ -310,8 +310,8 @@ print(loo_comp)
 loo_tab <- as.data.frame(loo_comp) |>
   tibble::rownames_to_column("modello") |>
   mutate(across(where(is.numeric), ~round(.x, 2)))
-write.csv(loo_tab, file.path(tab_dir, "tab_10_loo.csv"), row.names = FALSE)
-cat("  Salvato: output/tables/tab_10_loo.csv\n")
+write.csv(loo_tab, file.path(tab_dir, "tab_14_loo.csv"), row.names = FALSE)
+cat("  Salvato: output/tables/tab_14_loo.csv\n")
 
 
 # ── 8. TABELLA CONFRONTO PARAMETRI ────────────────────────────────────────────
@@ -388,8 +388,8 @@ print(tab_N   |> select(-Risposta) |> as.data.frame(), row.names = FALSE)
 cat("\n--- P ---\n")
 print(tab_P   |> select(-Risposta) |> as.data.frame(), row.names = FALSE)
 
-write.csv(tab_all, file.path(tab_dir, "tab_10_params.csv"), row.names = FALSE)
-cat("\n  Salvato: output/tables/tab_10_params.csv\n")
+write.csv(tab_all, file.path(tab_dir, "tab_14_params.csv"), row.names = FALSE)
+cat("\n  Salvato: output/tables/tab_14_params.csv\n")
 
 
 # ── 9. SINTESI DIAGNOSTICA ────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 # =============================================================================
-# 06b_model_msp_mv.R  —  M-SP-MV: Modello M-SP con residui multivariati
+# 10_model_msp_mv.R  —  M-SP-MV: Modello M-SP con residui multivariati
 #
-# Estensione di 06_model_msp.R:
+# Estensione di 09_model_msp.R:
 #   I residui (eps_SOC, eps_N, eps_P) alla stessa osservazione (campo j,
 #   profondità i) sono modellati congiuntamente tramite MVNormal con
 #   matrice di correlazione Omega_3x3.
@@ -37,7 +37,7 @@ if (requireNamespace("posterior",  quietly = TRUE)) library(posterior)
 if (requireNamespace("bayesplot",  quietly = TRUE)) library(bayesplot)
 
 
-# ── 1. DATI (identici a 06_model_msp.R) ──────────────────────────────────────
+# ── 1. DATI (identici a 09_model_msp.R) ──────────────────────────────────────
 
 dati <- readRDS(here("data", "dati.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
@@ -245,4 +245,4 @@ if (requireNamespace("loo", quietly = TRUE)) {
 }
 
 
-cat("\n-- Fine script 06b_model_msp_mv.R ------------------------------------\n")
+cat("\n-- Fine script 10_model_msp_mv.R ------------------------------------\n")

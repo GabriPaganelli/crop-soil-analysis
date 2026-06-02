@@ -1,5 +1,5 @@
 ﻿# =============================================================================
-# 05_model_ri.R  —  Modello M-RI (Random Intercept, confronto baseline)
+# 08_model_ri.R  —  Modello M-RI (Random Intercept, confronto baseline)
 #
 # STRUTTURA (stan/m4rr_v2_no_gp_mu.stan):
 #   Per r ∈ {SOC, N, P}:

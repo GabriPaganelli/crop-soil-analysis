@@ -1,5 +1,5 @@
 # =============================================================================
-# 12_figure_principali.R  —  Export figure principali dal fit M-SP
+# 17_figure_principali.R  —  Export figure principali dal fit M-SP
 #
 # Produce in output/figures/:
 #   fig_04_posterior_eta.pdf       — distribuzioni a posteriori di eta_r
