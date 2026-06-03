@@ -490,7 +490,7 @@ per tutti i parametri.}
     \textbf{M-SP-RIRS-MVRE} & RE 6D cross-risposta & $\mathbf{0.0}$ & ---  & ---  \\
     M-SP-RIRS & RI+RS bivariato per risposta & $-0.4$ & $\approx 4$ & $\approx 0.1$ \\
     M-SP  & RI + slope proporzionale     & $-4.1$ & $4.2$ & $\approx 1.0$ \\
-    M-RI  & Random intercept i.i.d.      & \todo{da completare con script 10} & & \\
+    M-RI  & Random intercept i.i.d.      & $-9.2$ & $5.7$ & $1.6$ \\
     \bottomrule
     \multicolumn{5}{@{}l}{\small\textit{%
       $|\Delta\text{ELPD}/\text{SE}|<2$: nessuna differenza significativa.
@@ -520,13 +520,13 @@ per tutti i parametri.}
   \centering
   \includegraphics[width=0.95\linewidth]{fig06_projpred.pdf}
   \caption{Percorso di selezione projpred per SOC, N e P ($\Delta$ELPD
-    vs.\ numero di predittori; reference model = M-SP-RIRS; soglia $\alpha=0.10$ tratteggiata).}
+    vs.\ numero di predittori; reference model = M-SP-RIRS-MVRE; soglia $\alpha=0.10$ tratteggiata).}
   \label{fig:projpred}
 \end{figure}
 
 \begin{table}[htbp]
   \centering
-  \caption{Selezione projpred (forward search, $\alpha=0.10$; reference = M-SP-RIRS).
+  \caption{Selezione projpred (forward search, $\alpha=0.10$; reference = M-SP-RIRS-MVRE).
     $n^*$: numero suggerito di predittori.}
   \label{tab:projpred}
   \small
@@ -556,55 +556,64 @@ per tutti i parametri.}
 
 \paragraph{Osservazioni influenti (Pareto $k$).}
 
-Sono state identificate $16/220$ osservazioni con Pareto $k \geq 0.7$ (7.3\%).
+Sono state identificate osservazioni con Pareto $k \geq 0.7$ in M-SP-RIRS-MVRE.
 Il confronto dei parametri strutturali tra modello completo e ridotto mostra:
-$\hat\rho_\SOC = 0.676\ [0.273, 0.913]$ vs $0.639\ [0.126, 0.914]$ (OK);
-$\tauB{\SOC}$ si riduce moderatamente (nota).
+$\hat\rho_\SOC = 0.519\ [0.119, 0.795]$ vs $0.526\ [0.169, 0.770]$ (OK);
+$\hat\sigma_r$ si riduce moderatamente rimuovendo gli influenti (ATTENZIONE, atteso:
+le osservazioni influenti sono punti estremi che gonfiano la varianza residua).
 $\tauB{N}$ e $\rho_N$ cambiano entro l'intervallo di incertezza (nota, non ATTENZIONE).
-\textbf{Conclusione}: $\rho_\SOC$ robusto alla rimozione dei punti influenti.
+\textbf{Conclusione}: $\rho_\SOC$ e i parametri di campo sono robusti alla rimozione
+dei punti influenti.
 
-\paragraph{Modelli semplificati (A e B).}
+\paragraph{Modelli semplificati A e B.}
 
-\todo{Ottenere i valori numerici $\Delta$ELPD dal log di script 13 e completare la
-tabella~\ref{tab:loo4} con M-RI, M-GPS, M-GP.
-Modello A (senza management, senza ILR$_1$) e Modello B (N solo RI):
-entrambi diagnosticamente OK (0 divergenze, $\hat{R}<1.05$, ESS buono).}
+Il modello A (senza management $\beta_r$, senza Texture1) e il modello B (N con solo RI,
+struttura 5D) sono entrambi diagnosticamente corretti (0 divergenze, $\hat{R}<1.05$).
+LOO: $\Delta\text{ELPD}_{A-\text{MVRE}} = +1.8$ (SE~$=4.1$, $|z|=0.4$; A non peggiore
+di MVRE); $\Delta\text{ELPD}_{B-\text{MVRE}} = -5.7$ (SE~$=6.0$; B peggiore ma non
+significativo). Il modello A conferma che management e Texture1 non hanno peso predittivo
+— coerente con la selezione projpred.
 
-\paragraph{Indipendenza condizionale dei residui (M-SP-RIRS-MV).}
+\paragraph{Indipendenza condizionale dei residui (MVRE-FULL).}
 
-Per verificare se i residui dei tre nutrienti alla stessa osservazione
-covariassero, M-SP-RIRS \`e stato esteso a un modello con residui multivariati:
-$\vec{\varepsilon}_{ij} \sim \mathcal{N}_3(\vec{0},\,\Sigma)$
-con $\Sigma = \mathrm{diag}(\vec\sigma)\,\Omega_\text{res}\,\mathrm{diag}(\vec\sigma)$
-e prior $\Omega_\text{res} \sim \mathrm{LKJ}(2)$.
-
-Le tre correlazioni residue a posteriori sono tutte vicine a zero:
-$\hat\rho_{\SOC\text{-}N} = +0.049\ [-0.086,+0.181]$,
-$\hat\rho_{\SOC\text{-}P} = -0.019\ [-0.146,+0.111]$,
-$\hat\rho_{N\text{-}P} = +0.040\ [-0.091,+0.169]$.
-Il confronto LOO indica che M-SP-RIRS-MV \`e \emph{peggiore} di M-SP-RIRS
-($\Delta\text{ELPD} = -3.8$, SE~$=1.3$, $|z|=2.9$):
-aggiungere correlazioni residue nulle introduce parametri non informativi.
-\textbf{Conclusione}: i tre nutrienti sono condizionalmente indipendenti
-dato il modello M-SP-RIRS.
-
-\paragraph{Residui multivariati e indipendenza condizionale (M-SP-RIRS-MV).}
-
-Per verificare se i residui dei tre nutrienti alla stessa osservazione covariassero,
-M-SP-RIRS-MVRE \`e stato confrontato con M-SP-RIRS-MV (residui multivariati
-$\vec{\varepsilon}_{ij} \sim \mathcal{N}_3(\vec{0},\,\Sigma)$).
-Le tre correlazioni residue a posteriori sono tutte vicine a zero:
-$\hat\rho_{\SOC\text{-}N} = +0.049\ [-0.086,+0.181]$,
-$\hat\rho_{\SOC\text{-}P} = -0.019\ [-0.146,+0.111]$,
-$\hat\rho_{N\text{-}P} = +0.040\ [-0.091,+0.169]$.
-Aggiungere correlazioni residue non migliora la predizione
-($\Delta\text{ELPD}$ MV vs MVRE\,$\approx 0$):
-i tre nutrienti sono condizionalmente indipendenti dato M-SP-RIRS-MVRE.
+M-SP-RIRS-MVRE \`e stato esteso con residui multivariati
+$\vec{\varepsilon}_{ij} \sim \mathcal{N}_3(\vec{0},\,\Sigma_\text{res})$
+(MVRE-FULL, 300 parametri). Le tre correlazioni residue a posteriori sono
+tutte vicine a zero:
+$\hat\rho^\text{res}_{\SOC\text{-}N} = +0.015\ [-0.121,+0.151]$,
+$\hat\rho^\text{res}_{\SOC\text{-}P} = -0.021\ [-0.151,+0.110]$,
+$\hat\rho^\text{res}_{N\text{-}P} = +0.035\ [-0.096,+0.166]$.
+LOO: $\Delta\text{ELPD}_{\text{FULL}-\text{MVRE}} = -3.1$ (SE~$=1.1$):
+MVRE-FULL è peggiore di MVRE per i parametri extra non informativi.
+\textbf{Conclusione}: i tre nutrienti sono condizionalmente indipendenti dato
+M-SP-RIRS-MVRE. La struttura cross-risposta è interamente catturata a livello
+di campo da $\Omega_6$ — non esiste correlazione residua aggiuntiva.
 
 \paragraph{Autocorrelazione verticale dei residui (\texttt{17\_frequentista\_corexp.R}).}
 
 \todo{Analisi frequentista con \texttt{nlme} (script \texttt{17}).
 Verifica assenza di autocorrelazione spaziale nei residui.}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\linewidth]{fig09_loo_ab.pdf}
+  \caption{LOO-CV: M-SP-RIRS-MVRE e varianti semplificate A e B.
+    $\Delta$ELPD rispetto al migliore (A); barre = $\pm$SE.
+    Modello A non peggiore di MVRE ($|z|=0.4$): management e Texture1 non
+    aggiungono potere predittivo. Modello B peggiore ($\Delta=-5.7$): la slope
+    casuale per N contribuisce alla struttura di campo.}
+  \label{fig:loo_ab}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\linewidth]{fig11_sensitivity.pdf}
+  \caption{Analisi di sensibilità (Pareto $k \geq 0.7$): confronto di
+    $\rho_r$ e $\tauB{r}$ tra modello completo e modello senza osservazioni
+    influenti. Le stime strutturali sono stabili; solo $\sigma_r$ si riduce
+    moderatamente (atteso: gli influenti sono residui estremi).}
+  \label{fig:sensitivity}
+\end{figure}
 
 
 % ==============================================================================
@@ -613,7 +622,7 @@ Verifica assenza di autocorrelazione spaziale nei residui.}
 
 \subsection{SOC: correlazione slope--intercetta e meccanismi biologici}
 
-\todo{$\hat\rho_\SOC=0.68$ [0.23, 0.96], positivo e robusto. $\tauB{\SOC}=0.22$
+\todo{$\hat\rho_\SOC=0.52$ [0.12, 0.80], positivo e robusto. $\tauB{\SOC}=0.22$
 significativamente positivo. Campi con SOC elevato decadono pi\`u lentamente.
 Confronto con letteratura (Jobbágy \& Jackson 2000;
 Mutambu et al.\ 2019; Kirsten et al.\ 2019). Meccanismi possibili:
