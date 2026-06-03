@@ -1,8 +1,8 @@
 # =============================================================================
-# 00_run_pipeline.R  —  Master script: esegue l'intera pipeline downstream
+# run_all.R  —  Master script: esegue l'intera pipeline (07–19)
 #
-# Esegue in ordine gli script 10–19 dopo che i modelli principali (07-09) sono
-# stati fittati. Il modello finale è M-SP-RIRS-MVRE (fit_msp_rirs_mvre.rds).
+# Esegue in ordine gli script 07–19. I fit (07-09) sono cachati: se esistono
+# già vengono solo caricati. Il modello finale è M-SP-RIRS-MVRE (script 10).
 #
 # PREREQUISITI:
 #   stan/fit_msp_rirs_mvre.rds   — modello finale
@@ -17,15 +17,15 @@
 #   3. Riepilogo finale
 #
 # TEMPI ATTESI (prima esecuzione, senza cache):
-#   Script 10 (MVRE LOO):    ~5 min (solo LOO, fit già salvato)
-#   Script 12 (projpred):    ~20-40 min
-#   Script 13 (validazione): ~10 min
-#   Script 14 (A/B):         ~2h (due MCMC da zero)
-#   Script 15 (sensitivity): ~1h (un MCMC da zero)
-#   Script 16 (MV LOO):      ~5 min (solo LOO, fit già salvato)
-#   Script 17 (frequentista): ~5 min
-#   Script 18 (figure):      ~10 min
-#   Script 19 (report):      ~3 min
+#   Script 07-09 (M-RI/SP/RIRS MCMC): ~10 min ciascuno se non cachati
+#   Script 10 (MVRE LOO):             ~5 min (fit già in cache)
+#   Script 12 (projpred):             ~20-35 min
+#   Script 13 (validazione):          ~5 min
+#   Script 14 (A/B MCMC):             ~10 min ciascuno se non cachati
+#   Script 15 (sensitivity MCMC):     ~10 min se non cachato
+#   Script 16 (MVRE-FULL LOO):        ~3 min (fit già in cache)
+#   Script 17 (frequentista):         ~2 min
+#   Script 18-19 (figure + report):   ~10 min
 # =============================================================================
 
 library(here)
@@ -40,15 +40,16 @@ setup_rtools()
 validate_prerequisites <- function() {
   cat("═══ VALIDAZIONE PREREQUISITI ═══════════════════════════════════\n")
 
+  # Solo i prerequisiti che non vengono prodotti dalla pipeline stessa
   required_files <- list(
-    fit_mvre  = here("stan", "fit_msp_rirs_mvre.rds"),
-    fit_rirs  = here("stan", "fit_msp_rirs.rds"),
-    fit_msp   = here("stan", "fit_msp.rds"),
-    fit_mri   = here("stan", "fit_mri.rds"),
     dati      = here("data", "dati.rds"),
+    stan_07   = here("stan", "m4rr_v2_no_gp_mu.stan"),
+    stan_08   = here("stan", "m4rr_v2_ri_slope_mu.stan"),
+    stan_09   = here("stan", "m_sp_rirs.stan"),
     stan_mvre = here("stan", "m_sp_rirs_mvre.stan"),
     stan_A    = here("stan", "m_sp_rirs_mvre_A.stan"),
-    stan_B    = here("stan", "m_sp_rirs_mvre_B.stan")
+    stan_B    = here("stan", "m_sp_rirs_mvre_B.stan"),
+    stan_full = here("stan", "m_sp_rirs_mvre_full.stan")
   )
 
   for (nm in names(required_files)) {
@@ -58,20 +59,23 @@ validate_prerequisites <- function() {
     cat(sprintf("  OK %-12s: %s\n", nm, basename(required_files[[nm]])))
   }
 
-  # Verifica parametri MVRE accessibili
-  cat("  Verifica parametri MVRE...\n")
-  fit_test <- tryCatch(readRDS(here("stan", "fit_msp_rirs_mvre.rds")),
-                       error = function(e) stop("Impossibile caricare fit MVRE: ", conditionMessage(e)))
-  pnames <- tryCatch(fit_test$metadata()$stan_variables,
-                     error = function(e) character(0))
-  needed <- c("V", "tau_alpha_SOC", "rho_SOC", "rho_int_SOC_N")
-  missing_p <- setdiff(needed, pnames)
-  if (length(missing_p) > 0) {
-    stop("Parametri mancanti nel fit MVRE: ", paste(missing_p, collapse = ", "),
-         "\n  Il fit potrebbe essere corrotto o da una versione diversa dello Stan file.")
+  # Se il fit MVRE esiste già, verifica che i parametri siano accessibili
+  if (file.exists(here("stan", "fit_msp_rirs_mvre.rds"))) {
+    cat("  Verifica parametri MVRE (fit già in cache)...\n")
+    fit_test <- tryCatch(readRDS(here("stan", "fit_msp_rirs_mvre.rds")),
+                         error = function(e) stop("Impossibile caricare fit MVRE: ", conditionMessage(e)))
+    pnames <- tryCatch(fit_test$metadata()$stan_variables, error = function(e) character(0))
+    needed <- c("V", "tau_alpha_SOC", "rho_SOC", "rho_int_SOC_N")
+    missing_p <- setdiff(needed, pnames)
+    if (length(missing_p) > 0) {
+      stop("Parametri mancanti nel fit MVRE: ", paste(missing_p, collapse = ", "),
+           "\n  Il fit potrebbe essere corrotto o da una versione diversa dello Stan file.")
+    }
+    rm(fit_test); gc()
+    cat("  OK parametri MVRE verificati\n")
+  } else {
+    cat("  fit_msp_rirs_mvre.rds non trovato — verrà creato dallo script 10\n")
   }
-  rm(fit_test); gc()
-  cat("  OK parametri MVRE verificati\n")
   cat("═══ VALIDAZIONE OK ══════════════════════════════════════════════\n\n")
   invisible(TRUE)
 }
@@ -108,6 +112,9 @@ tryCatch(validate_prerequisites(), error = function(e) {
 })
 
 pipeline <- c(
+  "07 M-RI (confronto)"      = "07_model_ri.R",
+  "08 M-SP (confronto)"      = "08_model_msp.R",
+  "09 M-SP-RIRS (confronto)" = "09_model_msp_rirs.R",
   "10 Modello finale MVRE"   = "10_model_final_mvre.R",
   "11 Landuse variante"      = "11_model_msp_landuse.R",
   "12 Projpred (MVRE)"       = "12_selezione_variabili.R",

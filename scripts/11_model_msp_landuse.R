@@ -305,4 +305,4 @@ if (requireNamespace("bayesplot", quietly = TRUE)) {
   rm(draws_key); gc()
 }
 
-cat("\n── Fine script 03b ──────────────────────────────────────────────\n")
+cat("\n── Fine script 11 ──────────────────────────────────────────────\n")
