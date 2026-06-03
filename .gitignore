@@ -3,12 +3,32 @@
 .RData
 .Ruserdata
 
-# CmdStan output: chain CSVs, compiled binary, large MCMC fit
+# CmdStan output: chain CSVs, compiled binary, large MCMC fit files (GB-sized)
 stan/*.csv
 stan/*.json
 stan/*.exe
 stan/fit_*.rds
 stan/risultati_*.RData
 
-# File temporanei
+# Cache R oggetti rigenerabili (projpred, LOO, pareto_k) — possono essere grandi
+output/cache/*.rds
+
+# File temporanei e plotting
 scripts/_tmp_*.R
+Rplots.pdf
+
+# LaTeX ausiliari
+report/*.aux
+report/*.log
+report/*.blg
+report/*.bbl
+report/*.out
+report/*.toc
+report/*.synctex*
+report/compile_log.txt
+
+# Docs ausiliari
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc

@@ -1,8 +1,8 @@
 # =============================================================================
-# 12_selezione_variabili.R  —  Selezione variabili con projpred (reference: M-SP)
+# 12_selezione_variabili.R  —  Selezione variabili con projpred (reference: M-SP-RIRS-MVRE)
 #
 # COME FUNZIONA projpred (NON fitta modelli Stan per ogni subset):
-#   1. Reference model: usa le draws già in memoria da M-SP (script 03).
+#   1. Reference model: usa le draws da M-SP-RIRS-MVRE (script 10).
 #      Fornisce la distribuzione predittiva posteriore come "target".
 #   2. Proiezione (economica): per ogni sottmodello candidato, minimizza
 #      la KL-divergenza rispetto alle predizioni del reference.
@@ -10,22 +10,16 @@
 #   3. LOO approssimato: confronta i sottmodelli con il reference tramite
 #      PSIS-LOO, cerca il più piccolo indistinguibile dal reference.
 #
-# REFERENCE MODEL: M-SP (fit_msp.rds) via draws cmdstanr.
+# REFERENCE MODEL: M-SP-RIRS-MVRE (fit_msp_rirs_mvre.rds) via draws cmdstanr.
 #   Per ogni risposta (SOC, N, P) separatamente, costruisce la matrice
 #   mu (draws × osservazioni) dal fit già salvato.
 #
-# SEARCH SPACE: effetti fissi within-field e between-field
-#   (Texture1, Texture2, BulkDensity, OnFarm, Irrigate, Fertilised, N_Natural)
-#   logBottom è sempre incluso (è nell'intercetta casuale proporzionale).
-#   Il random intercept per campo è sempre incluso nei submodelli.
+# STRUTTURA MVRE: V[6,J] con righe [SOC_int, SOC_slope, N_int, N_slope, P_int, P_slope]
+#   mu_r[i,j] = alpha_r + V[2r-1,j] + V[2r,j]*logBottom_i + gamma_r*X_W + beta_r*X_B
 #
-# NOTA su (1|Field) nei submodelli:
-#   I submodelli di proiezione usano (1|Field) come approssimazione.
-#   La struttura proporzionale (eta_r) è già nel reference; proiettarla
-#   in un submodel semplice è una perdita accettabile per la selezione
-#   degli effetti fissi. La selezione riguarda gamma_r e beta_r.
+# X_W (K_W=5): logBottom[1], Texture1[2], Texture2[3], BulkDensity[4], PH[5]
 #
-# Dipende da: stan/fit_msp.rds, scripts/00_utilities.R
+# Dipende da: stan/fit_msp_rirs_mvre.rds, scripts/00_utilities.R
 # =============================================================================
 
 
@@ -51,10 +45,10 @@ save_fig <- function(fname, p, w = 14, h = 9, u = "cm") {
   cat(sprintf("  [fig] Salvato: %s\n", fname))
 }
 
-projpred_cache_path <- file.path(cache_dir, "projpred_varsel.rds")
+projpred_cache_path <- file.path(cache_dir, "projpred_varsel_mvre.rds")
 
 
-# ── 1. DATI (identici a script 20) ────────────────────────────────────────────
+# ── 1. DATI (identici a script 09) ────────────────────────────────────────────
 
 dati <- readRDS(here("data", "dati.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
@@ -65,7 +59,7 @@ dati <- readRDS(here("data", "dati.rds")) |>
     logP      = log(PercTotPhos),
     logBottom = log(Bottom)
   ) |>
-  mutate(across(c(logBottom, Texture1, Texture2, BulkDensity),
+  mutate(across(c(logBottom, Texture1, Texture2, BulkDensity, PH),
                 ~ c(scale(.x)))) |>
   mutate(Field = factor(Field))
 
@@ -77,7 +71,7 @@ dati_int <- dati |>
   mutate(field_int = as.integer(factor(as.integer(as.character(Field)),
                                        levels = field_levels)))
 
-X_W_cols <- c("logBottom", "Texture1", "Texture2", "BulkDensity")
+X_W_cols <- c("logBottom", "Texture1", "Texture2", "BulkDensity", "PH")
 X_W      <- as.matrix(dati_int[, X_W_cols])
 
 X_B_cols <- c("OnFarm", "Irrigate", "Fertilised", "N_Natural")
@@ -89,30 +83,28 @@ X_B <- dati_int |>
 
 field_id <- dati_int$field_int
 
-cat(sprintf("N = %d | J = %d\n", N, J))
+cat(sprintf("N = %d | J = %d | K_W = %d\n", N, J, length(X_W_cols)))
 
 
-# ── 2. CARICA FIT M-SP ────────────────────────────────────────────────────────
+# ── 2. CARICA FIT M-SP-RIRS-MVRE ─────────────────────────────────────────────
 
-fit_path <- here("stan", "fit_msp.rds")
-cat("Carico M-SP da:", fit_path, "\n")
-fit20 <- readRDS(fit_path)
+fit_path <- here("stan", "fit_msp_rirs_mvre.rds")
+cat("Carico M-SP-RIRS-MVRE da:", fit_path, "\n")
+fit_ref <- readRDS(fit_path)
 
 
-# ── 3. CALCOLO MATRICE MU DAL MODELLO 20 ─────────────────────────────────────
+# ── 3. CALCOLO MATRICE MU DAL MODELLO M-SP-RIRS-MVRE ─────────────────────────
 # Per ogni risposta r, costruisce la matrice mu (D_thin × N) dalle draws.
 #
-# Struttura:
+# Struttura M-SP-RIRS-MVRE: V[6,J] con transformed parameter
+#   righe: [SOC_int=1, SOC_slope=2, N_int=3, N_slope=4, P_int=5, P_slope=6]
 #   mu_r[d,n] = alpha_r[d]
-#             + z_nu_r[d, field_id[n]] * (psi_r[d] + eta_r[d] * X_W[n,1])
+#             + V[2r-1, field_id[n]]           ← random intercept
+#             + V[2r,   field_id[n]] * X_W[n,1] ← random slope su logBottom
 #             + X_W[n,] %*% gamma_r[d,]
 #             + X_B[field_id[n],] %*% beta_r[d,]
 
-# Thin le draws a 2000 per efficienza (ogni 10° draw su 20000)
-# draws(format="matrix") restituisce un draws_matrix (posterior pkg) che mantiene
-# la sua classe anche dopo as.matrix(). Ricostruiamo come plain R matrix così
-# che [, col] ritorni un vettore (non D×1 matrix) e outer() funzioni correttamente.
-draws_raw  <- fit20$draws(format = "matrix")
+draws_raw  <- fit_ref$draws(format = "matrix")
 draws_full <- matrix(as.double(draws_raw),
                      nrow     = nrow(draws_raw),
                      ncol     = ncol(draws_raw),
@@ -130,26 +122,36 @@ extract_mat <- function(draws, prefix, K) {
   draws[, cols, drop = FALSE]
 }
 
-# Funzione: calcola mu_r per una risposta
+# Funzione: estrae matrice D × J da V[row, j] (MVRE: matrice 6×J in Stan)
+extract_V_row <- function(draws, row) {
+  cols <- paste0("V[", row, ",", 1:J, "]")
+  draws[, cols, drop = FALSE]
+}
+
+# Funzione: calcola mu_r per una risposta (M-SP-RIRS-MVRE)
+# Mappa risposta → righe di V[6,J]:
+#   SOC: int=V[1,j], slope=V[2,j]
+#   N:   int=V[3,j], slope=V[4,j]
+#   P:   int=V[5,j], slope=V[6,j]
 compute_mu <- function(r) {
   cat(sprintf("  Calcolo mu_%s...\n", r))
 
-  alpha <- draws_t[, paste0("alpha_", r)]               # D
-  psi   <- draws_t[, paste0("psi_", r)]                 # D
-  eta   <- draws_t[, paste0("eta_", r)]                 # D
-  sigma <- draws_t[, paste0("sigma_", r)]               # D
-  z_nu  <- extract_mat(draws_t, paste0("z_nu_", r), J)  # D × J
-  gamma <- extract_mat(draws_t, paste0("gamma_", r), length(X_W_cols))  # D × 4
-  beta  <- extract_mat(draws_t, paste0("beta_", r),  length(X_B_cols))  # D × 4
+  row_int <- c(SOC = 1L, N = 3L, P = 5L)[r]
+  row_slo <- c(SOC = 2L, N = 4L, P = 6L)[r]
+
+  alpha   <- draws_t[, paste0("alpha_", r)]               # D
+  sigma   <- draws_t[, paste0("sigma_", r)]               # D
+  u_int   <- extract_V_row(draws_t, row_int)              # D × J (random intercepts)
+  u_slope <- extract_V_row(draws_t, row_slo)              # D × J (random slopes)
+  gamma   <- extract_mat(draws_t, paste0("gamma_", r), length(X_W_cols))  # D × K_W
+  beta    <- extract_mat(draws_t, paste0("beta_", r),  length(X_B_cols))  # D × K_B
 
   # Espandi X_B al livello osservazione
   X_B_n <- X_B[field_id, ]  # N × K_B
 
-  # Parte casuale: z_nu[field_id[n]] * (psi + eta * logBottom[n])
-  # z_nu_n: D × N  (espandi per field_id)
-  z_nu_n     <- z_nu[, field_id]                           # D × N
-  ri_factor  <- outer(psi, rep(1, N)) + outer(eta, X_W[, 1])  # D × N
-  rand_part  <- z_nu_n * ri_factor                         # D × N (elementwise)
+  # Parte casuale: u_int[field_id] + u_slope[field_id] * logBottom
+  rand_int   <- u_int[,   field_id]                              # D × N
+  rand_slope <- u_slope[, field_id] * outer(rep(1, D), X_W[, 1]) # D × N  (col 1 = logBottom)
 
   # Effetti fissi within: gamma %*% t(X_W)
   fix_within  <- tcrossprod(gamma, X_W)   # D × N
@@ -160,12 +162,12 @@ compute_mu <- function(r) {
   # Intercetta globale
   intercept <- outer(alpha, rep(1, N))  # D × N
 
-  mu <- intercept + rand_part + fix_within + fix_between  # D × N
+  mu <- intercept + rand_int + rand_slope + fix_within + fix_between  # D × N
 
   list(mu = mu, sigma = sigma)
 }
 
-cat("Calcolo matrici mu per tutte le risposte...\n")
+cat("Calcolo matrici mu per tutte le risposte (M-SP-RIRS-MVRE)...\n")
 res_SOC <- compute_mu("SOC")
 res_N   <- compute_mu("N")
 res_P   <- compute_mu("P")
@@ -181,7 +183,7 @@ X_B_expanded <- as.data.frame(X_B[field_id, ])
 names(X_B_expanded) <- X_B_cols
 
 data_pp <- bind_cols(
-  as.data.frame(X_W),            # logBottom, Texture1, Texture2, BulkDensity
+  as.data.frame(X_W),            # logBottom, Texture1, Texture2, BulkDensity, PH
   X_B_expanded,                  # OnFarm, Irrigate, Fertilised, N_Natural
   data.frame(Field = dati_int$Field)  # raggruppamento
 )
@@ -208,7 +210,7 @@ data_pp <- bind_cols(
 # disponibile nei submodelli di proiezione.
 # logBottom è incluso anche nei fissi perché nel M-SP c'è sia gamma_r[1]
 # (fisso, uguale per tutti) sia z_nu_r[j]*eta_r (casuale, per campo).
-formula_full <- logY ~ logBottom + Texture1 + Texture2 + BulkDensity +
+formula_full <- logY ~ logBottom + Texture1 + Texture2 + BulkDensity + PH +
                        OnFarm + Irrigate + Fertilised + N_Natural +
                        (logBottom | Field)
 
@@ -300,7 +302,7 @@ run_projpred <- function(mu_draws, sigma_draws, y_vec, risposta,
   # Plot ELPD path
   p <- tryCatch(
     plot(vs, stats = "elpd", deltas = TRUE) +
-      ggtitle(sprintf("ELPD path — log%s (reference = M-SP)", risposta)) +
+      ggtitle(sprintf("ELPD path — log%s (reference = M-SP-RIRS-MVRE)", risposta)) +
       theme_minimal(),
     error = function(e) NULL
   )
@@ -370,8 +372,8 @@ for (nm in names(risposta_nomi)) {
   if (!is.null(vs_obj)) {
     p <- tryCatch(
       plot(vs_obj, stats = "elpd", deltas = TRUE) +
-        ggtitle(sprintf("ELPD path — log%s (reference = M-SP)", nm)) +
-        labs(subtitle = "ΔELPD rispetto al reference model M-SP",
+        ggtitle(sprintf("ELPD path — log%s (reference = M-SP-RIRS)", nm)) +
+        labs(subtitle = "ΔELPD rispetto al reference model M-SP-RIRS-MVRE",
              x = "Numero di predittori inclusi", y = "ΔELPD") +
         theme_minimal(base_size = 11) +
         theme(plot.title = element_text(face = "bold")),
@@ -393,7 +395,7 @@ projpred_summary <- lapply(names(risposta_nomi), function(nm) {
   )
 })
 names(projpred_summary) <- names(risposta_nomi)
-saveRDS(projpred_summary, file.path(cache_dir, "projpred_summary.rds"))
-cat("  Sommario projpred salvato in output/cache/projpred_summary.rds\n")
+saveRDS(projpred_summary, file.path(cache_dir, "projpred_summary_mvre.rds"))
+cat("  Sommario projpred salvato in output/cache/projpred_summary_mvre.rds\n")
 
-cat("\n── Fine script 06 ──────────────────────────────────────────────\n")
+cat("\n── Fine script 12 ──────────────────────────────────────────────\n")
