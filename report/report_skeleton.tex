@@ -138,35 +138,6 @@ per campo (Bottom 10--120\,cm).}
 
 \subsection{Covariate}
 
-\paragraph{Within-field.}
-
-\medskip
-\begin{tabular}{@{}clll@{}}
-\toprule
-$k$ & Covariata & Descrizione & Pre-elaborazione \\
-\midrule
-1 & \texttt{logBottom}   & $\log(\text{profondit\`a [cm]})$    & standardizzato \\
-2 & \texttt{Texture1}    & ILR$_1$ (argilla vs limo)           & standardizzato \\
-3 & \texttt{Texture2}    & ILR$_2$ (argilla+limo vs sabbia)    & standardizzato \\
-4 & \texttt{BulkDensity} & densit\`a apparente (g/cm$^3$)      & standardizzato \\
-5 & \texttt{PH}          & pH del suolo                        & standardizzato \\
-\bottomrule
-\end{tabular}
-
-\medskip
-ILR (base di Helmert via \texttt{compositions::ilr}):
-\[
-  T_1 = \sqrt{\tfrac{1}{2}}\,\log\!\left(\frac{\text{Clay}}{\text{Silt}}\right),
-  \qquad
-  T_2 = \sqrt{\tfrac{2}{3}}\,
-        \log\!\left(\frac{\sqrt{\text{Clay}\cdot\text{Silt}}}{\text{Sand}}\right).
-\]
-
-\paragraph{Between-field (binari 0/1).}
-OnFarm, Irrigate, Fertilised, N\_Natural.
-
-\subsection{Statistiche descrittive}
-
 \begin{table}[htbp]
   \centering
   \caption{Statistiche descrittive ($N = 220$ osservazioni, $J = 40$ campi).}
@@ -193,6 +164,14 @@ OnFarm, Irrigate, Fertilised, N\_Natural.
     \bottomrule
   \end{tabular}
 \end{table}
+
+ILR (base di Helmert via \texttt{compositions::ilr}):
+\[
+  T_1 = \sqrt{\tfrac{1}{2}}\,\log\!\left(\frac{\text{Clay}}{\text{Silt}}\right),
+  \qquad
+  T_2 = \sqrt{\tfrac{2}{3}}\,
+        \log\!\left(\frac{\sqrt{\text{Clay}\cdot\text{Silt}}}{\text{Sand}}\right).
+\]
 
 
 \begin{figure}[htbp]
@@ -262,40 +241,44 @@ Motivazione per il passaggio al modello bayesiano M-SP-RIRS.}
 \subsection{Struttura del modello M-SP-RIRS-MVRE}
 \label{subsec:msp}
 
-Il modello finale stima tutti gli effetti casuali di campo congiuntamente come
-un vettore 6-dimensionale per ogni campo $j$, consentendo correlazioni cross-risposta.
-
-Per ogni risposta $r \in \{\SOC, N, P\}$ e osservazione $i$ nel campo $j$:
+Per ogni risposta $r \in \{1, 2, 3\}$ (corrispondente a SOC, N, P)
+e osservazione $i$ nel campo $j$:
+%
 \[
-  y_{r,ij} \sim \Nrm\!\bigl(\mu_{r,ij},\;\sigma_r^2\bigr),
+  y_{r,ij} \sim \mathcal{N}\!\bigl(\mu_{r,ij},\;\sigma_r^2\bigr),
 \]
+%
 \[
-  \boxed{
-    \mu_{r,ij} =
-      \underbrace{\alpha_r}_{\text{intercetta globale}}
-      +\;
-      \underbrace{V_{2r-1,j}}_{\text{rand.\ intercept}}
-      +\;
-      \underbrace{V_{2r,j} \cdot x_{\mathrm{logB},i}}_{\text{rand.\ slope}}
-      +\;
-      \underbrace{\vec{\gamma}_r^\top \vec{x}_{W,i}}_{\text{effetti fissi within}}
-      +\;
-      \underbrace{\vec{\beta}_r^\top \vec{x}_{B,j}}_{\text{effetti fissi between}}
-  }
+  \mu_{r,ij} =
+    \underbrace{\alpha_r}_{\text{intercetta globale}}
+    +\;
+    \underbrace{u_{rj}}_{\text{intercetta casuale}}
+    +\;
+    \underbrace{v_{rj} \cdot \log B_i}_{\text{slope casuale}}
+    +\;
+    \underbrace{\boldsymbol{\gamma}_r^\top \mathbf{x}_{W,i}}_{\text{effetti fissi within}}
+    +\;
+    \underbrace{\boldsymbol{\beta}_r^\top \mathbf{x}_{B,j}}_{\text{effetti fissi between}}
 \]
-dove il vettore 6D degli effetti casuali di campo è modellato congiuntamente:
+%
+dove il vettore degli effetti casuali di campo è modellato congiuntamente:
+%
 \[
-  \vec{v}_j = \bigl(V_{1,j},\,V_{2,j},\,V_{3,j},\,V_{4,j},\,V_{5,j},\,V_{6,j}\bigr)^\top
-  \sim \Nrm_6\!\bigl(\vec{0},\; \Sigma_6\bigr),
+  \mathbf{b}_j
+  = \bigl(u_{1j},\, v_{1j},\, u_{2j},\, v_{2j},\, u_{3j},\, v_{3j}\bigr)^\top
+  \sim \mathcal{N}_6\!\bigl(\mathbf{0},\; \Sigma\bigr),
 \]
+%
 \[
-  \Sigma_6 = \mathrm{diag}(\vec{\tau}_6)\,\Omega_6\,\mathrm{diag}(\vec{\tau}_6),
-  \qquad \Omega_6 \sim \mathrm{LKJ}(2).
+  \Sigma
+  = \operatorname{diag}(\boldsymbol{\tau})\;\Omega\;\operatorname{diag}(\boldsymbol{\tau}),
+  \qquad
+  \Omega \sim \mathrm{LKJ}(2).
 \]
-Le righe di $\vec{v}_j$ sono:
-$[V^{\SOC}_{\mathrm{int}},\,V^{\SOC}_{\mathrm{slope}},\,V^{N}_{\mathrm{int}},\,
-V^{N}_{\mathrm{slope}},\,V^{P}_{\mathrm{int}},\,V^{P}_{\mathrm{slope}}]$
-(i.e., $r=1$ corrisponde a SOC con righe $1,2$; $r=2$ a N con righe $3,4$; $r=3$ a P con righe $5,6$).
+%
+Le componenti di $\mathbf{b}_j$ sono ordinate per risposta:
+$(u_{1j}, v_{1j})$ per SOC, $(u_{2j}, v_{2j})$ per N,
+$(u_{3j}, v_{3j})$ per P.
 
 \subsection{Parametrizzazione non centrata (NCP)}
 
