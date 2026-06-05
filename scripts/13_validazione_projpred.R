@@ -1,29 +1,26 @@
 # =============================================================================
-# 13_validazione_projpred.R  —  Validazione: posteriors proiettati da projpred vs M-SP
+# 13_validazione_projpred.R  —  Validazione: posteriors proiettati da projpred vs M-SP-RIRS-MVRE
 #
 # Per ogni risposta r, costruisce il "modello finale" come il sottosistema
-# selezionato da projpred (script 06) e ne verifica la coerenza con M-SP.
+# selezionato da projpred (script 12) e ne verifica la coerenza con M-SP-RIRS-MVRE.
 #
 # Strategia:
 #   1. Tenta project() di projpred per ottenere posteriori proiettati
-#      (nessun MCMC: proiezione diretta dal reference model M-SP)
+#      (nessun MCMC: proiezione diretta dal reference model M-SP-RIRS-MVRE)
 #   2. Fit frequentista con lme4 (sanity check, stessa formula)
-#   3. Confronta coefficienti fissi: M-SP gamma vs Projected vs lme4
-#   4. Verifica che gamma di M-SP per le variabili NON selezionate siano ~ 0
+#   3. Confronta coefficienti fissi: MVRE gamma vs Projected vs lme4
+#   4. Verifica che gamma di MVRE per le variabili NON selezionate siano ~ 0
 #
-# Modelli proiettati (dalle selezioni di script 06, alpha = 0.10):
-#   logSOC: ~ logBottom + Texture2 + (logBottom | Field)          [n=4]
-#   logN:   ~ logBottom + Texture2 + BulkDensity + (1 | Field)    [n=4]
-#   logP:   ~ logBottom + (logBottom | Field)  [n=3, solo struttura random]
+# X_W (K_W=5): logBottom[1], Texture1[2], Texture2[3], BulkDensity[4], PH[5]
 #
 # Output:
-#   output/cache/proj_posteriors.rds          -> draws proiettate (se project() riesce)
-#   output/cache/lme4_final.rds               -> fit lme4
-#   output/figures/fig_13_proj_vs_msp.pdf     -> confronto coeff. fissi
-#   output/figures/fig_14_nonselected_gamma.pdf -> verifica gamma ~ 0 in M-SP
-#   output/tables/tab_09_final_comparison.csv -> tabella riassuntiva
+#   output/cache/proj_posteriors_mvre.rds       -> draws proiettate
+#   output/cache/lme4_final_mvre.rds            -> fit lme4
+#   output/figures/fig_13_proj_vs_msp.pdf       -> confronto coeff. fissi
+#   output/figures/fig_14_nonselected_gamma.pdf -> verifica gamma ~ 0
+#   output/tables/tab_13_final_comparison.csv   -> tabella riassuntiva
 #
-# Dipende da: stan/fit_msp.rds, output/cache/projpred_varsel.rds, data/dati.rds
+# Dipende da: stan/fit_msp_rirs_mvre.rds, output/cache/projpred_varsel_mvre.rds
 # =============================================================================
 
 
@@ -54,7 +51,7 @@ save_fig <- function(fname, p, w = 18, h = 12, u = "cm") {
 }
 
 
-# ── 1. DATI (identici a script 06) ────────────────────────────────────────────
+# ── 1. DATI (identici a script 11) ────────────────────────────────────────────
 
 dati <- readRDS(here("data", "dati.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
@@ -65,7 +62,7 @@ dati <- readRDS(here("data", "dati.rds")) |>
     logP      = log(PercTotPhos),
     logBottom = log(Bottom)
   ) |>
-  mutate(across(c(logBottom, Texture1, Texture2, BulkDensity),
+  mutate(across(c(logBottom, Texture1, Texture2, BulkDensity, PH),
                 ~ c(scale(.x)))) |>
   mutate(Field = factor(Field))
 
@@ -82,7 +79,7 @@ cat(sprintf("N = %d | J = %d\n", N, J))
 
 # ── 2. CARICA PROJPRED CACHE ──────────────────────────────────────────────────
 
-projpred_cache_path <- file.path(cache_dir, "projpred_varsel.rds")
+projpred_cache_path <- file.path(cache_dir, "projpred_varsel_mvre.rds")
 cat("Carico projpred cache da:", projpred_cache_path, "\n")
 vs_cache <- readRDS(projpred_cache_path)
 vs_SOC   <- vs_cache$SOC
@@ -106,7 +103,7 @@ cat(sprintf("  P   (n=%d): %s\n", n_P,   paste(terms_P,   collapse = ", ")))
 
 # ── 3. PROIEZIONE CON project() (tenta, fallback a solo lme4) ─────────────────
 
-proj_cache_path <- file.path(cache_dir, "proj_posteriors.rds")
+proj_cache_path <- file.path(cache_dir, "proj_posteriors_mvre.rds")
 
 extract_proj_summary <- function(proj_obj, resp_name) {
   if (is.null(proj_obj)) return(NULL)
@@ -167,7 +164,7 @@ cat(sprintf("Posterior proiettati estratti: %d righe\n", nrow(proj_summary)))
 
 # ── 4. FIT LMER SANITY CHECK ──────────────────────────────────────────────────
 
-lme4_cache_path <- file.path(cache_dir, "lme4_final.rds")
+lme4_cache_path <- file.path(cache_dir, "lme4_final_mvre.rds")
 
 if (file.exists(lme4_cache_path)) {
   cat("\nCarico lme4 da cache.\n")
@@ -222,16 +219,16 @@ for (r in c("SOC", "N", "P")) {
 
 # ── 5. CARICA M-SP PER CONFRONTO ─────────────────────────────────────────────
 
-cat("\nCarico M-SP per confronto gamma...\n")
-fit_msp <- readRDS(here("stan", "fit_msp.rds"))
+cat("\nCarico M-SP-RIRS-MVRE per confronto gamma...\n")
+fit_msp <- readRDS(here("stan", "fit_msp_rirs_mvre.rds"))
 
 draws_raw <- fit_msp$draws(format = "matrix")
 draws_msp <- matrix(as.double(draws_raw), nrow = nrow(draws_raw),
                     ncol = ncol(draws_raw), dimnames = dimnames(draws_raw))
 rm(draws_raw); gc()
-cat(sprintf("  Draw M-SP: %d\n", nrow(draws_msp)))
+cat(sprintf("  Draw M-SP-RIRS: %d\n", nrow(draws_msp)))
 
-X_W_cols <- c("logBottom", "Texture1", "Texture2", "BulkDensity")
+X_W_cols <- c("logBottom", "Texture1", "Texture2", "BulkDensity", "PH")
 X_B_cols <- c("OnFarm", "Irrigate", "Fertilised", "N_Natural")
 
 # Riassunto posteriori gamma_r e beta_r
@@ -246,27 +243,30 @@ msp_summary <- bind_rows(lapply(c("SOC", "N", "P"), function(r) {
       v <- draws_msp[, paste0("gamma_", r, "[", k, "]")]
       summarize_param(v) |>
         mutate(parameter = X_W_cols[k], risposta = r,
-               fonte = "M-SP (reference)", tipo = "within-field")
+               fonte = "M-SP-RIRS-MVRE (reference)", tipo = "within-field")
     }),
     # beta (between-field)
     lapply(seq_along(X_B_cols), function(k) {
       v <- draws_msp[, paste0("beta_", r, "[", k, "]")]
       summarize_param(v) |>
         mutate(parameter = X_B_cols[k], risposta = r,
-               fonte = "M-SP (reference)", tipo = "management")
+               fonte = "M-SP-RIRS-MVRE (reference)", tipo = "management")
     })
   )
 }))
 
-# Psi e eta (struttura random proporzionale)
+# tau_alpha, tau_beta, rho (struttura random bivariata M-SP-RIRS)
 struct_summary <- bind_rows(lapply(c("SOC", "N", "P"), function(r) {
-  psi <- draws_msp[, paste0("psi_", r)]
-  eta <- draws_msp[, paste0("eta_", r)]
+  ta  <- draws_msp[, paste0("tau_alpha_", r)]
+  tb  <- draws_msp[, paste0("tau_beta_",  r)]
+  rho <- draws_msp[, paste0("rho_",       r)]
   bind_rows(
-    summarize_param(psi) |> mutate(parameter = paste0("psi_", r), risposta = r,
-                                   fonte = "M-SP (reference)", tipo = "random_struct"),
-    summarize_param(eta) |> mutate(parameter = paste0("eta_", r), risposta = r,
-                                   fonte = "M-SP (reference)", tipo = "random_struct")
+    summarize_param(ta)  |> mutate(parameter = paste0("tau_alpha_", r), risposta = r,
+                                   fonte = "M-SP-RIRS-MVRE (reference)", tipo = "random_struct"),
+    summarize_param(tb)  |> mutate(parameter = paste0("tau_beta_",  r), risposta = r,
+                                   fonte = "M-SP-RIRS-MVRE (reference)", tipo = "random_struct"),
+    summarize_param(rho) |> mutate(parameter = paste0("rho_",       r), risposta = r,
+                                   fonte = "M-SP-RIRS-MVRE (reference)", tipo = "random_struct")
   )
 }))
 
@@ -283,7 +283,7 @@ print(msp_summary |> filter(tipo == "management") |>
   mutate(across(where(is.numeric), ~ round(.x, 3))) |>
   as.data.frame())
 
-cat("\n═══ M-SP psi + eta (slope proporzionale) ═══════════════════\n")
+cat("\n═══ M-SP-RIRS tau_alpha, tau_beta, rho (struttura bivariata) ═══\n")
 print(struct_summary |>
   select(parameter, median, q05, q95) |>
   mutate(across(where(is.numeric), ~ round(.x, 3))) |>
@@ -324,7 +324,7 @@ if (nrow(compare_df) > 0) {
     facet_wrap(~ risposta, scales = "free_y", ncol = 2) +
     scale_color_brewer(palette = "Set1", name = "Stima") +
     scale_shape_manual(name = "Stima",
-                       values = c("M-SP (reference)" = 16,
+                       values = c("M-SP-RIRS-MVRE (reference)" = 16,
                                   "Projected (projpred)" = 17,
                                   "lme4 (REML)" = 15)) +
     labs(
@@ -404,9 +404,9 @@ tab_final <- bind_rows(
     select(risposta, tipo, parameter, median, ci90, fonte)
 )
 
-write.csv(tab_final, file.path(tab_dir, "tab_09_final_comparison.csv"),
+write.csv(tab_final, file.path(tab_dir, "tab_13_final_comparison.csv"),
           row.names = FALSE)
-cat("\n  Tabella salvata: output/tables/tab_09_final_comparison.csv\n")
+cat("\n  Tabella salvata: output/tables/tab_13_final_comparison.csv\n")
 
 
 # ── 9. DIAGNOSI DIVERGENZE ────────────────────────────────────────────────────
@@ -440,4 +440,4 @@ cat("Nota: differenze > 0.2 (scala standardizzata) indicate come 'ATTENZIONE'.\n
 cat("Atteso: coerenza tra M-SP e lme4 per le covariate selezionate.\n")
 cat("M-SP usa la struttura proporzionale (eta) - lme4 usa (logBottom|Field) come approssimazione.\n")
 
-cat("\n── Fine script 09 ──────────────────────────────────────────────\n")
+cat("\n── Fine script 13 ──────────────────────────────────────────────\n")

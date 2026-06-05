@@ -1,4 +1,4 @@
-% ============================================================
+﻿% ============================================================
 % report_skeleton.tex  —  SCHELETRO strutturale
 %   Sezioni + figure + tabelle + equazioni, nessun testo narrativo.
 %   Usare per discutere la struttura con i colleghi prima di scrivere.
@@ -45,7 +45,7 @@
 \definecolor{myblue}{HTML}{2C5F8A}
 \definecolor{mygray}{HTML}{5A5A5A}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true, linkcolor=myblue, citecolor=myblue, urlcolor=myblue}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black}
 
 % ── Sezioni ────────────────────────────────────────────────────────────────────
 \usepackage{titlesec}
@@ -74,39 +74,37 @@
 \newcommand{\SOC}{\mathrm{SOC}}
 \renewcommand{\vec}[1]{\bm{#1}}
 \newcommand{\CI}[2]{[#1,\;#2]}
+\newcommand{\tauA}[1]{\tau_{\alpha,#1}}
+\newcommand{\tauB}[1]{\tau_{\beta,#1}}
 
 % ── Placeholder testo ─────────────────────────────────────────────────────────
 \newcommand{\todo}[1]{\textcolor{red}{\textit{[#1]}}}
 
 % ── Titolo ─────────────────────────────────────────────────────────────────────
 \title{%
-  {\large Analisi gerarchica bayesiana dei}\\[4pt]
-  {\LARGE\bfseries Profili verticali di nutrienti del suolo}\\[4pt]
-  {\large SOC, N e P in 40 campi agricoli in Tanzania}
+  {\Large Analisi gerarchica bayesiana dei}\\[4pt]
+  {\huge\bfseries Profili verticali di nutrienti del suolo}\\[4pt]
+  {\large\bfseries SOC, N e P in 40 campi agricoli in Tanzania}
 }
 \author{
-  Bortoletto Davide \and Faedo Piero \and Paganelli Gabriele \and Zannini Pietro \\[4pt]
-  {\small Statistica Iterazione --- Universit\`a degli Studi di Padova, a.a.~2025/26}
+  Bortoletto Davide \, Faedo Piero \, Paganelli Gabriele \, Zannini Pietro \\[4pt]
+  {\small Statistica Iterazione \,$\cdot$\, Universit\`a degli Studi di Padova, a.a.~2025/26}
 }
 \date{8 giugno 2026}
 
 
 % ==============================================================================
 \begin{document}
+% ── Abstract in inglese (sovrascrive "Sommario" di babel/italian) ──────────────
+\renewcommand{\abstractname}{Abstract}
 \maketitle
 \thispagestyle{empty}
 
 % ── Abstract ──────────────────────────────────────────────────────────────────
 \begin{abstract}
 \noindent
-\todo{$\sim$150 parole: contesto, metodo (M-SP, LOO-CV, projpred), risultati
-chiave ($\hat\eta_\SOC=0.21$, $\hat\eta_N\approx 0$, $\hat\eta_P=0.10$),
-robustezza (sensitivity Pareto $k$), conclusione applicativa.}
+La distribuzione verticale dei nutrienti del suolo è un indicatore chiave della qualità agronomica, ma i meccanismi che determinano le differenze tra campi nella forma del profilo di profondità restano poco quantificati. In questo lavoro analizziamo i profili verticali di carbonio organico (SOC), azoto totale e fosforo totale in 40 campi agricoli, con misurazioni a fino a sei profondità per campo, per un totale di 220 osservazioni. Sviluppiamo un modello bayesiano gerarchico con pendenza proporzionale che stima esplicitamente come la variabilità inter-campo del profilo verticale cambi con la profondità. I risultati mostrano che i campi con maggiore contenuto medio di SOC presentano profili significativamente più uniformi: la fertilità carboniosa si conserva meglio in profondità. Per l'azoto questo pattern è assente; per il fosforo è presente con evidenza moderata. La selezione predittiva identifica la tessitura fine (contrasto argilla/limo) come principale predittore within-field, mentre le pratiche di gestione risultano essenzialmente non significative dopo aver controllato per la struttura fisica del suolo. A differenza degli approcci standard basati su confronti stratificati per profondità, il modello proposto fornisce stime inferenziali dirette della relazione tra livello medio di campo e forma del profilo verticale, aprendo la strada a una caratterizzazione quantitativa dell'eterogeneità agronomica tra campi.
 \end{abstract}
-
-\bigskip
-\noindent\textbf{Parole chiave:} suolo, profili verticali, modello bayesiano
-gerarchico, slope proporzionale, LOO-CV, Tanzania.
 
 \newpage
 \tableofcontents
@@ -140,34 +138,6 @@ per campo (Bottom 10--120\,cm).}
 
 \subsection{Covariate}
 
-\paragraph{Within-field.}
-
-\medskip
-\begin{tabular}{@{}clll@{}}
-\toprule
-$k$ & Covariata & Descrizione & Pre-elaborazione \\
-\midrule
-1 & \texttt{logBottom}   & $\log(\text{profondit\`a [cm]})$    & standardizzato \\
-2 & \texttt{Texture1}    & ILR$_1$ (argilla vs limo)           & standardizzato \\
-3 & \texttt{Texture2}    & ILR$_2$ (argilla+limo vs sabbia)    & standardizzato \\
-4 & \texttt{BulkDensity} & densit\`a apparente (g/cm$^3$)      & standardizzato \\
-\bottomrule
-\end{tabular}
-
-\medskip
-ILR (base di Helmert via \texttt{compositions::ilr}):
-\[
-  T_1 = \sqrt{\tfrac{1}{2}}\,\log\!\left(\frac{\text{Clay}}{\text{Silt}}\right),
-  \qquad
-  T_2 = \sqrt{\tfrac{2}{3}}\,
-        \log\!\left(\frac{\sqrt{\text{Clay}\cdot\text{Silt}}}{\text{Sand}}\right).
-\]
-
-\paragraph{Between-field (binari 0/1).}
-OnFarm, Irrigate, Fertilised, N\_Natural.
-
-\subsection{Statistiche descrittive}
-
 \begin{table}[htbp]
   \centering
   \caption{Statistiche descrittive ($N = 220$ osservazioni, $J = 40$ campi).}
@@ -195,6 +165,24 @@ OnFarm, Irrigate, Fertilised, N\_Natural.
   \end{tabular}
 \end{table}
 
+ILR (base di Helmert via \texttt{compositions::ilr}):
+\[
+  T_1 = \sqrt{\tfrac{1}{2}}\,\log\!\left(\frac{\text{Clay}}{\text{Silt}}\right),
+  \qquad
+  T_2 = \sqrt{\tfrac{2}{3}}\,
+        \log\!\left(\frac{\sqrt{\text{Clay}\cdot\text{Silt}}}{\text{Sand}}\right).
+\]
+
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.55\linewidth]{fig_texture_triangle.pdf}
+  \caption{Triangolo USDA delle classi tessiturali per le 220 osservazioni.
+    Le classi dominanti sono argilla-limosa (silty clay) e limo-argillosa (clay loam),
+    con variabilit\`a sostanziale tra i 40 campi.}
+  \label{fig:texture_triangle}
+\end{figure}
+
 
 % ==============================================================================
 \section{Analisi esplorativa}
@@ -202,22 +190,13 @@ OnFarm, Irrigate, Fertilised, N\_Natural.
 
 \subsection{Scelta della forma funzionale}
 
-\begin{figure}[htbp]
-  \centering
-  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
-  \includegraphics[width=0.8\linewidth]{fig01_aic.pdf}
-  \caption{Confronto AIC per quattro forme funzionali (log-log, quadratica,
-    lineare, factor). La forma log-log ottiene l'AIC pi\`u basso per tutte
-    e tre le risposte.}
-  \label{fig:aic}
-\end{figure}
-
 \subsection{Variabilit\`a tra campi: ICC}
 
 \todo{ICC $\approx 0.72$ per logSOC dal modello nullo lmer; random intercept
 necessario e ben identificato.}
 
 \subsection{Profili verticali individuali}
+RENDERE VERTICALE e aggiungere P e togliere scritte brutte
 
 \begin{figure}[htbp]
   \centering
@@ -233,65 +212,98 @@ necessario e ben identificato.}
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.8\linewidth]{fig03_scatter.pdf}
-  \caption{Relazione intercetta--slope per i 40 campi (BLUP lmer,
-    \texttt{logBottom} centrato).
-    SOC: $r=+0.62$ ($p<0.001$), correlazione moderata--forte che motiva
-    il modello M-SP.
-    N: $r\approx +0.11$, nessun pattern sistematico.
-    P: fit singolare nel modello lmer
-    ($\widehat{\mathrm{Var}}(\text{slope})\approx 0$), coerente con $\eta_P$
-    borderline in M-SP.}
+  \caption{rimuovibile}
   \label{fig:scatter}
 \end{figure}
+
+A parole: correlazione tra slope e intercept
 
 \subsection{Struttura spaziale}
 
 \todo{Moran's I e semivariogramma: nessuna autocorrelazione significativa per
 N e P; SOC debole. Conclusione: GP non necessario (confermato da LOO-CV,
-Sezione~\ref{sec:confronto}).}
+Sezione~\ref{subsec:loo4}).}
 
 
 % ==============================================================================
 \section{Modello statistico e inferenza}
 \label{sec:modello}
 
-\subsection{Struttura del modello M-SP}
+\subsection{Selezione dell'approccio modellistico}
+
+\todo{Approcci LMM multivariati frequentisti (MCMCglmm e sommer,
+script \texttt{06}) esplorati preliminarmente: modello trivariato con
+matrice G (between-field) e R (residui). Abbandonati per difficolt\`a
+di identificazione della struttura intercetta--slope nelle tre risposte
+e per la mancanza di un parametro interpretabile diretto.
+Motivazione per il passaggio al modello bayesiano M-SP-RIRS.}
+
+\subsection{Struttura del modello M-SP-RIRS-MVRE}
 \label{subsec:msp}
 
-Per ogni risposta $r \in \{\SOC, N, P\}$ e osservazione $i$ nel campo $j$:
+Per ogni risposta $r \in \{1, 2, 3\}$ (corrispondente a SOC, N, P)
+e osservazione $i$ nel campo $j$:
+%
 \[
-  y_{r,ij} \sim \Nrm\!\bigl(\mu_{r,ij},\;\sigma_r^2\bigr),
+  y_{r,ij} \sim \mathcal{N}\!\bigl(\mu_{r,ij},\;\sigma_r^2\bigr),
 \]
+%
 \[
-  \boxed{
-    \mu_{r,ij} =
-      \underbrace{\alpha_r}_{\text{intercetta globale}}
-      +\;
-      \underbrace{z_{\nu,r,j}
-        \bigl(\psi_r + \eta_r \cdot x_{\mathrm{logB},i}\bigr)}_{\text{effetto casuale proporzionale}}
-      +\;
-      \underbrace{\vec{\gamma}_r^\top \vec{x}_{W,i}}_{\text{effetti fissi within}}
-      +\;
-      \underbrace{\vec{\beta}_r^\top \vec{x}_{B,j}}_{\text{effetti fissi between}}
-  }
+  \mu_{r,ij} =
+    \underbrace{\alpha_r}_{\text{intercetta globale}}
+    +\;
+    \underbrace{u_{rj}}_{\text{intercetta casuale}}
+    +\;
+    \underbrace{v_{rj} \cdot \log B_i}_{\text{slope casuale}}
+    +\;
+    \underbrace{\boldsymbol{\gamma}_r^\top \mathbf{x}_{W,i}}_{\text{effetti fissi within}}
+    +\;
+    \underbrace{\boldsymbol{\beta}_r^\top \mathbf{x}_{B,j}}_{\text{effetti fissi between}}
 \]
+%
+dove il vettore degli effetti casuali di campo è modellato congiuntamente:
+%
+\[
+  \mathbf{b}_j
+  = \bigl(u_{1j},\, v_{1j},\, u_{2j},\, v_{2j},\, u_{3j},\, v_{3j}\bigr)^\top
+  \sim \mathcal{N}_6\!\bigl(\mathbf{0},\; \Sigma\bigr),
+\]
+%
+\[
+  \Sigma
+  = \operatorname{diag}(\boldsymbol{\tau})\;\Omega\;\operatorname{diag}(\boldsymbol{\tau}),
+  \qquad
+  \Omega \sim \mathrm{LKJ}(2).
+\]
+%
+Le componenti di $\mathbf{b}_j$ sono ordinate per risposta:
+$(u_{1j}, v_{1j})$ per SOC, $(u_{2j}, v_{2j})$ per N,
+$(u_{3j}, v_{3j})$ per P.
 
 \subsection{Parametrizzazione non centrata (NCP)}
 
 \[
-  z_{\nu,r,j} \sim \Nrm(0,\,1), \quad j = 1,\ldots,J.
+  Z_V \in \mathbb{R}^{6\times J},\;\; Z_V \sim \Nrm(0,\,\vec{I}),
+  \qquad V = \mathrm{diag}(\vec{\tau}_6)\,L_6\,Z_V,
 \]
+dove $L_6$ è il fattore di Cholesky di $\Omega_6$ (matrice $6\times 6$, 15 correlazioni libere).
 
-\subsection{Interpretazione di \texorpdfstring{$\eta_r$}{eta\_r}}
+\subsection{Interpretazione dei parametri chiave}
 
-\[
-  \Var[\nu_{r,j} \mid x_{\mathrm{logB}}]
-  = \bigl(\psi_r + \eta_r \, x_{\mathrm{logB}}\bigr)^2.
-\]
+\begin{itemize}
+  \item $\tauA{r} = \tau_{6,2r-1}$: SD delle intercette casuali di campo per la risposta $r$
+  \item $\tauB{r} = \tau_{6,2r}$: SD delle slope casuali di campo per la risposta $r$
+  \item $\rho_r = \Omega_6[2r{-}1,\,2r]$: correlazione intercetta--slope per la risposta $r$
+  \item $\rho^{\mathrm{int}}_{r,r'} = \Omega_6[2r{-}1,\,2r'{-}1]$: correlazione degli \emph{intercetti} tra le risposte $r$ e $r'$
+  \item $\rho^{\mathrm{slope}}_{r,r'} = \Omega_6[2r,\,2r']$: correlazione delle \emph{slope} tra le risposte $r$ e $r'$
+\end{itemize}
 
-\todo{$\eta_r > 0$: variabilit\`a tra campi cresce in profondit\`a, i campi
-ricchi decadono pi\`u lentamente. $\eta_r = 0$: tutti i campi hanno la stessa
-slope. $b_r = \eta_r/\psi_r$: coefficiente di proporzionalit\`a.}
+\noindent Interpretazione di $\rho_r$: identica a M-SP-RIRS. Interpretazione di
+$\rho^{\mathrm{int}}_{\SOC,N}$: se positivo, i campi con alto SOC medio tendono ad avere
+anche alto N medio (legame biologico a livello di campo, al di là dei predittori osservati).
+
+\noindent Relazione con M-SP-RIRS: M-SP-RIRS è il caso speciale $\Omega_6$ a blocchi
+diagonali $2\times 2$ (i.e., assenza di correlazioni cross-risposta tra effetti di campo).
 
 \subsection{Prior}
 
@@ -300,15 +312,15 @@ slope. $b_r = \eta_r/\psi_r$: coefficiente di proporzionalit\`a.}
 \toprule
 Parametro & Dimensione & Prior \\
 \midrule
-$\alpha_r$       & scalare      & $\Nrm(0,\;2)$ \\
-$z_{\nu,r,j}$    & vettore $J$  & $\Nrm(0,\;1)$ (NCP) \\
-$\psi_r$         & scalare $>0$ & $\HN(0,\;0.5)$ \\
-$\eta_r$         & scalare      & $\Nrm(0,\;0.3)$ \\
-$\vec{\gamma}_r$ & vettore $K_W{=}4$ & $\Nrm(\vec{0},\;\vec{I})$ \\
-$\vec{\beta}_r$  & vettore $K_B{=}4$ & $\Nrm(\vec{0},\;\vec{I})$ \\
-$\sigma_r$       & scalare $>0$ & $\HN(0,\;0.5)$ \\
+$\alpha_r$       & scalare, per $r{=}1,2,3$ & $\Nrm(0,\;2)$ \\
+$Z_V$            & $6{\times}J$ & $\Nrm(0,\,\vec{I})$ (NCP) \\
+$L_6$            & Cholesky $6{\times}6$ & $\mathrm{LKJ}(2)$ \\
+$\vec{\tau}_6$   & vettore $6$, $>0$ & $\HN(0,\;0.5)$ \\
+$\vec{\gamma}_r$ & vettore $K_W{=}5$, per $r{=}1,2,3$ & $\Nrm(\vec{0},\;\vec{I})$ \\
+$\vec{\beta}_r$  & vettore $K_B{=}4$, per $r{=}1,2,3$ & $\Nrm(\vec{0},\;\vec{I})$ \\
+$\sigma_r$       & scalare $>0$, per $r{=}1,2,3$ & $\HN(0,\;0.5)$ \\
 \midrule
-Totale & $3J + 36 = 156$ & (con $J = 40$) \\
+Totale & $6J + 57 = 297$ & (con $J = 40$, $K_W = 5$) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -333,28 +345,28 @@ Seed & 2024 \\
 \todo{Diagnostica: divergenze = 0, $\hat{R} < 1.01$, ESS bulk $> 400$
 per tutti i parametri.}
 
-
 % ==============================================================================
-\section{Risultati}
+\section{Risultati e validazione del modello}
 \label{sec:risultati}
 
-\subsection{Parametro \texorpdfstring{$\eta_r$}{eta\_r}: slope proporzionale}
+\subsection{Parametri strutturali: \texorpdfstring{$\rho_r$, $\tauA{r}$, $\tauB{r}$}{rho, tau-alpha, tau-beta}}
 
 \begin{figure}[htbp]
   \centering
-  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
-  \includegraphics[width=0.8\linewidth]{fig04_eta.pdf}
-  \caption{Distribuzioni a posteriori di $\eta_r$ per SOC, N e P.
-    $\hat\eta_\SOC = 0.21$ con CI\,90\% $[0.12, 0.30]$ (lontano da zero);
-    $\hat\eta_N \approx -0.05$ (CI include zero);
-    $\hat\eta_P = 0.10$ con CI\,90\% $[0.02, 0.18]$.}
-  \label{fig:eta}
+  \includegraphics[width=0.95\linewidth]{fig04_rho.pdf}
+  \caption{Distribuzioni a posteriori di $\rho_r$ (correlazione RI--RS, pannello superiore)
+    e $\tauB{r}$ (SD slope tra campi, pannello inferiore) per SOC, N e P
+    (modello M-SP-RIRS-MVRE).
+    $\hat\rho_\SOC = 0.68$ con CI\,90\% $[0.28, 0.96]$ (lontano da zero);
+    $\hat\rho_N = -0.16$ (CI include zero);
+    $\hat\rho_P = 0.48$ con ampia incertezza.}
+  \label{fig:rho}
 \end{figure}
 
 \begin{table}[htbp]
   \centering
-  \caption{Stime a posteriori dei parametri strutturali di M-SP
-    (mediana e CI\,90\%).}
+  \caption{Stime a posteriori dei parametri strutturali di M-SP-RIRS-MVRE
+    (mediana e CI\,90\%). In grassetto: CI\,90\% lontano da zero.}
   \label{tab:main}
   \small
   \begin{tabular}{@{}lccc@{}}
@@ -362,43 +374,36 @@ per tutti i parametri.}
     Parametro & SOC & N & P \\
     \midrule
     $\alpha_r$ &
-      $-0.240\ \CI{-0.527}{0.049}$ &
-      $\mathbf{-2.594}\ \CI{-2.800}{-2.381}$ &
-      $\mathbf{-2.611}\ \CI{-2.959}{-2.257}$ \\[2pt]
-    $\psi_r$ &
-      $\mathbf{0.323}\ \CI{0.231}{0.436}$ &
-      $\mathbf{0.197}\ \CI{0.131}{0.274}$ &
-      $\mathbf{0.392}\ \CI{0.293}{0.515}$ \\[2pt]
-    $\boldsymbol{\eta_r}$ &
-      $\mathbf{0.209}\ \CI{0.125}{0.302}$ &
-      $-0.051\ \CI{-0.124}{0.021}$ &
-      $\mathbf{0.096}\ \CI{0.019}{0.179}$ \\[2pt]
-    $b_r = \eta_r/\psi_r$ &
-      $\mathbf{0.645}\ \CI{0.388}{0.990}$ &
-      $-0.252\ \CI{-0.748}{0.103}$ &
-      $\mathbf{0.244}\ \CI{0.048}{0.461}$ \\[2pt]
+      $-0.19\ \CI{-0.50}{0.14}$ &
+      $\mathbf{-2.56}\ \CI{-2.77}{-2.34}$ &
+      $\mathbf{-2.62}\ \CI{-2.99}{-2.25}$ \\[2pt]
+    $\tauA{r}$ &
+      $\mathbf{0.327}\ \CI{0.234}{0.436}$ &
+      $\mathbf{0.211}\ \CI{0.150}{0.287}$ &
+      $\mathbf{0.396}\ \CI{0.297}{0.520}$ \\[2pt]
+    $\tauB{r}$ &
+      $\mathbf{0.215}\ \CI{0.106}{0.317}$ &
+      $\mathbf{0.148}\ \CI{0.080}{0.214}$ &
+      $\mathbf{0.085}\ \CI{0.009}{0.185}$ \\[2pt]
+    $\boldsymbol{\rho_r}$ &
+      $\mathbf{0.519}\ \CI{0.119}{0.795}$ &
+      $-0.148\ \CI{-0.495}{0.235}$ &
+      $0.295\ \CI{-0.291}{0.705}$ \\[2pt]
     $\sigma_r$ &
-      $\mathbf{0.531}\ \CI{0.486}{0.582}$ &
-      $\mathbf{0.345}\ \CI{0.316}{0.378}$ &
-      $\mathbf{0.548}\ \CI{0.502}{0.599}$ \\
+      $\mathbf{0.524}\ \CI{0.474}{0.581}$ &
+      $\mathbf{0.316}\ \CI{0.286}{0.351}$ &
+      $\mathbf{0.551}\ \CI{0.504}{0.605}$ \\
     \bottomrule
+    \multicolumn{4}{@{}l}{\small\textit{%
+      CI 90\% basati su quantili q5--q95. Valori in grassetto: CI\,90\% lontano da 0.}} \\
   \end{tabular}
 \end{table}
 
 \subsection{Effetti fissi within-field (\texorpdfstring{$\gamma_r$}{gamma\_r})}
 
-\begin{figure}[htbp]
-  \centering
-  \noindent\todo{VALUTARE rimozione (incerto)}\
-  \includegraphics[width=0.8\linewidth]{fig05_gamma.pdf}
-  \caption{Forest plot degli effetti fissi within-field $\hat\gamma_{r,k}$
-    (mediana e CI\,90\%) per SOC (blu), N (verde), P (rosso).}
-  \label{fig:gamma}
-\end{figure}
-
 \begin{table}[htbp]
   \centering
-  \caption{Effetti fissi within-field $\hat\gamma_{r,k}$ dal modello M-SP
+  \caption{Effetti fissi within-field $\hat\gamma_{r,k}$ dal modello M-SP-RIRS-MVRE
     (mediana e CI\,90\%). In grassetto: CI\,90\% lontano da zero.}
   \label{tab:gamma}
   \small
@@ -407,23 +412,29 @@ per tutti i parametri.}
     Covariata & SOC & N & P \\
     \midrule
     logBottom &
-      $\mathbf{-0.378}\ [-0.472,\ -0.286]$ &
-      $\mathbf{-0.202}\ [-0.253,\ -0.152]$ &
-      $-0.062\ [-0.144,\ 0.021]$ \\[2pt]
+      $\mathbf{-0.366}\ [-0.464,\ -0.270]$ &
+      $\mathbf{-0.210}\ [-0.272,\ -0.148]$ &
+      $-0.075\ [-0.160,\ 0.010]$ \\[2pt]
     Texture1 (ILR$_1$) &
-      $-0.055\ [-0.134,\ 0.022]$ &
-      $-0.041\ [-0.093,\ 0.011]$ &
-      $0.001\ [-0.080,\ 0.082]$ \\[2pt]
+      $-0.060\ [-0.143,\ 0.024]$ &
+      $-0.024\ [-0.078,\ 0.030]$ &
+      $0.004\ [-0.079,\ 0.088]$ \\[2pt]
     Texture2 (ILR$_2$) &
-      $\mathbf{-0.529}\ [-0.660,\ -0.397]$ &
-      $\mathbf{-0.288}\ [-0.370,\ -0.205]$ &
-      $-0.072\ [-0.215,\ 0.070]$ \\[2pt]
+      $\mathbf{-0.503}\ [-0.640,\ -0.361]$ &
+      $\mathbf{-0.284}\ [-0.371,\ -0.195]$ &
+      $-0.068\ [-0.213,\ 0.077]$ \\[2pt]
     BulkDensity &
-      $\mathbf{-0.223}\ [-0.362,\ -0.084]$ &
-      $\mathbf{-0.204}\ [-0.291,\ -0.114]$ &
-      $-0.150\ [-0.297,\ -0.001]$ \\
+      $\mathbf{-0.237}\ [-0.380,\ -0.085]$ &
+      $\mathbf{-0.179}\ [-0.270,\ -0.084]$ &
+      $-0.122\ [-0.278,\ 0.033]$ \\[2pt]
+    pH &
+      $-0.032\ [-0.122,\ 0.055]$ &
+      $0.003\ [-0.052,\ 0.058]$ &
+      $0.016\ [-0.074,\ 0.105]$ \\
     \bottomrule
-    \multicolumn{4}{@{}l}{\small\textit{Texture1 non significativo per nessuna risposta.}} \\
+    \multicolumn{4}{@{}p{12cm}}{\small\textit{%
+      Texture1 e pH non significativi per nessuna risposta. La selettivit\`a
+      predittiva \`e dominata da Texture2 e BulkDensity.}} \\
   \end{tabular}
 \end{table}
 
@@ -431,50 +442,27 @@ per tutti i parametri.}
 
 \begin{figure}[htbp]
   \centering
-  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
-  \includegraphics[width=0.8\linewidth]{fig08_ppc.pdf}
-  \caption{Posterior predictive check: densit\`a osservata (linea nera spessa)
-    vs.\ 100 repliche a posteriori per le tre risposte.}
-  \label{fig:ppc}
+  \includegraphics[width=0.95\linewidth]{fig05_gamma.pdf}
+  \caption{Forest plot degli effetti fissi within-field $\hat\gamma_{r,k}$
+    (mediana e CI\,90\%) per SOC (blu), N (verde), P (rosso) — modello M-SP-RIRS-MVRE.
+    Texture2 e BulkDensity significativi per SOC e N; pH e Texture1 non significativi.}
+  \label{fig:gamma}
 \end{figure}
-
-\subsection{Robustezza alle osservazioni influenti}
-\label{subsec:sensitivity}
 
 \begin{figure}[htbp]
   \centering
-  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
-  \includegraphics[width=0.8\linewidth]{fig10_sensitivity.pdf}
-  \caption{Confronto di $\eta_r$ (mediana e CI\,90\%) tra M-SP completo e
-    M-SP rifittato dopo rimozione delle 10 osservazioni con Pareto $k \geq 0.7$.}
-  \label{fig:sensitivity}
+  \includegraphics[width=0.95\linewidth]{fig08_ppc.pdf}
+  \caption{Posterior predictive check: densit\`a osservata (linea scura)
+    vs.\ 200 repliche a posteriori per le tre risposte (M-SP-RIRS-MVRE).}
+  \label{fig:ppc}
 \end{figure}
-
-\todo{10 obs con $k\geq0.7$ (4.5\%, 1 con $k>1$). $\sigma_\SOC$ e $\sigma_N$
-si riducono (outlier di residuo); $\eta_r$ robusti: $\eta_\SOC$ rimane positivo,
-$\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
-
-
-% ==============================================================================
-\section{Confronto modelli e selezione variabili}
-\label{sec:confronto}
 
 \subsection{Confronto architetturale (LOO-CV)}
 \label{subsec:loo4}
 
-\begin{figure}[htbp]
-  \centering
-  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
-  \includegraphics[width=0.8\linewidth]{fig07_loo4.pdf}
-  \caption{Confronto LOO-CV dei quattro modelli architetturali.
-    M-SP ottiene il miglior ELPD con meno parametri dei modelli GP.}
-  \label{fig:loo4}
-\end{figure}
-
 \begin{table}[htbp]
   \centering
-  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}
-  \caption{LOO-CV per i quattro modelli ($\Delta$ELPD rispetto a M-SP;
+  \caption{LOO-CV per i modelli principali ($\Delta$ELPD rispetto a M-SP-RIRS-MVRE;
     $|z|=|\Delta\text{ELPD}|/\text{SE}$).}
   \label{tab:loo4}
   \small
@@ -482,41 +470,46 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
     \toprule
     Modello & Descrizione & $\Delta$ELPD & SE & $|z|$ \\
     \midrule
-    \textbf{M-SP} & RI + slope proporzionale & $\mathbf{0.0}$ & ---  & ---  \\
-    M-GPS & GP spaziale + slope fissa  & $-2.3$ & $7.7$ & $0.30$ \\
-    M-RI  & Random intercept i.i.d.    & $-5.9$ & $6.4$ & $0.92$ \\
-    M-GP  & GP spaziale completo       & $-5.9$ & $7.0$ & $0.84$ \\
+    \textbf{M-SP-RIRS-MVRE} & RE 6D cross-risposta & $\mathbf{0.0}$ & ---  & ---  \\
+    M-SP-RIRS & RI+RS bivariato per risposta & $-0.4$ & $\approx 4$ & $\approx 0.1$ \\
+    M-SP  & RI + slope proporzionale     & $-4.1$ & $4.2$ & $\approx 1.0$ \\
+    M-RI  & Random intercept i.i.d.      & $-9.2$ & $5.7$ & $1.6$ \\
     \bottomrule
-    \multicolumn{5}{@{}l}{\small\textit{$|\Delta\text{ELPD}/\text{SE}|<2$:
-      nessuna differenza significativa. M-SP ha $p_\text{loo}=127$.}} \\
+    \multicolumn{5}{@{}l}{\small\textit{%
+      $|\Delta\text{ELPD}/\text{SE}|<2$: nessuna differenza significativa.
+      MVRE migliore di RIRS di 0.4 ELPD (marginale), preferito per l'interpretabilit\`a
+      di $\rho^{\mathrm{int}}_{\SOC\text{-}N}$.}} \\
   \end{tabular}
 \end{table}
+
+\subsection{Correlazioni cross-risposta degli effetti di campo}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\linewidth]{fig10_cross_corr.pdf}
+  \caption{Correlazioni cross-risposta degli intercetti e delle slope di campo
+    ($\Omega_6$, M-SP-RIRS-MVRE).
+    $\hat\rho^{\mathrm{int}}_{\SOC\text{-}N} = +0.386\ [0.038, 0.667]$
+    (CI\,90\% lontano da zero): i campi pi\`u fertili in SOC tendono ad
+    essere pi\`u fertili in N.
+    Le correlazioni delle slope e le altre correlazioni degli intercetti
+    sono vicine a zero con alta incertezza.}
+  \label{fig:cross_corr}
+\end{figure}
 
 \subsection{Selezione variabili (projpred)}
 
 \begin{figure}[htbp]
   \centering
-  \begin{subfigure}[b]{0.32\linewidth}
-    \includegraphics[width=\linewidth]{fig06a_projpred_soc.pdf}
-    \caption{SOC}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.32\linewidth}
-    \includegraphics[width=\linewidth]{fig06b_projpred_n.pdf}
-    \caption{N}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.32\linewidth}
-    \includegraphics[width=\linewidth]{fig06c_projpred_p.pdf}
-    \caption{P}
-  \end{subfigure}
+  \includegraphics[width=0.95\linewidth]{fig06_projpred.pdf}
   \caption{Percorso di selezione projpred per SOC, N e P ($\Delta$ELPD
-    vs.\ numero di predittori; soglia $\alpha=0.10$ tratteggiata).}
+    vs.\ numero di predittori; reference model = M-SP-RIRS-MVRE; soglia $\alpha=0.10$ tratteggiata).}
   \label{fig:projpred}
 \end{figure}
 
 \begin{table}[htbp]
   \centering
-  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}
-  \caption{Selezione projpred (forward search, $\alpha=0.10$).
+  \caption{Selezione projpred (forward search, $\alpha=0.10$; reference = M-SP-RIRS-MVRE).
     $n^*$: numero suggerito di predittori.}
   \label{tab:projpred}
   \small
@@ -527,71 +520,83 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
     SOC & 4 &
       Texture2 $\to$ logBottom $\to$ \textit{(1|Field)} $\to$
       \textit{(logBottom|Field)} $\to$ BulkDensity $\to$ \ldots \\[3pt]
-    N   & 4 &
-      BulkDensity $\to$ \textit{(1|Field)} $\to$ logBottom $\to$ Texture2
-      $\to$ \textit{(logBottom|Field)} $\to$ \ldots \\[3pt]
+    N   & 5 &
+      BulkDensity $\to$ \textit{(1|Field)} $\to$ logBottom $\to$
+      \textit{(logBottom|Field)} $\to$ Texture2 $\to$ \ldots \\[3pt]
     P   & 3 &
       \textit{(1|Field)} $\to$ logBottom $\to$
       \textit{(logBottom|Field)} $\to$ BulkDensity $\to$ \ldots \\
     \bottomrule
     \multicolumn{3}{@{}p{12cm}}{%
-      \small\textit{Effetti fissi selezionati entro $n^*$:
-      SOC \{Texture2, logBottom\};
-      N \{BulkDensity, logBottom, Texture2\};
-      P \{logBottom\}.
-      Texture1 e management non entrano mai nei primi $n^*$ termini.}} \\
+      \small\textit{pH e management non entrano nei primi $n^*$ termini
+      per nessuna risposta: nessun potere predittivo aggiuntivo.
+      Texture1 (ILR$_1$) non selezionata. Risultati identici a M-SP (robustezza).}} \\
   \end{tabular}
 \end{table}
 
-\begin{figure}[htbp]
-  \centering
-  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
-  \includegraphics[width=0.8\linewidth]{fig11_proj_vs_msp.pdf}
-  \caption{Confronto $\hat\gamma_r$: M-SP vs.\ posterior proiettate (projpred).
-    Accordo sostanziale per le variabili selezionate.}
-  \label{fig:proj_vs_msp}
-\end{figure}
+\subsection{Robustezza}
+\label{subsec:robustezza}
+
+\paragraph{Osservazioni influenti (Pareto $k$).}
+
+Sono state identificate osservazioni con Pareto $k \geq 0.7$ in M-SP-RIRS-MVRE.
+Il confronto dei parametri strutturali tra modello completo e ridotto mostra:
+$\hat\rho_\SOC = 0.519\ [0.119, 0.795]$ vs $0.526\ [0.169, 0.770]$ (OK);
+$\hat\sigma_r$ si riduce moderatamente rimuovendo gli influenti (ATTENZIONE, atteso:
+le osservazioni influenti sono punti estremi che gonfiano la varianza residua).
+$\tauB{N}$ e $\rho_N$ cambiano entro l'intervallo di incertezza (nota, non ATTENZIONE).
+\textbf{Conclusione}: $\rho_\SOC$ e i parametri di campo sono robusti alla rimozione
+dei punti influenti.
+
+\paragraph{Modelli semplificati A e B.}
+
+Il modello A (senza management $\beta_r$, senza Texture1) e il modello B (N con solo RI,
+struttura 5D) sono entrambi diagnosticamente corretti (0 divergenze, $\hat{R}<1.05$).
+LOO: $\Delta\text{ELPD}_{A-\text{MVRE}} = +1.8$ (SE~$=4.1$, $|z|=0.4$; A non peggiore
+di MVRE); $\Delta\text{ELPD}_{B-\text{MVRE}} = -5.7$ (SE~$=6.0$; B peggiore ma non
+significativo). Il modello A conferma che management e Texture1 non hanno peso predittivo
+— coerente con la selezione projpred.
+
+\paragraph{Indipendenza condizionale dei residui (MVRE-FULL).}
+
+M-SP-RIRS-MVRE \`e stato esteso con residui multivariati
+$\vec{\varepsilon}_{ij} \sim \mathcal{N}_3(\vec{0},\,\Sigma_\text{res})$
+(MVRE-FULL, 300 parametri). Le tre correlazioni residue a posteriori sono
+tutte vicine a zero:
+$\hat\rho^\text{res}_{\SOC\text{-}N} = +0.015\ [-0.121,+0.151]$,
+$\hat\rho^\text{res}_{\SOC\text{-}P} = -0.021\ [-0.151,+0.110]$,
+$\hat\rho^\text{res}_{N\text{-}P} = +0.035\ [-0.096,+0.166]$.
+LOO: $\Delta\text{ELPD}_{\text{FULL}-\text{MVRE}} = -3.1$ (SE~$=1.1$):
+MVRE-FULL è peggiore di MVRE per i parametri extra non informativi.
+\textbf{Conclusione}: i tre nutrienti sono condizionalmente indipendenti dato
+M-SP-RIRS-MVRE. La struttura cross-risposta è interamente catturata a livello
+di campo da $\Omega_6$ — non esiste correlazione residua aggiuntiva.
+
+\paragraph{Autocorrelazione verticale dei residui (\texttt{17\_frequentista\_corexp.R}).}
+
+\todo{Analisi frequentista con \texttt{nlme} (script \texttt{17}).
+Verifica assenza di autocorrelazione spaziale nei residui.}
 
 \begin{figure}[htbp]
   \centering
-  \noindent\todo{CANDIDATO RIMOZIONE --- lasciare per ora, segnalare nel testo}\
-  \includegraphics[width=0.8\linewidth]{fig12_nonselected_gamma.pdf}
-  \caption{$\hat\gamma_r$ per le variabili \emph{non selezionate} da projpred:
-    tutti con CI\,90\% compatibili con zero.}
-  \label{fig:nonsel_gamma}
-\end{figure}
-
-\subsection{Robustezza alla semplificazione: modelli A e B}
-
-\begin{figure}[htbp]
-  \centering
-  \noindent\todo{VALUTARE rimozione (incerto)}\
-  \includegraphics[width=0.8\linewidth]{fig09_loo_ab.pdf}
-  \caption{LOO-CV per M-SP, Modello A (ridotto) e Modello B
-    (response-specific). Differenze nell'ordine del rumore numerico.}
+  \includegraphics[width=0.85\linewidth]{fig09_loo_ab.pdf}
+  \caption{LOO-CV: M-SP-RIRS-MVRE e varianti semplificate A e B.
+    $\Delta$ELPD rispetto al migliore (A); barre = $\pm$SE.
+    Modello A non peggiore di MVRE ($|z|=0.4$): management e Texture1 non
+    aggiungono potere predittivo. Modello B peggiore ($\Delta=-5.7$): la slope
+    casuale per N contribuisce alla struttura di campo.}
   \label{fig:loo_ab}
 \end{figure}
 
-\begin{table}[htbp]
+\begin{figure}[htbp]
   \centering
-  \noindent\todo{VALUTARE rimozione (incerto)}
-  \caption{LOO-CV per M-SP e modelli semplificati
-    ($\Delta$ELPD rispetto a B).}
-  \label{tab:loo_ab}
-  \small
-  \begin{tabular}{@{}llrrr@{}}
-    \toprule
-    Modello & Descrizione & ELPD & $\Delta$ELPD & SE \\
-    \midrule
-    B (resp-spec) & Response-specific        & $-504.3$ & $0.0$  & ---  \\
-    A (ridotto)   & M-SP senza $\vec\beta_r$ e Texture1 &
-                    $-504.7$ & $-0.4$ & $4.6$ \\
-    \textbf{M-SP} & Modello completo         & $-506.7$ & $-2.3$ & $7.2$ \\
-    \bottomrule
-    \multicolumn{5}{@{}l}{\small\textit{Tutti
-      $|\Delta\text{ELPD}/\text{SE}|<0.5$: differenze non significative.}} \\
-  \end{tabular}
-\end{table}
+  \includegraphics[width=0.85\linewidth]{fig11_sensitivity.pdf}
+  \caption{Analisi di sensibilità (Pareto $k \geq 0.7$): confronto di
+    $\rho_r$ e $\tauB{r}$ tra modello completo e modello senza osservazioni
+    influenti. Le stime strutturali sono stabili; solo $\sigma_r$ si riduce
+    moderatamente (atteso: gli influenti sono residui estremi).}
+  \label{fig:sensitivity}
+\end{figure}
 
 
 % ==============================================================================
@@ -600,60 +605,62 @@ $\eta_N$ rimane vicino a zero, $\eta_P$ si consolida leggermente.}
 
 \subsection{SOC: correlazione slope--intercetta e meccanismi biologici}
 
-\todo{$\eta_\SOC=0.21$ positivo e robusto. Campi con SOC elevato decadono
-pi\`u lentamente. Confronto con letteratura (Jobbágy \& Jackson 2000;
+\todo{$\hat\rho_\SOC=0.52$ [0.12, 0.80], positivo e robusto. $\tauB{\SOC}=0.22$
+significativamente positivo. Campi con SOC elevato decadono pi\`u lentamente.
+Confronto con letteratura (Jobbágy \& Jackson 2000;
 Mutambu et al.\ 2019; Kirsten et al.\ 2019). Meccanismi possibili:
-stabilizzazione organo-minerale, pratiche agronomiche.}
+stabilizzazione organo-minerale, pratiche agronomiche. pH non significativo
+($\hat\gamma_\SOC^\text{pH}=-0.02$, CI include zero).}
 
-\subsection{N: profili uniformi tra campi}
+\subsection{N: variabilit\`a di slope senza correlazione con il livello}
 
-\todo{$\eta_N\approx 0$ in tutti i modelli. Biologicamente plausibile:
-N \`e mobile (mineralizzazione, lisciviazione) e risponde alle pratiche
-pi\`u che alla struttura intrinseca.}
+\todo{$\hat\rho_N=-0.16$ con CI che include zero: le slope di N non sono correlate
+ai livelli di campo. Ma $\tauB{N}=0.145$ significativamente positivo: esiste
+variabilit\`a tra campi nella pendenza verticale dell'azoto, non catturata da M-SP.
+Biologicamente plausibile: N mobile risponde alle pratiche pi\`u che alla struttura.}
 
-\subsection{P: evidenza moderata e dipendenza dalla specificazione}
+\subsection{P: evidenza moderata}
 
-\todo{$\eta_P=0.096$ positivo in M-SP e A, ma CI include zero in B (separazione
-effetto fisso vs casuale di logBottom). Cautela nell'interpretazione.}
+\todo{$\hat\rho_P = 0.478$ con CI\,90\% ampio $[-0.29, 0.88]$: evidenza moderata
+ma alta incertezza. $\tauB{P} = 0.094$ borderline (CI\,90\% $[0.007, 0.189]$).
+Cautela nell'interpretazione: il pattern esiste ma non \`e robusto.}
 
-\subsection{Effetti di management}
+\subsection{Effetti di management e pH}
 
-\todo{$\hat\beta_r$ deboli, CI\,90\% quasi sempre su zero. LOO-CV di A e B
-equivalente a M-SP. La variabilit\`a tra campi \`e catturata dalla struttura
-proporzionale pi\`u che dalle pratiche osservate.}
+\todo{$\hat\beta_r$ deboli (CI\,90\% quasi sempre su zero per la maggior parte).
+pH non significativo per nessuna risposta ($\hat\gamma^\text{pH} \approx 0$).
+Projpred: n\`e pH n\`e management entrano nei modelli selezionati per nessuna
+risposta. La variabilit\`a tra campi \`e catturata dalla struttura bivariata
+RI+RS pi\`u che dalle pratiche osservate.}
 
-\subsection{Indipendenza condizionale dei residui (M-SP-MV)}
+\subsection{Indipendenza condizionale tra nutrienti e legame SOC--N}
 
-Per verificare se i residui dei tre nutrienti alla stessa osservazione
-covariassero, M-SP \`e stato esteso a un modello con residui multivariati
-(M-SP-MV): $\vec{\varepsilon}_{ij} \sim \mathcal{N}_3(\vec{0},\,\Sigma)$
-con $\Sigma = \mathrm{diag}(\vec\sigma)\,\Omega\,\mathrm{diag}(\vec\sigma)$
-e prior $\Omega \sim \mathrm{LKJ}(2)$.
-
-Le tre correlazioni residue a posteriori sono tutte vicine a zero:
-$\hat\rho_{\SOC\text{-}N} = 0.067\ [-0.063, 0.197]$,
-$\hat\rho_{\SOC\text{-}P} = 0.001\ [-0.122, 0.126]$,
-$\hat\rho_{N\text{-}P}   = 0.021\ [-0.105, 0.148]$.
-I parametri $\eta_r$ sono invariati ($\leq 0.005$ di variazione in mediana).
-Il confronto LOO indica che M-SP \`e migliore di M-SP-MV
-($\Delta\text{ELPD} = +4.7$, SE~$=1.4$, $|z|=3.4$):
-aggiungere le correlazioni residue peggiora la predizione perch\'e
-introduce parametri con segnale nullo.
-
-\textbf{Conclusione}: i tre nutrienti sono condizionalmente indipendenti
-dato il modello M-SP. La co-variazione osservata tra SOC, N e P \`e
-interamente catturata dai predittori comuni (profondit\`a, tessitura, campo).
-M-SP rimane il modello finale.
+I tre nutrienti risultano condizionalmente indipendenti dati i
+predittori di M-SP-RIRS-MVRE: le correlazioni residue (M-SP-RIRS-MV) sono $\approx 0$
+e aggiungere tale struttura non migliora il LOO.
+La co-variazione osservata tra SOC, N e P \`e interamente catturata da
+profondit\`a, tessitura e struttura di campo.
+Il legame SOC--N emerge per\`o a livello di effetti casuali di campo nel modello finale:
+$\hat\rho^{\mathrm{int}}_{\SOC\text{-}N} = +0.386\ [0.038, 0.667]$ (CI\,90\% lontano da zero).
+Questo segnale biologicamente interpretabile — i campi pi\`u fertili in SOC tendono
+ad essere pi\`u fertili in N, al di l\`a dei predittori osservati — costituisce il
+risultato principale aggiunto dal modello M-SP-RIRS-MVRE rispetto a M-SP-RIRS.
 
 
 % ==============================================================================
 \section{Conclusioni}
 \label{sec:conclusioni}
 
-\todo{(1) SOC: $\hat\eta_\SOC=0.21$ [0.12,0.30], robusto. (2) N: $\hat\eta_N\approx
--0.05$, CI su zero, profili uniformi. (3) P: evidenza moderata, sensibile alla
-specificazione. Dal punto di vista metodologico: M-SP cattura la correlazione
-intercetta--slope con un solo parametro $\eta_r$, miglior LOO tra tutti i modelli.
+\todo{(1) SOC: $\hat\rho_\SOC=0.52$ [0.12, 0.80], robusto. I campi con SOC
+elevato decadono pi\`u lentamente in profondit\`a.
+(2) N: $\hat\rho_N\approx -0.16$ (CI su zero), ma $\tauB{N}=0.145$ positivo:
+la variabilit\`a di slope esiste ma non \`e correlata al livello medio.
+(3) P: $\hat\rho_P=0.48$ con alta incertezza.
+(4) pH non aggiunge potere predittivo in questo dataset.
+(5) Nuovo in MVRE: $\hat\rho^{\mathrm{int}}_{\SOC\text{-}N}=+0.386$ [0.038, 0.667]:
+legame biologico SOC--N identificabile a livello di campo, al di l\`a dei predittori osservati.
+Dal punto di vista metodologico: M-SP-RIRS-MVRE generalizza M-SP-RIRS
+stimando congiuntamente gli effetti di campo delle tre risposte.
 Implicazioni pratiche per la gestione del suolo in Tanzania.}
 
 
@@ -669,8 +676,8 @@ Implicazioni pratiche per la gestione del suolo in Tanzania.}
 
 \begin{table}[htbp]
   \centering
-  \caption{Effetti di management $\hat\beta_{r,k}$ dal modello M-SP
-    (mediana e CI\,90\%). Quasi tutti i CI includono zero.}
+  \caption{Effetti di management $\hat\beta_{r,k}$ dal modello M-SP-RIRS-MVRE
+    (mediana e CI\,90\%). In grassetto: CI\,90\% lontano da zero.}
   \label{tab:beta}
   \small
   \begin{tabular}{@{}lrrr@{}}
@@ -678,34 +685,61 @@ Implicazioni pratiche per la gestione del suolo in Tanzania.}
     Covariata & SOC & N & P \\
     \midrule
     OnFarm     &
-      $-0.081\ [-0.443,\ 0.304]$ &
-      $0.251\ [0.009,\ 0.500]$ &
-      $0.650\ [0.235,\ 1.080]$ \\[2pt]
+      $-0.137\ [-0.528,\ 0.274]$ &
+      $\mathbf{0.294}\ [0.037,\ 0.567]$ &
+      $\mathbf{0.684}\ [0.239,\ 1.129]$ \\[2pt]
     Irrigate   &
-      $0.181\ [-0.033,\ 0.388]$ &
-      $-0.152\ [-0.303,\ -0.006]$ &
-      $0.401\ [0.131,\ 0.665]$ \\[2pt]
+      $\mathbf{0.260}\ [0.022,\ 0.496]$ &
+      $-0.146\ [-0.303,\ 0.009]$ &
+      $\mathbf{0.404}\ [0.121,\ 0.683]$ \\[2pt]
     Fertilised &
-      $-0.032\ [-0.307,\ 0.234]$ &
-      $-0.108\ [-0.300,\ 0.076]$ &
-      $-0.283\ [-0.605,\ 0.047]$ \\[2pt]
+      $0.011\ [-0.293,\ 0.305]$ &
+      $-0.116\ [-0.316,\ 0.074]$ &
+      $-0.346\ [-0.683,\ 0.002]$ \\[2pt]
     N\_Natural  &
-      $0.109\ [-0.245,\ 0.463]$ &
-      $0.232\ [-0.039,\ 0.492]$ &
-      $-0.129\ [-0.564,\ 0.302]$ \\
+      $0.012\ [-0.392,\ 0.402]$ &
+      $0.176\ [-0.108,\ 0.447]$ &
+      $-0.096\ [-0.555,\ 0.365]$ \\
     \bottomrule
     \multicolumn{4}{@{}p{12cm}}{\small\textit{
-      LOO-CV di A e B (senza $\vec\beta_r$) statisticamente equivalente
-      a M-SP: il management ha impatto predittivo trascurabile.}} \\
+      In grassetto: CI\,90\% lontano da zero. OnFarm e Irrigate significativi per P;
+      Irrigate significativo per SOC; OnFarm significativo per N.
+      LOO-CV di A (senza $\vec\beta_r$) statisticamente equivalente a MVRE:
+      il management ha impatto predittivo trascurabile ma segnale biologico presente.}} \\
   \end{tabular}
 \end{table}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.8\linewidth]{appfig01_beta.pdf}
+  \includegraphics[width=0.9\linewidth]{appfig01_beta.pdf}
   \caption{Forest plot degli effetti di management $\hat\beta_{r,k}$
-    (mediana e CI\,90\%).}
+    (mediana e CI\,90\%) per SOC (blu), N (verde), P (rosso) — M-SP-RIRS-MVRE.
+    OnFarm e Irrigate mostrano segnale positivo per P; Irrigate per SOC;
+    OnFarm per N. La selezione projpred non include nessun $\beta_r$:
+    gli effetti sono presenti ma non aggiungono potere predittivo
+    rispetto alla struttura di campo.}
   \label{fig:beta}
+\end{figure}
+
+\section{Validazione projpred: covariate selezionate vs M-SP-RIRS-MVRE}
+\label{app:projpred_val}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\linewidth]{fig12_proj_vs_msp.pdf}
+  \caption{Confronto coefficienti fissi: M-SP-RIRS-MVRE (reference), proiezione
+    projpred e lme4 REML per le covariate selezionate. La coerenza tra i tre
+    metodi conferma la stabilità della selezione.}
+  \label{fig:proj_vs_msp}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\linewidth]{fig13_nonselected_gamma.pdf}
+  \caption{Covariate \emph{non} selezionate da projpred: $\hat\gamma_{r,k}$
+    in M-SP-RIRS-MVRE. CI\,90\% copre lo zero per tutti — conferma
+    che la selezione è coerente con il modello di riferimento.}
+  \label{fig:nonsel_gamma}
 \end{figure}
 
 \section{Trace plot dei parametri chiave}
@@ -714,8 +748,8 @@ Implicazioni pratiche per la gestione del suolo in Tanzania.}
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.8\linewidth]{appfig02_trace.pdf}
-  \caption{Trace plot delle 4 catene MCMC per $\alpha_r$, $\psi_r$, $\eta_r$.
-    Buona mescolanza: nessuna evidenza di mancata convergenza.}
+  \caption{Trace plot delle 4 catene MCMC per $\alpha_r$, $\tauA{r}$, $\tauB{r}$, $\rho_r$
+    (modello M-SP-RIRS-MVRE). Buona mescolanza: nessuna evidenza di mancata convergenza.}
   \label{fig:trace}
 \end{figure}
 

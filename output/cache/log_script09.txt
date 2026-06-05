@@ -1,0 +1,194 @@
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.2.1     ✔ readr     2.2.0
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ ggplot2   4.0.3     ✔ tibble    3.3.1
+✔ lubridate 1.9.5     ✔ tidyr     1.3.2
+✔ purrr     1.2.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+here() starts at C:/Users/gabri/Desktop/Progetti/crop-soil-analysis
+Caricamento del pacchetto richiesto: Matrix
+
+Caricamento pacchetto: 'Matrix'
+
+I seguenti oggetti sono mascherati da 'package:tidyr':
+
+    expand, pack, unpack
+
+This is posterior version 1.7.0
+
+Caricamento pacchetto: 'posterior'
+
+I seguenti oggetti sono mascherati da 'package:stats':
+
+    mad, sd, var
+
+I seguenti oggetti sono mascherati da 'package:base':
+
+    %in%, match
+
+This is projpred version 2.10.0.
+N = 220 | J = 40
+Carico projpred cache da: C:/Users/gabri/Desktop/Progetti/crop-soil-analysis/output/cache/projpred_varsel.rds 
+Messaggio di avvertimento:
+In solution_terms.vsel(vs_SOC) :
+  solution_terms.vsel() is deprecated. Please use ranking() instead (ranking()'s output element `fulldata` contains the full-data predictor ranking that is also extracted by solution_terms.vsel(); ranking()'s output element `foldwise` contains fold-wise predictor rankings which were previously not accessible via a function).
+Messaggio di avvertimento:
+In solution_terms.vsel(vs_N) :
+  solution_terms.vsel() is deprecated. Please use ranking() instead (ranking()'s output element `fulldata` contains the full-data predictor ranking that is also extracted by solution_terms.vsel(); ranking()'s output element `foldwise` contains fold-wise predictor rankings which were previously not accessible via a function).
+Messaggio di avvertimento:
+In solution_terms.vsel(vs_P) :
+  solution_terms.vsel() is deprecated. Please use ranking() instead (ranking()'s output element `fulldata` contains the full-data predictor ranking that is also extracted by solution_terms.vsel(); ranking()'s output element `foldwise` contains fold-wise predictor rankings which were previously not accessible via a function).
+
+Modelli selezionati da projpred:
+  SOC (n=4): Texture2, logBottom, (1 | Field), (logBottom | Field)
+  N   (n=4): BulkDensity, (1 | Field), logBottom, Texture2
+  P   (n=3): (1 | Field), logBottom, (logBottom | Field)
+
+Calcolo proiezioni projpred (alcuni minuti)...
+  Proiezione SOC (n=4)...
+  Proiezione N (n=4)...
+  Proiezione P (n=3)...
+  Proiezioni salvate in cache: C:/Users/gabri/Desktop/Progetti/crop-soil-analysis/output/cache/proj_posteriors.rds 
+Messaggi di avvertimento:
+1: In warn_prj_drawwise(mssgs_warns_capts, throw_warn = throw_warn_sdivmin) :
+  The following messages and/or warnings have been thrown by the current submodel fitter (i.e., the current draw-wise divergence minimizer):
+---
+Avvertimento in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+  Model failed to converge with max|grad| = 0.00212272 (tol = 0.002, component 1)
+  See ?lme4::convergence and ?lme4::troubleshooting.
+  Model failed to converge with max|grad| = 0.00206519 (tol = 0.002, component 1)
+  Model failed to converge with max|grad| = 0.00371707 (tol = 0.002, component 1)
+---
+2: In check_conv(outdmin, lengths(mssgs_warns_capts), do_check = do_check_conv) :
+  3 out of 400 submodel fits (there is one submodel fit per projected draw) might not have converged (appropriately). It is recommended to inspect this in detail and (if necessary) to adjust tuning parameters via `...` (the ellipsis of the employed top-level function such as project(), varsel(), or cv_varsel()) or via a custom `div_minimizer` function (an argument of init_refmodel()). In the present case, the submodel fits are of class(es) `c("lmerMod")`. Documentation for corresponding tuning parameters is linked in section "Draw-wise divergence minimizers" of `` ?`projpred-package` ``. Current submodel formula (right-hand side): ~Texture2 + logBottom + (logBottom | Field)
+3: In warn_prj_drawwise(mssgs_warns_capts, throw_warn = throw_warn_sdivmin) :
+  The following messages and/or warnings have been thrown by the current submodel fitter (i.e., the current draw-wise divergence minimizer):
+---
+Avvertimento in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+  Model failed to converge with max|grad| = 0.00217016 (tol = 0.002, component 1)
+  See ?lme4::convergence and ?lme4::troubleshooting.
+  Model failed to converge with max|grad| = 0.00227395 (tol = 0.002, component 1)
+  Model failed to converge with max|grad| = 0.00666813 (tol = 0.002, component 1)
+  Model failed to converge with max|grad| = 0.00215723 (tol = 0.002, component 1)
+  Model failed to converge with max|grad| = 0.0141298 (tol = 0.002, component 1)
+  Model failed to converge with max|grad| = 0.00789254 (tol = 0.002, component 1)
+  unable to evaluate scaled gradient
+  Model failed to converge: degenerate  Hessian with 1 negative eigenvalues
+---
+4: In check_conv(outdmin, lengths(mssgs_warns_capts), do_check = do_check_conv) :
+  7 out of 400 submodel fits (there is one submodel fit per projected draw) might not have converged (appropriately). It is recommended to inspect this in detail and (if necessary) to adjust tuning parameters via `...` (the ellipsis of the employed top-level function such as project(), varsel(), or cv_varsel()) or via a custom `div_minimizer` function (an argument of init_refmodel()). In the present case, the submodel fits are of class(es) `c("lmerMod")`. Documentation for corresponding tuning parameters is linked in section "Draw-wise divergence minimizers" of `` ?`projpred-package` ``. Current submodel formula (right-hand side): ~logBottom + (logBottom | Field)
+  Colonne projected SOC: (Intercept), Texture2, logBottom, Sigma[Field:(Intercept),(Intercept)], Sigma[Field:logBottom,logBottom], Sigma[Field:logBottom,(Intercept)], b[(Intercept) Field:1], b[(Intercept) Field:2], b[(Intercept) Field:3], b[(Intercept) Field:4]
+  Colonne projected N: (Intercept), BulkDensity, logBottom, Texture2, Sigma[Field:(Intercept),(Intercept)], b[(Intercept) Field:1], b[(Intercept) Field:2], b[(Intercept) Field:3], b[(Intercept) Field:4], b[(Intercept) Field:5]
+  Colonne projected P: (Intercept), logBottom, Sigma[Field:(Intercept),(Intercept)], Sigma[Field:logBottom,logBottom], Sigma[Field:logBottom,(Intercept)], b[(Intercept) Field:1], b[(Intercept) Field:2], b[(Intercept) Field:3], b[(Intercept) Field:4], b[(Intercept) Field:5]
+Posterior proiettati estratti: 206 righe
+
+Fit lme4 per i modelli finali proiettati...
+  SOC: convergenza = TRUE 
+  N:   convergenza = TRUE 
+boundary (singular) fit: see help('isSingular')
+  P:   convergenza = FALSE 
+  Cache lme4 salvata.
+
+Riepilogo lme4:
+
+  logSOC:
+            Estimate Std. Error t value
+(Intercept)   -0.127      0.068  -1.869
+logBottom     -0.433      0.052  -8.338
+Texture2      -0.586      0.056 -10.401
+ Groups   Name        Std.Dev. Corr  
+ Field    (Intercept) 0.36504        
+          logBottom   0.22835  0.873 
+ Residual             0.52335        
+
+  logN:
+            Estimate Std. Error t value
+(Intercept)   -2.440      0.039 -62.758
+logBottom     -0.184      0.026  -7.162
+Texture2      -0.248      0.039  -6.361
+BulkDensity   -0.255      0.042  -6.142
+ Groups   Name        Std.Dev.
+ Field    (Intercept) 0.19498 
+ Residual             0.34930 
+
+  logP:
+            Estimate Std. Error t value
+(Intercept)   -2.571      0.097 -26.589
+logBottom     -0.122      0.038  -3.172
+ Groups   Name        Std.Dev. Corr  
+ Field    (Intercept) 0.564746       
+          logBottom   0.054424 1.000 
+ Residual             0.547515       
+
+Carico M-SP per confronto gamma...
+           used  (Mb) gc trigger  (Mb) max used  (Mb)
+Ncells  7585738 405.2   11789455 629.7 11789455 629.7
+Vcells 61827862 471.8  102553296 782.5 77059258 588.0
+  Draw M-SP: 20000
+
+═══ M-SP gamma (within-field) ═══════════════════════════════
+   risposta   parameter median    q05    q95
+1       SOC   logBottom -0.378 -0.472 -0.286
+2       SOC    Texture1 -0.055 -0.134  0.022
+3       SOC    Texture2 -0.529 -0.660 -0.397
+4       SOC BulkDensity -0.223 -0.362 -0.084
+5         N   logBottom -0.202 -0.253 -0.152
+6         N    Texture1 -0.041 -0.093  0.011
+7         N    Texture2 -0.288 -0.370 -0.205
+8         N BulkDensity -0.204 -0.291 -0.114
+9         P   logBottom -0.062 -0.144  0.021
+10        P    Texture1  0.001 -0.080  0.082
+11        P    Texture2 -0.072 -0.215  0.070
+12        P BulkDensity -0.150 -0.297 -0.001
+
+═══ M-SP beta (management) ══════════════════════════════════
+(nessuno di questi dovrebbe essere rilevante - projpred ha escluso tutto il management)
+   risposta  parameter median    q05    q95
+1       SOC     OnFarm -0.081 -0.443  0.304
+2       SOC   Irrigate  0.181 -0.033  0.388
+3       SOC Fertilised -0.032 -0.307  0.234
+4       SOC  N_Natural  0.109 -0.245  0.463
+5         N     OnFarm  0.251  0.009  0.500
+6         N   Irrigate -0.152 -0.303 -0.006
+7         N Fertilised -0.108 -0.300  0.076
+8         N  N_Natural  0.232 -0.039  0.492
+9         P     OnFarm  0.650  0.235  1.080
+10        P   Irrigate  0.401  0.131  0.665
+11        P Fertilised -0.283 -0.605  0.047
+12        P  N_Natural -0.129 -0.564  0.302
+
+═══ M-SP psi + eta (slope proporzionale) ═══════════════════
+  parameter median    q05   q95
+1   psi_SOC  0.323  0.231 0.436
+2   eta_SOC  0.209  0.125 0.302
+3     psi_N  0.197  0.131 0.274
+4     eta_N -0.051 -0.124 0.021
+5     psi_P  0.392  0.293 0.515
+6     eta_P  0.096  0.019 0.179
+  [fig] Salvato: fig_13_proj_vs_msp.pdf
+  [fig] Salvato: fig_14_nonselected_gamma.pdf
+
+  Tabella salvata: output/tables/tab_09_final_comparison.csv
+
+═══ DIAGNOSI DIVERGENZE projpred vs M-SP ═══════════════════
+Confronto coefficienti fissi selezionati: M-SP gamma vs lme4
+
+--- logSOC ---
+  parameter median_msp median_lme4 diff_abs divergenza
+1 logBottom     -0.378      -0.433    0.054         OK
+2  Texture2     -0.529      -0.586    0.057         OK
+
+--- logN ---
+    parameter median_msp median_lme4 diff_abs divergenza
+1   logBottom     -0.202      -0.184    0.018         OK
+2    Texture2     -0.288      -0.248    0.040         OK
+3 BulkDensity     -0.204      -0.255    0.051         OK
+
+Nota: differenze > 0.2 (scala standardizzata) indicate come 'ATTENZIONE'.
+Atteso: coerenza tra M-SP e lme4 per le covariate selezionate.
+M-SP usa la struttura proporzionale (eta) - lme4 usa (logBottom|Field) come approssimazione.
+
+── Fine script 09 ──────────────────────────────────────────────

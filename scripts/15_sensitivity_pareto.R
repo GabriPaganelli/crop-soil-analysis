@@ -1,10 +1,10 @@
 # =============================================================================
 # 15_sensitivity_pareto.R  —  Sensitivity analysis: rimozione osservazioni influenti
 #
-# Usa i Pareto k dal LOO di M-SP per identificare le osservazioni più influenti
-# (k > 0.7), le rimuove dal dataset e rifita M-SP sullo stesso file Stan.
-# Confronta i parametri chiave (eta_r, psi_r, gamma_r, sigma_r) tra
-# M-SP-full e M-SP-no-influential per valutare la robustezza delle conclusioni.
+# Usa i Pareto k dal LOO di M-SP-RIRS-MVRE per identificare le osservazioni
+# più influenti (k > 0.7), le rimuove dal dataset e rifita M-SP-RIRS-MVRE.
+# Confronta i parametri chiave (rho_r, tau_beta_r, gamma_r, sigma_r) tra
+# MVRE-full e MVRE-no-influential per valutare la robustezza.
 #
 # Logica:
 #   - k > 0.7: PSIS-LOO inaffidabile per quell'osservazione → influente
@@ -12,13 +12,13 @@
 #   - Rimozione per singola osservazione (non per campo intero)
 #
 # Output:
-#   stan/fit_msp_noinfl.rds                → fit M-SP senza osservazioni influenti
-#   output/cache/pareto_k.rds              → vettore k per M-SP
+#   stan/fit_msp_rirs_mvre_noinfl.rds      → fit M-SP-RIRS-MVRE senza obs influenti
+#   output/cache/pareto_k_mvre.rds         → vettore k per M-SP-RIRS-MVRE
 #   output/tables/tab_15_influential.csv   → lista osservazioni con k > 0.5
 #   output/tables/tab_15_sensitivity.csv   → confronto parametri full vs no-infl
 #
-# MCMC: identici a M-SP (4 catene × 3000wu + 5000samp, adapt_delta=0.97, seed=2024)
-# Dipende da: stan/fit_msp.rds, data/dati.rds
+# MCMC: identici a MVRE (4 catene × 3000wu + 5000samp, adapt_delta=0.97, seed=2024)
+# Dipende da: stan/fit_msp_rirs_mvre.rds, data/dati.rds
 # =============================================================================
 
 
@@ -59,7 +59,7 @@ dati <- readRDS(here("data", "dati.rds")) |>
     logP      = log(PercTotPhos),
     logBottom = log(Bottom)
   ) |>
-  mutate(across(c(logBottom, Texture1, Texture2, BulkDensity),
+  mutate(across(c(logBottom, Texture1, Texture2, BulkDensity, PH),
                 ~ c(scale(.x)))) |>
   mutate(Field = factor(Field))
 
@@ -75,11 +75,11 @@ cat(sprintf("Dataset completo: N = %d | J = %d\n", N_full, J_full))
 
 # ── 2. PARETO K DA M-SP ───────────────────────────────────────────────────────
 
-pareto_cache <- file.path(cache_dir, "pareto_k.rds")
+pareto_cache <- file.path(cache_dir, "pareto_k_mvre.rds")
 
 if (!file.exists(pareto_cache)) {
-  cat("\nCalcolo Pareto k da M-SP (carico fit_msp.rds)...\n")
-  fit_msp_full <- readRDS(here("stan", "fit_msp.rds"))
+  cat("\nCalcolo Pareto k da M-SP-RIRS-MVRE (carico fit_msp_rirs_mvre.rds)...\n")
+  fit_msp_full <- readRDS(here("stan", "fit_msp_rirs_mvre.rds"))
   ll_full      <- fit_msp_full$draws("log_lik", format = "matrix")
   loo_full     <- loo(ll_full, cores = 4)
   pareto_k     <- loo_full$diagnostics$pareto_k
@@ -132,10 +132,9 @@ cat("  Salvato: output/tables/tab_15_influential.csv\n")
 
 if (length(remove_idx) == 0) {
   cat("\nNessuna osservazione con k ≥ 0.7. Sensitivity analysis non necessaria.\n")
-  cat("Le conclusioni di M-SP sono robuste per tutti i punti del dataset.\n")
-  cat("\n── Fine script 11 (nessuna rimozione) ──\n")
-  quit(status = 0)
-}
+  cat("Le conclusioni di M-SP-RIRS-MVRE sono robuste per tutti i punti del dataset.\n")
+  cat("\n── Fine script 15 (nessuna rimozione) ──\n")
+} else {
 
 
 # ── 4. DATASET RIDOTTO ────────────────────────────────────────────────────────
@@ -162,8 +161,8 @@ if (J_red < J_full) {
               paste(removed_fields, collapse = ", ")))
 }
 
-# Dati Stan per dataset ridotto (stessa struttura di M-SP)
-X_W_red <- as.matrix(dati_red[, c("logBottom", "Texture1", "Texture2", "BulkDensity")])
+# Dati Stan per dataset ridotto (stessa struttura di M-SP-RIRS, K_W=5)
+X_W_red <- as.matrix(dati_red[, c("logBottom", "Texture1", "Texture2", "BulkDensity", "PH")])
 X_B_red <- dati_red |>
   distinct(field_int_red, OnFarm, Irrigate, Fertilised, N_Natural) |>
   arrange(field_int_red) |>
@@ -173,7 +172,7 @@ X_B_red <- dati_red |>
 stan_data_red <- list(
   N        = N_red,
   J        = J_red,
-  K_W      = 4L,
+  K_W      = 5L,   # logBottom, Texture1, Texture2, BulkDensity, PH
   K_B      = 4L,
   field_id = dati_red$field_int_red,
   logSOC   = dati_red$logSOC,
@@ -188,11 +187,11 @@ rm(X_W_red, X_B_red); gc()
 # ── 5. FIT M-SP SU DATASET RIDOTTO ────────────────────────────────────────────
 
 cat("\n═══ FIT M-SP SENZA INFLUENTI ════════════════════════════════════\n")
-fit_noinfl_path <- here("stan", "fit_msp_noinfl.rds")
+fit_noinfl_path <- here("stan", "fit_msp_rirs_mvre_noinfl.rds")
 
 if (!file.exists(fit_noinfl_path)) {
-  cat("Compilazione (riusa m4rr_v2_ri_slope_mu.stan)...\n")
-  mod_msp <- cmdstan_model(here("stan", "m4rr_v2_ri_slope_mu.stan"), compile = TRUE)
+  cat("Compilazione (riusa m_sp_rirs_mvre.stan)...\n")
+  mod_msp <- cmdstan_model(here("stan", "m_sp_rirs_mvre.stan"), compile = TRUE)
   cat("OK.\n\n")
 
   cat("Avvio MCMC (4 × 3000wu + 5000samp)...\n\n")
@@ -236,13 +235,13 @@ rm(smry_ni_full); gc()
 cat("\n═══ CONFRONTO PARAMETRI ══════════════════════════════════════════\n")
 
 vars_key <- c(
-  "alpha_SOC", "psi_SOC", "eta_SOC", "b_SOC", "sigma_SOC",
-  "alpha_N",   "psi_N",   "eta_N",   "b_N",   "sigma_N",
-  "alpha_P",   "psi_P",   "eta_P",   "b_P",   "sigma_P",
-  # gamma within-field (logBottom=1, Texture1=2, Texture2=3, BulkDensity=4)
-  "gamma_SOC[1]", "gamma_SOC[3]", "gamma_SOC[4]",
-  "gamma_N[1]",   "gamma_N[3]",   "gamma_N[4]",
-  "gamma_P[1]",   "gamma_P[3]",   "gamma_P[4]",
+  "alpha_SOC", "tau_alpha_SOC", "tau_beta_SOC", "rho_SOC", "sigma_SOC",
+  "alpha_N",   "tau_alpha_N",   "tau_beta_N",   "rho_N",   "sigma_N",
+  "alpha_P",   "tau_alpha_P",   "tau_beta_P",   "rho_P",   "sigma_P",
+  # gamma within-field (logBottom=1, Texture1=2, Texture2=3, BulkDensity=4, PH=5)
+  "gamma_SOC[1]", "gamma_SOC[3]", "gamma_SOC[4]", "gamma_SOC[5]",
+  "gamma_N[1]",   "gamma_N[3]",   "gamma_N[4]",   "gamma_N[5]",
+  "gamma_P[1]",   "gamma_P[3]",   "gamma_P[4]",   "gamma_P[5]",
   # beta between-field (OnFarm=1, Irrigate=2, Fertilised=3, N_Natural=4)
   "beta_SOC[1]", "beta_SOC[2]",
   "beta_N[1]",   "beta_N[2]",
@@ -250,8 +249,8 @@ vars_key <- c(
 )
 
 # Summary M-SP full (caricato una sola volta)
-cat("Carico M-SP full per confronto...\n")
-fit_msp_full2 <- readRDS(here("stan", "fit_msp.rds"))
+cat("Carico M-SP-RIRS-MVRE full per confronto...\n")
+fit_msp_full2 <- readRDS(here("stan", "fit_msp_rirs_mvre.rds"))
 smry_full <- smry_draws(fit_msp_full2, vars_key)
 rm(fit_msp_full2); gc()
 
@@ -260,18 +259,18 @@ smry_noinfl <- smry_draws(fit_noinfl, vars_key)
 
 # Confronto: differenza mediane e sovrapposizione CI90%
 labels_map <- c(
-  "alpha_SOC"="alpha_SOC", "psi_SOC"="psi_SOC", "eta_SOC"="eta_SOC",
-  "b_SOC"="b_SOC", "sigma_SOC"="sigma_SOC",
-  "alpha_N"="alpha_N", "psi_N"="psi_N", "eta_N"="eta_N",
-  "b_N"="b_N", "sigma_N"="sigma_N",
-  "alpha_P"="alpha_P", "psi_P"="psi_P", "eta_P"="eta_P",
-  "b_P"="b_P", "sigma_P"="sigma_P",
+  "alpha_SOC"="alpha_SOC", "tau_alpha_SOC"="tau_alpha_SOC", "tau_beta_SOC"="tau_beta_SOC",
+  "rho_SOC"="rho_SOC", "sigma_SOC"="sigma_SOC",
+  "alpha_N"="alpha_N", "tau_alpha_N"="tau_alpha_N", "tau_beta_N"="tau_beta_N",
+  "rho_N"="rho_N", "sigma_N"="sigma_N",
+  "alpha_P"="alpha_P", "tau_alpha_P"="tau_alpha_P", "tau_beta_P"="tau_beta_P",
+  "rho_P"="rho_P", "sigma_P"="sigma_P",
   "gamma_SOC[1]"="γ_SOC logBottom", "gamma_SOC[3]"="γ_SOC Texture2",
-  "gamma_SOC[4]"="γ_SOC BulkDensity",
+  "gamma_SOC[4]"="γ_SOC BulkDensity", "gamma_SOC[5]"="γ_SOC PH",
   "gamma_N[1]"="γ_N logBottom",  "gamma_N[3]"="γ_N Texture2",
-  "gamma_N[4]"="γ_N BulkDensity",
+  "gamma_N[4]"="γ_N BulkDensity", "gamma_N[5]"="γ_N PH",
   "gamma_P[1]"="γ_P logBottom",  "gamma_P[3]"="γ_P Texture2",
-  "gamma_P[4]"="γ_P BulkDensity",
+  "gamma_P[4]"="γ_P BulkDensity", "gamma_P[5]"="γ_P PH",
   "beta_SOC[1]"="β_SOC OnFarm",  "beta_SOC[2]"="β_SOC Irrigate",
   "beta_N[1]"="β_N OnFarm",     "beta_N[2]"="β_N Irrigate",
   "beta_P[1]"="β_P OnFarm",     "beta_P[2]"="β_P Irrigate"
@@ -299,10 +298,10 @@ compare_tab <- smry_full |>
   mutate(across(where(is.numeric), ~round(.x, 3)))
 
 # Stampa parametri chiave (eta, psi, gamma principali)
-cat("\n--- Parametri strutturali (eta, psi, b) ---\n")
+cat("\n--- Parametri strutturali (alpha, tau, rho, sigma) ---\n")
 print(
   compare_tab |>
-    filter(grepl("^(alpha|psi|eta|b_|sigma)", variable)) |>
+    filter(grepl("^(alpha_|tau_alpha_|tau_beta_|rho_|sigma_)", variable)) |>
     select(variable, med_full, q05_full, q95_full, med_ni, q05_ni, q95_ni, flag) |>
     as.data.frame(),
   row.names = FALSE
@@ -328,8 +327,6 @@ if (nrow(attenzione) > 0) {
   cat("\nNessun parametro cambia significativamente. Conclusioni robuste.\n")
 }
 
-write.csv(compare_tab, file.path(tab_dir, "tab_15_sensitivity.csv"), row.names = FALSE)
-cat("  Salvato: output/tables/tab_15_sensitivity.csv\n")
 
 
 # ── 8. SINTESI ────────────────────────────────────────────────────────────────
@@ -342,14 +339,22 @@ cat(sprintf("  Parametri OK (diff < 0.05):  %d\n", sum(compare_tab$flag == "OK")
 cat(sprintf("  Parametri 'nota' (diff ≥ 0.05): %d\n", sum(compare_tab$flag == "nota")))
 cat(sprintf("  Parametri ATTENZIONE (fuori CI): %d\n", sum(compare_tab$flag == "ATTENZIONE")))
 
-cat("\n  Parametri chiave (eta_r) — confronto diretto:\n")
+cat("\n  Parametri chiave (rho_r, tau_beta_r) — confronto diretto:\n")
 for (r in c("SOC", "N", "P")) {
-  eta_f  <- compare_tab |> filter(variable == paste0("eta_", r))
-  cat(sprintf("    eta_%s: full = %.3f [%.3f,%.3f]  |  no-infl = %.3f [%.3f,%.3f]  → %s\n",
-              r,
-              eta_f$med_full, eta_f$q05_full, eta_f$q95_full,
-              eta_f$med_ni,   eta_f$q05_ni,   eta_f$q95_ni,
-              eta_f$flag))
+  rho_f <- compare_tab |> filter(variable == paste0("rho_",      r))
+  tb_f  <- compare_tab |> filter(variable == paste0("tau_beta_", r))
+  if (nrow(rho_f) > 0)
+    cat(sprintf("    rho_%s:      full = %.3f [%.3f,%.3f]  |  no-infl = %.3f [%.3f,%.3f]  → %s\n",
+                r, rho_f$med_full, rho_f$q05_full, rho_f$q95_full,
+                rho_f$med_ni, rho_f$q05_ni, rho_f$q95_ni, rho_f$flag))
+  if (nrow(tb_f) > 0)
+    cat(sprintf("    tau_beta_%s: full = %.3f [%.3f,%.3f]  |  no-infl = %.3f [%.3f,%.3f]  → %s\n",
+                r, tb_f$med_full, tb_f$q05_full, tb_f$q95_full,
+                tb_f$med_ni, tb_f$q05_ni, tb_f$q95_ni, tb_f$flag))
 }
 
-cat("\n── Fine script 11 ──────────────────────────────────────────────\n")
+write.csv(compare_tab, file.path(tab_dir, "tab_15_sensitivity.csv"), row.names = FALSE)
+cat("  Salvato: output/tables/tab_15_sensitivity.csv\n")
+
+cat("\n── Fine script 15 ──────────────────────────────────────────────\n")
+} # end else (remove_idx > 0)
