@@ -1,4 +1,4 @@
-﻿% ============================================================
+% ============================================================
 % report_skeleton.tex  —  SCHELETRO strutturale
 %   Sezioni + figure + tabelle + equazioni, nessun testo narrativo.
 %   Usare per discutere la struttura con i colleghi prima di scrivere.
@@ -231,79 +231,62 @@ Sezione~\ref{subsec:loo4}).}
 
 \subsection{Selezione dell'approccio modellistico}
 
-\todo{Approcci LMM multivariati frequentisti (MCMCglmm e sommer,
-script \texttt{06}) esplorati preliminarmente: modello trivariato con
-matrice G (between-field) e R (residui). Abbandonati per difficolt\`a
-di identificazione della struttura intercetta--slope nelle tre risposte
-e per la mancanza di un parametro interpretabile diretto.
-Motivazione per il passaggio al modello bayesiano M-SP-RIRS.}
+Alla luce delle caratteristiche dei dati e della struttura suggerita dai primi modelli esplorativi, si propone un modello che tiene conto degli effetti fissi delle covariate, specifiche del singolo campo e del singolo carotaggio, oltre ad effetti casuali che catturano la variabilità tra campi sia nel livello medio sia nella rapidità di decadimento delle sostanze lungo il profilo. La struttura gerarchica consente inoltre di modellare congiuntamente le tre risposte (SOC, N e P), permettendo correlazioni tra gli effetti casuali appartenenti allo stesso campo. Si assume invece indipendenza condizionale tra i residui delle tre risposte. L'approccio bayesiano è adottato per favorire il \textit{borrowing of information} tra parametri e garantire maggiore stabilità inferenziale in presenza di un numero elevato di parametri rispetto alla dimensione del campione.
 
-\subsection{Struttura del modello M-SP-RIRS-MVRE}
+\subsection{Struttura del modello finale}
 \label{subsec:msp}
 
-Per ogni risposta $r \in \{1, 2, 3\}$ (corrispondente a SOC, N, P)
-e osservazione $i$ nel campo $j$:
-%
+Per ogni risposta $r \in \{1,2,3\}$ (SOC, N e P) e osservazione $i$ nel campo $j$:
+
 \[
-  y_{r,ij} \sim \mathcal{N}\!\bigl(\mu_{r,ij},\;\sigma_r^2\bigr),
+  y_{r,ij}
+  \sim
+  \mathcal{N}\!\bigl(\mu_{r,ij},\sigma_r^2\bigr),
 \]
-%
+
 \[
-  \mu_{r,ij} =
-    \underbrace{\alpha_r}_{\text{intercetta globale}}
-    +\;
-    \underbrace{u_{rj}}_{\text{intercetta casuale}}
-    +\;
-    \underbrace{v_{rj} \cdot \log B_i}_{\text{slope casuale}}
-    +\;
-    \underbrace{\boldsymbol{\gamma}_r^\top \mathbf{x}_{W,i}}_{\text{effetti fissi within}}
-    +\;
-    \underbrace{\boldsymbol{\beta}_r^\top \mathbf{x}_{B,j}}_{\text{effetti fissi between}}
+  \mu_{r,ij}
+  =
+  \alpha_r
+  +
+  u_{rj}
+  +
+  v_{rj}\log B_i
+  +
+  \boldsymbol{\gamma}_r^\top \mathbf{x}_{W,i}
+  +
+  \boldsymbol{\beta}_r^\top \mathbf{x}_{B,j}.
 \]
-%
-dove il vettore degli effetti casuali di campo è modellato congiuntamente:
-%
+
+Gli effetti casuali di campo sono modellati congiuntamente come
+
 \[
-  \mathbf{b}_j
-  = \bigl(u_{1j},\, v_{1j},\, u_{2j},\, v_{2j},\, u_{3j},\, v_{3j}\bigr)^\top
-  \sim \mathcal{N}_6\!\bigl(\mathbf{0},\; \Sigma\bigr),
+  \mathbf b_j
+  =
+  \bigl(
+  u_{1j},v_{1j},
+  u_{2j},v_{2j},
+  u_{3j},v_{3j}
+  \bigr)^\top
+  \sim
+  \mathcal N_6(\mathbf 0,\Sigma),
 \]
-%
+
+con
+
 \[
   \Sigma
-  = \operatorname{diag}(\boldsymbol{\tau})\;\Omega\;\operatorname{diag}(\boldsymbol{\tau}),
+  =
+  \operatorname{diag}(\boldsymbol{\tau})
+  \,
+  \Omega
+  \,
+  \operatorname{diag}(\boldsymbol{\tau}),
   \qquad
   \Omega \sim \mathrm{LKJ}(2).
 \]
-%
-Le componenti di $\mathbf{b}_j$ sono ordinate per risposta:
-$(u_{1j}, v_{1j})$ per SOC, $(u_{2j}, v_{2j})$ per N,
-$(u_{3j}, v_{3j})$ per P.
 
-\subsection{Parametrizzazione non centrata (NCP)}
-
-\[
-  Z_V \in \mathbb{R}^{6\times J},\;\; Z_V \sim \Nrm(0,\,\vec{I}),
-  \qquad V = \mathrm{diag}(\vec{\tau}_6)\,L_6\,Z_V,
-\]
-dove $L_6$ è il fattore di Cholesky di $\Omega_6$ (matrice $6\times 6$, 15 correlazioni libere).
-
-\subsection{Interpretazione dei parametri chiave}
-
-\begin{itemize}
-  \item $\tauA{r} = \tau_{6,2r-1}$: SD delle intercette casuali di campo per la risposta $r$
-  \item $\tauB{r} = \tau_{6,2r}$: SD delle slope casuali di campo per la risposta $r$
-  \item $\rho_r = \Omega_6[2r{-}1,\,2r]$: correlazione intercetta--slope per la risposta $r$
-  \item $\rho^{\mathrm{int}}_{r,r'} = \Omega_6[2r{-}1,\,2r'{-}1]$: correlazione degli \emph{intercetti} tra le risposte $r$ e $r'$
-  \item $\rho^{\mathrm{slope}}_{r,r'} = \Omega_6[2r,\,2r']$: correlazione delle \emph{slope} tra le risposte $r$ e $r'$
-\end{itemize}
-
-\noindent Interpretazione di $\rho_r$: identica a M-SP-RIRS. Interpretazione di
-$\rho^{\mathrm{int}}_{\SOC,N}$: se positivo, i campi con alto SOC medio tendono ad avere
-anche alto N medio (legame biologico a livello di campo, al di là dei predittori osservati).
-
-\noindent Relazione con M-SP-RIRS: M-SP-RIRS è il caso speciale $\Omega_6$ a blocchi
-diagonali $2\times 2$ (i.e., assenza di correlazioni cross-risposta tra effetti di campo).
+La matrice di correlazione $\Omega$ descrive sia la dipendenza tra intercetta e pendenza casuale all'interno di ciascuna risposta, sia le correlazioni tra nutrienti a livello di campo. Di particolare interesse risultano le correlazioni intercetta--pendenza intra-risposta e le correlazioni tra nutrienti, che permettono di valutare associazioni non spiegate dalle covariate osservate.
 
 \subsection{Prior}
 
@@ -312,291 +295,337 @@ diagonali $2\times 2$ (i.e., assenza di correlazioni cross-risposta tra effetti 
 \toprule
 Parametro & Dimensione & Prior \\
 \midrule
-$\alpha_r$       & scalare, per $r{=}1,2,3$ & $\Nrm(0,\;2)$ \\
-$Z_V$            & $6{\times}J$ & $\Nrm(0,\,\vec{I})$ (NCP) \\
-$L_6$            & Cholesky $6{\times}6$ & $\mathrm{LKJ}(2)$ \\
-$\vec{\tau}_6$   & vettore $6$, $>0$ & $\HN(0,\;0.5)$ \\
-$\vec{\gamma}_r$ & vettore $K_W{=}5$, per $r{=}1,2,3$ & $\Nrm(\vec{0},\;\vec{I})$ \\
-$\vec{\beta}_r$  & vettore $K_B{=}4$, per $r{=}1,2,3$ & $\Nrm(\vec{0},\;\vec{I})$ \\
-$\sigma_r$       & scalare $>0$, per $r{=}1,2,3$ & $\HN(0,\;0.5)$ \\
+$\alpha_r$
+& scalare, per $r=1,2,3$
+& $\Nrm(0,\;2)$ \\
+
+$\mathbf z_j$
+& $\mathbb R^6$, per $j=1,\ldots,J$
+& $\Nrm_6(\mathbf 0,\mathbf I_6)$ \\
+
+$\Omega$
+& matrice di correlazione $6\times6$
+& $\mathrm{LKJ}(2)$ \\
+
+$\boldsymbol{\tau}$
+& $\mathbb R^6_{+}$
+& $\HN(0,\;0.5)$ \\
+
+$\boldsymbol{\gamma}_r$
+& $\mathbb R^{K_W}$, per $r=1,2,3$
+& $\Nrm(\mathbf 0,\mathbf I)$ \\
+
+$\boldsymbol{\beta}_r$
+& $\mathbb R^{K_B}$, per $r=1,2,3$
+& $\Nrm(\mathbf 0,\mathbf I)$ \\
+
+$\sigma_r$
+& scalare positivo, per $r=1,2,3$
+& $\HN(0,\;0.5)$ \\
 \midrule
-Totale & $6J + 57 = 297$ & (con $J = 40$, $K_W = 5$) \\
+Totale
+& $6J + 54 = 294$
+& \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\subsection{Impostazioni MCMC e diagnostica}
+\medskip
 
-\begin{center}
-\begin{tabular}{@{}ll@{}}
-\toprule
-Impostazione & Valore \\
-\midrule
-Catene & 4 \\
-Iterazioni warmup & 3\,000 \\
-Iterazioni sampling & 5\,000 (totale: 20\,000) \\
-\texttt{adapt\_delta} & 0.97 \\
-\texttt{max\_treedepth} & 11 \\
-Seed & 2024 \\
-\bottomrule
-\end{tabular}
-\end{center}
+Le \textit{prior} adottate sono debolmente informative e riflettono l'aspettativa che, sulla scala standardizzata delle variabili, gli effetti abbiano generalmente entità moderata. Le \textit{prior} normali centrate in zero introducono una regolarizzazione simmetrica dei coefficienti di regressione, mentre le \textit{prior half-normal} sui parametri di scala favoriscono livelli contenuti di variabilità senza escludere valori più elevati quando supportati dai dati. Infine, la \textit{prior} $\mathrm{LKJ}(2)$ esercita una lieve regolarizzazione verso correlazioni nulle, pur consentendo l'emergere di associazioni sostanziali tra effetti casuali qualora sostenute dall'evidenza empirica.
 
-\todo{Diagnostica: divergenze = 0, $\hat{R} < 1.01$, ESS bulk $> 400$
-per tutti i parametri.}
+\subsection{MCMC e diagnostica}
+
+L'inferenza è stata effettuata mediante Stan utilizzando una parametrizzazione non centrata degli effetti casuali. In particolare, indicando con $\Omega = LL^\top$ la decomposizione di Cholesky della matrice di correlazione, gli effetti casuali sono generati come
+
+\[
+  \mathbf b_j
+  =
+  \operatorname{diag}(\boldsymbol{\tau})
+  \,
+  L
+  \,
+  \mathbf z_j,
+  \qquad
+  \mathbf z_j \sim \mathcal N_6(\mathbf 0,\mathbf I_6),
+\]
+
+una parametrizzazione equivalente alla formulazione originale ma generalmente più efficiente nelle strutture gerarchiche.
+
+Sono state eseguite quattro catene di Markov indipendenti, con 3000 iterazioni di \textit{warm-up} e 5000 iterazioni di campionamento per catena.
+
+L'algoritmo non ha prodotto divergenze. I valori di $\hat R$ risultano prossimi a 1 e le \textit{effective sample size} adeguate per tutti i parametri monitorati. L'ispezione dei \textit{trace plot} evidenzia un buon mixing delle catene, mentre le \textit{posterior predictive checks} mostrano una buona capacità del modello di riprodurre la struttura osservata nei dati.
 
 % ==============================================================================
 \section{Risultati e validazione del modello}
 \label{sec:risultati}
 
-\subsection{Parametri strutturali: \texorpdfstring{$\rho_r$, $\tauA{r}$, $\tauB{r}$}{rho, tau-alpha, tau-beta}}
+\subsection{Effetti fissi}
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.95\linewidth]{fig04_rho.pdf}
-  \caption{Distribuzioni a posteriori di $\rho_r$ (correlazione RI--RS, pannello superiore)
-    e $\tauB{r}$ (SD slope tra campi, pannello inferiore) per SOC, N e P
-    (modello M-SP-RIRS-MVRE).
-    $\hat\rho_\SOC = 0.68$ con CI\,90\% $[0.28, 0.96]$ (lontano da zero);
-    $\hat\rho_N = -0.16$ (CI include zero);
-    $\hat\rho_P = 0.48$ con ampia incertezza.}
-  \label{fig:rho}
-\end{figure}
+AGGIUNGERE MANAGEMENT
 
 \begin{table}[htbp]
-  \centering
-  \caption{Stime a posteriori dei parametri strutturali di M-SP-RIRS-MVRE
-    (mediana e CI\,90\%). In grassetto: CI\,90\% lontano da zero.}
-  \label{tab:main}
-  \small
-  \begin{tabular}{@{}lccc@{}}
-    \toprule
-    Parametro & SOC & N & P \\
-    \midrule
-    $\alpha_r$ &
-      $-0.19\ \CI{-0.50}{0.14}$ &
-      $\mathbf{-2.56}\ \CI{-2.77}{-2.34}$ &
-      $\mathbf{-2.62}\ \CI{-2.99}{-2.25}$ \\[2pt]
-    $\tauA{r}$ &
-      $\mathbf{0.327}\ \CI{0.234}{0.436}$ &
-      $\mathbf{0.211}\ \CI{0.150}{0.287}$ &
-      $\mathbf{0.396}\ \CI{0.297}{0.520}$ \\[2pt]
-    $\tauB{r}$ &
-      $\mathbf{0.215}\ \CI{0.106}{0.317}$ &
-      $\mathbf{0.148}\ \CI{0.080}{0.214}$ &
-      $\mathbf{0.085}\ \CI{0.009}{0.185}$ \\[2pt]
-    $\boldsymbol{\rho_r}$ &
-      $\mathbf{0.519}\ \CI{0.119}{0.795}$ &
-      $-0.148\ \CI{-0.495}{0.235}$ &
-      $0.295\ \CI{-0.291}{0.705}$ \\[2pt]
-    $\sigma_r$ &
-      $\mathbf{0.524}\ \CI{0.474}{0.581}$ &
-      $\mathbf{0.316}\ \CI{0.286}{0.351}$ &
-      $\mathbf{0.551}\ \CI{0.504}{0.605}$ \\
-    \bottomrule
-    \multicolumn{4}{@{}l}{\small\textit{%
-      CI 90\% basati su quantili q5--q95. Valori in grassetto: CI\,90\% lontano da 0.}} \\
-  \end{tabular}
+\centering
+\caption{Effetti fissi within-field (mediana e CI al 90\%).}
+\label{tab:gamma}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Covariata & SOC & N & P \\
+\midrule
+
+logBottom &
+$\mathbf{-0.366}\ \CI{-0.464}{-0.270}$ &
+$\mathbf{-0.210}\ \CI{-0.272}{-0.148}$ &
+$-0.075\ \CI{-0.160}{0.010}$ \\[2pt]
+
+Texture1 (ILR$_1$) &
+$-0.060\ \CI{-0.143}{0.024}$ &
+$-0.024\ \CI{-0.078}{0.030}$ &
+$0.004\ \CI{-0.079}{0.088}$ \\[2pt]
+
+Texture2 (ILR$_2$) &
+$\mathbf{-0.503}\ \CI{-0.640}{-0.361}$ &
+$\mathbf{-0.284}\ \CI{-0.371}{-0.195}$ &
+$-0.068\ \CI{-0.213}{0.077}$ \\[2pt]
+
+BulkDensity &
+$\mathbf{-0.237}\ \CI{-0.380}{-0.085}$ &
+$\mathbf{-0.179}\ \CI{-0.270}{-0.084}$ &
+$-0.122\ \CI{-0.278}{0.033}$ \\[2pt]
+
+pH &
+$-0.032\ \CI{-0.122}{0.055}$ &
+$0.003\ \CI{-0.052}{0.058}$ &
+$0.016\ \CI{-0.074}{0.105}$ \\
+
+\bottomrule
+\\
+
+\end{tabular}
 \end{table}
 
-\subsection{Effetti fissi within-field (\texorpdfstring{$\gamma_r$}{gamma\_r})}
+% TESTO INTERPRETATIVO
+
+\subsection{Parametri strutturali}
 
 \begin{table}[htbp]
-  \centering
-  \caption{Effetti fissi within-field $\hat\gamma_{r,k}$ dal modello M-SP-RIRS-MVRE
-    (mediana e CI\,90\%). In grassetto: CI\,90\% lontano da zero.}
-  \label{tab:gamma}
-  \small
-  \begin{tabular}{@{}lrrr@{}}
-    \toprule
-    Covariata & SOC & N & P \\
-    \midrule
-    logBottom &
-      $\mathbf{-0.366}\ [-0.464,\ -0.270]$ &
-      $\mathbf{-0.210}\ [-0.272,\ -0.148]$ &
-      $-0.075\ [-0.160,\ 0.010]$ \\[2pt]
-    Texture1 (ILR$_1$) &
-      $-0.060\ [-0.143,\ 0.024]$ &
-      $-0.024\ [-0.078,\ 0.030]$ &
-      $0.004\ [-0.079,\ 0.088]$ \\[2pt]
-    Texture2 (ILR$_2$) &
-      $\mathbf{-0.503}\ [-0.640,\ -0.361]$ &
-      $\mathbf{-0.284}\ [-0.371,\ -0.195]$ &
-      $-0.068\ [-0.213,\ 0.077]$ \\[2pt]
-    BulkDensity &
-      $\mathbf{-0.237}\ [-0.380,\ -0.085]$ &
-      $\mathbf{-0.179}\ [-0.270,\ -0.084]$ &
-      $-0.122\ [-0.278,\ 0.033]$ \\[2pt]
-    pH &
-      $-0.032\ [-0.122,\ 0.055]$ &
-      $0.003\ [-0.052,\ 0.058]$ &
-      $0.016\ [-0.074,\ 0.105]$ \\
-    \bottomrule
-    \multicolumn{4}{@{}p{12cm}}{\small\textit{%
-      Texture1 e pH non significativi per nessuna risposta. La selettivit\`a
-      predittiva \`e dominata da Texture2 e BulkDensity.}} \\
-  \end{tabular}
+\centering
+\caption{Stime a posteriori dei parametri strutturali
+(mediana e CI\,90\%).}
+\label{tab:main}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Parametro & SOC & N & P \\
+\midrule
+
+$\alpha_r$ &
+$-0.19\ \CI{-0.50}{0.14}$ &
+$\mathbf{-2.56}\ \CI{-2.77}{-2.34}$ &
+$\mathbf{-2.62}\ \CI{-2.99}{-2.25}$ \\[2pt]
+
+$\tauA{r}$ &
+$\mathbf{0.327}\ \CI{0.234}{0.436}$ &
+$\mathbf{0.211}\ \CI{0.150}{0.287}$ &
+$\mathbf{0.396}\ \CI{0.297}{0.520}$ \\[2pt]
+
+$\tauB{r}$ &
+$\mathbf{0.215}\ \CI{0.106}{0.317}$ &
+$\mathbf{0.148}\ \CI{0.080}{0.214}$ &
+$\mathbf{0.085}\ \CI{0.009}{0.185}$ \\[2pt]
+
+$\rho_r$ &
+$\mathbf{0.519}\ \CI{0.119}{0.795}$ &
+$-0.148\ \CI{-0.495}{0.235}$ &
+$0.295\ \CI{-0.291}{0.705}$ \\[2pt]
+
+$\sigma_r$ &
+$\mathbf{0.524}\ \CI{0.474}{0.581}$ &
+$\mathbf{0.316}\ \CI{0.286}{0.351}$ &
+$\mathbf{0.551}\ \CI{0.504}{0.605}$ \\
+
+\bottomrule
+\\
+
+\end{tabular}
 \end{table}
 
-\subsection{Posterior predictive check}
+% TESTO INTERPRETATIVO
+
+\subsection{Correlazioni tra nutrienti a livello di campo}
+
+% Heatmap di Omega6
+
+% Eventuale tabella delle correlazioni principali
+
+% TESTO INTERPRETATIVO
+
+\subsection{Selezione delle covariate}
+
+GLI ASSI FANNO SCHIFO, MIGLIORARE GRAFICO
 
 \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.95\linewidth]{fig05_gamma.pdf}
-  \caption{Forest plot degli effetti fissi within-field $\hat\gamma_{r,k}$
-    (mediana e CI\,90\%) per SOC (blu), N (verde), P (rosso) — modello M-SP-RIRS-MVRE.
-    Texture2 e BulkDensity significativi per SOC e N; pH e Texture1 non significativi.}
-  \label{fig:gamma}
+\centering
+\includegraphics[width=0.95\linewidth]{fig06_projpred.pdf}
+\caption{Percorso di selezione projpred per SOC, N e P ($\Delta$ELPD
+in funzione del numero di predittori; linea tratteggiata:
+soglia di accettazione $\alpha = 0.10$).}
+\label{fig:projpred}
 \end{figure}
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.95\linewidth]{fig08_ppc.pdf}
-  \caption{Posterior predictive check: densit\`a osservata (linea scura)
-    vs.\ 200 repliche a posteriori per le tre risposte (M-SP-RIRS-MVRE).}
-  \label{fig:ppc}
-\end{figure}
+% TESTO INTERPRETATIVO
+%
+% Sebbene projpred identifichi un sottoinsieme più parsimonioso di
+% covariate, il modello completo è mantenuto come riferimento
+% inferenziale poiché definito a priori sulla base delle ipotesi
+% ecologiche considerate. Questa scelta evita procedure iterative di
+% selezione guidate dai risultati osservati e riduce il rischio di
+% sovrainterpretazione dei dati.
 
-\subsection{Confronto architetturale (LOO-CV)}
-\label{subsec:loo4}
+\subsection{Confronto tra strutture gerarchiche}
+\label{subsec:loo}
 
 \begin{table}[htbp]
-  \centering
-  \caption{LOO-CV per i modelli principali ($\Delta$ELPD rispetto a M-SP-RIRS-MVRE;
-    $|z|=|\Delta\text{ELPD}|/\text{SE}$).}
-  \label{tab:loo4}
-  \small
-  \begin{tabular}{@{}llrrr@{}}
-    \toprule
-    Modello & Descrizione & $\Delta$ELPD & SE & $|z|$ \\
-    \midrule
-    \textbf{M-SP-RIRS-MVRE} & RE 6D cross-risposta & $\mathbf{0.0}$ & ---  & ---  \\
-    M-SP-RIRS & RI+RS bivariato per risposta & $-0.4$ & $\approx 4$ & $\approx 0.1$ \\
-    M-SP  & RI + slope proporzionale     & $-4.1$ & $4.2$ & $\approx 1.0$ \\
-    M-RI  & Random intercept i.i.d.      & $-9.2$ & $5.7$ & $1.6$ \\
-    \bottomrule
-    \multicolumn{5}{@{}l}{\small\textit{%
-      $|\Delta\text{ELPD}/\text{SE}|<2$: nessuna differenza significativa.
-      MVRE migliore di RIRS di 0.4 ELPD (marginale), preferito per l'interpretabilit\`a
-      di $\rho^{\mathrm{int}}_{\SOC\text{-}N}$.}} \\
-  \end{tabular}
+\centering
+\caption{Confronto LOO-CV tra diverse specificazioni
+($\Delta$ELPD rispetto al modello multirisposta completo;
+$|z| = |\Delta\text{ELPD}|/\text{SE}$).}
+\label{tab:loo4}
+\small
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Modello & Descrizione & $\Delta$ELPD & SE & $|z|$ \\
+\midrule
+
+\textbf{Modello multirisposta completo}
+& RE 6D cross-risposta
+& $\mathbf{0.0}$
+& ---
+& --- \\
+
+Modelli univariati
+& RI+RS per ciascuna risposta
+& $-0.4$
+& $\approx 4$
+& $\approx 0.1$ \\
+
+Modello con slope proporzionale
+& RI + slope proporzionale
+& $-4.1$
+& $4.2$
+& $\approx 1.0$ \\
+
+Modello a sole intercette casuali
+& Random intercept indipendenti
+& $-9.2$
+& $5.7$
+& $1.6$ \\
+
+\bottomrule
+\\
+
+\end{tabular}
 \end{table}
 
-\subsection{Correlazioni cross-risposta degli effetti di campo}
+% TESTO INTERPRETATIVO
+%
+% Le diverse specificazioni gerarchiche mostrano prestazioni
+% predittive sostanzialmente equivalenti. Il modello multirisposta
+% completo è mantenuto come modello di riferimento poiché consente
+% di quantificare esplicitamente le correlazioni tra nutrienti a
+% livello di campo senza perdita apprezzabile di capacità predittiva.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.95\linewidth]{fig10_cross_corr.pdf}
-  \caption{Correlazioni cross-risposta degli intercetti e delle slope di campo
-    ($\Omega_6$, M-SP-RIRS-MVRE).
-    $\hat\rho^{\mathrm{int}}_{\SOC\text{-}N} = +0.386\ [0.038, 0.667]$
-    (CI\,90\% lontano da zero): i campi pi\`u fertili in SOC tendono ad
-    essere pi\`u fertili in N.
-    Le correlazioni delle slope e le altre correlazioni degli intercetti
-    sono vicine a zero con alta incertezza.}
-  \label{fig:cross_corr}
-\end{figure}
-
-\subsection{Selezione variabili (projpred)}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.95\linewidth]{fig06_projpred.pdf}
-  \caption{Percorso di selezione projpred per SOC, N e P ($\Delta$ELPD
-    vs.\ numero di predittori; reference model = M-SP-RIRS-MVRE; soglia $\alpha=0.10$ tratteggiata).}
-  \label{fig:projpred}
-\end{figure}
-
-\begin{table}[htbp]
-  \centering
-  \caption{Selezione projpred (forward search, $\alpha=0.10$; reference = M-SP-RIRS-MVRE).
-    $n^*$: numero suggerito di predittori.}
-  \label{tab:projpred}
-  \small
-  \begin{tabular}{@{}clp{8.5cm}@{}}
-    \toprule
-    Risposta & $n^*$ & Ordine di selezione \\
-    \midrule
-    SOC & 4 &
-      Texture2 $\to$ logBottom $\to$ \textit{(1|Field)} $\to$
-      \textit{(logBottom|Field)} $\to$ BulkDensity $\to$ \ldots \\[3pt]
-    N   & 5 &
-      BulkDensity $\to$ \textit{(1|Field)} $\to$ logBottom $\to$
-      \textit{(logBottom|Field)} $\to$ Texture2 $\to$ \ldots \\[3pt]
-    P   & 3 &
-      \textit{(1|Field)} $\to$ logBottom $\to$
-      \textit{(logBottom|Field)} $\to$ BulkDensity $\to$ \ldots \\
-    \bottomrule
-    \multicolumn{3}{@{}p{12cm}}{%
-      \small\textit{pH e management non entrano nei primi $n^*$ termini
-      per nessuna risposta: nessun potere predittivo aggiuntivo.
-      Texture1 (ILR$_1$) non selezionata. Risultati identici a M-SP (robustezza).}} \\
-  \end{tabular}
-\end{table}
-
-\subsection{Robustezza}
+\subsection{Analisi di robustezza}
 \label{subsec:robustezza}
 
-\paragraph{Osservazioni influenti (Pareto $k$).}
+\subsubsection{Sensibilità alle osservazioni influenti}
 
-Sono state identificate osservazioni con Pareto $k \geq 0.7$ in M-SP-RIRS-MVRE.
-Il confronto dei parametri strutturali tra modello completo e ridotto mostra:
-$\hat\rho_\SOC = 0.519\ [0.119, 0.795]$ vs $0.526\ [0.169, 0.770]$ (OK);
-$\hat\sigma_r$ si riduce moderatamente rimuovendo gli influenti (ATTENZIONE, atteso:
-le osservazioni influenti sono punti estremi che gonfiano la varianza residua).
-$\tauB{N}$ e $\rho_N$ cambiano entro l'intervallo di incertezza (nota, non ATTENZIONE).
-\textbf{Conclusione}: $\rho_\SOC$ e i parametri di campo sono robusti alla rimozione
-dei punti influenti.
+Sono state identificate osservazioni con Pareto $k \geq 0.7$.
+Il confronto tra modello completo e modello ridotto mostra variazioni sostanzialmente nulle nelle stime puntuali dei parametri. L'unica differenza notevole è una moderata riduzione di $\hat\sigma_r$ dopo la rimozione delle osservazioni influenti, come atteso in presenza di residui estremi. Le principali inferenze strutturali risultano robuste rispetto alla
+presenza di osservazioni influenti.
 
-\paragraph{Modelli semplificati A e B.}
+\subsubsection{Sensibilità alla specificazione delle covariate}
 
-Il modello A (senza management $\beta_r$, senza Texture1) e il modello B (N con solo RI,
-struttura 5D) sono entrambi diagnosticamente corretti (0 divergenze, $\hat{R}<1.05$).
-LOO: $\Delta\text{ELPD}_{A-\text{MVRE}} = +1.8$ (SE~$=4.1$, $|z|=0.4$; A non peggiore
-di MVRE); $\Delta\text{ELPD}_{B-\text{MVRE}} = -5.7$ (SE~$=6.0$; B peggiore ma non
-significativo). Il modello A conferma che management e Texture1 non hanno peso predittivo
-— coerente con la selezione projpred.
+È stato considerato un modello semplificato ottenuto rimuovendo le
+covariate di \textit{management} e Texture1.
 
-\paragraph{Indipendenza condizionale dei residui (MVRE-FULL).}
+LOO:
+$\Delta\text{ELPD}=+1.8$
+(SE $=4.1$, $|z|=0.4$).
 
-M-SP-RIRS-MVRE \`e stato esteso con residui multivariati
-$\vec{\varepsilon}_{ij} \sim \mathcal{N}_3(\vec{0},\,\Sigma_\text{res})$
-(MVRE-FULL, 300 parametri). Le tre correlazioni residue a posteriori sono
-tutte vicine a zero:
-$\hat\rho^\text{res}_{\SOC\text{-}N} = +0.015\ [-0.121,+0.151]$,
-$\hat\rho^\text{res}_{\SOC\text{-}P} = -0.021\ [-0.151,+0.110]$,
-$\hat\rho^\text{res}_{N\text{-}P} = +0.035\ [-0.096,+0.166]$.
-LOO: $\Delta\text{ELPD}_{\text{FULL}-\text{MVRE}} = -3.1$ (SE~$=1.1$):
-MVRE-FULL è peggiore di MVRE per i parametri extra non informativi.
-\textbf{Conclusione}: i tre nutrienti sono condizionalmente indipendenti dato
-M-SP-RIRS-MVRE. La struttura cross-risposta è interamente catturata a livello
-di campo da $\Omega_6$ — non esiste correlazione residua aggiuntiva.
+Il risultato conferma che management e Texture1 apportano un contributo
+predittivo limitato, in accordo con l'analisi projpred.
 
-\paragraph{Autocorrelazione verticale dei residui (\texttt{17\_frequentista\_corexp.R}).}
+\subsubsection{Sensibilità della struttura casuale}
+CONTROLLARE STA ROBA, NON MI SEMBRA CORRETTA
 
-\todo{Analisi frequentista con \texttt{nlme} (script \texttt{17}).
-Verifica assenza di autocorrelazione spaziale nei residui.}
+È stato considerato un modello in cui N è descritto mediante una sola
+intercetta casuale.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.85\linewidth]{fig09_loo_ab.pdf}
-  \caption{LOO-CV: M-SP-RIRS-MVRE e varianti semplificate A e B.
-    $\Delta$ELPD rispetto al migliore (A); barre = $\pm$SE.
-    Modello A non peggiore di MVRE ($|z|=0.4$): management e Texture1 non
-    aggiungono potere predittivo. Modello B peggiore ($\Delta=-5.7$): la slope
-    casuale per N contribuisce alla struttura di campo.}
-  \label{fig:loo_ab}
-\end{figure}
+LOO:
+$\Delta\text{ELPD}=-5.7$
+(SE $=6.0$).
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.85\linewidth]{fig11_sensitivity.pdf}
-  \caption{Analisi di sensibilità (Pareto $k \geq 0.7$): confronto di
-    $\rho_r$ e $\tauB{r}$ tra modello completo e modello senza osservazioni
-    influenti. Le stime strutturali sono stabili; solo $\sigma_r$ si riduce
-    moderatamente (atteso: gli influenti sono residui estremi).}
-  \label{fig:sensitivity}
-\end{figure}
+Il peggioramento predittivo è modesto ma suggerisce che la pendenza
+casuale associata a N contribuisce alla descrizione della variabilità
+tra campi.
+
+\subsubsection{Verifica dell'indipendenza condizionale dei residui}
+
+Per verificare l'ipotesi di indipendenza condizionale tra le tre risposte, il modello è stato esteso introducendo una struttura residua multivariata:
+
+\[
+\boldsymbol{\varepsilon}_{ij}
+\sim
+\mathcal{N}_{3}
+\!\left(
+\mathbf{0},
+\Sigma_{\mathrm{res}}
+\right).
+\]
+
+Le correlazioni residue a posteriori risultano tutte prossime allo zero:
+ALLIENARE , USARE MENO SPAZIO
+
+\[
+\hat{\rho}^{\mathrm{res}}_{\mathrm{SOC}-N}
+=
+0.015
+\ \CI{-0.121}{0.151},
+\]
+
+\[
+\hat{\rho}^{\mathrm{res}}_{\mathrm{SOC}-P}
+=
+-0.021
+\ \CI{-0.151}{0.110},
+\]
+
+\[
+\hat{\rho}^{\mathrm{res}}_{N-P}
+=
+0.035
+\ \CI{-0.096}{0.166}.
+\]
+
+La validazione predittiva mostra una lieve riduzione della capacità esplicativa:
+
+\[
+\Delta\mathrm{ELPD}
+=
+-3.1,
+\qquad
+\mathrm{SE}=1.1.
+\]
+
+Non emerge evidenza di correlazione residua aggiuntiva tra le risposte. La dipendenza tra nutrienti è quindi adeguatamente catturata dalla struttura gerarchica a livello di campo, senza necessità di una componente residua multivariata.
+
+\subsubsection{Autocorrelazione verticale dei residui}
+
+\paragraph{Struttura di dipendenza lungo il profilo.}
+
+\todo{Analisi frequentista mediante \texttt{nlme} per verificare l'assenza di autocorrelazione verticale residua.}
 
 
 % ==============================================================================
@@ -671,78 +700,7 @@ Implicazioni pratiche per la gestione del suolo in Tanzania.}
 % ==============================================================================
 \appendix
 
-\section{Effetti di management (\texorpdfstring{$\beta_r$}{beta\_r})}
-\label{app:beta}
-
-\begin{table}[htbp]
-  \centering
-  \caption{Effetti di management $\hat\beta_{r,k}$ dal modello M-SP-RIRS-MVRE
-    (mediana e CI\,90\%). In grassetto: CI\,90\% lontano da zero.}
-  \label{tab:beta}
-  \small
-  \begin{tabular}{@{}lrrr@{}}
-    \toprule
-    Covariata & SOC & N & P \\
-    \midrule
-    OnFarm     &
-      $-0.137\ [-0.528,\ 0.274]$ &
-      $\mathbf{0.294}\ [0.037,\ 0.567]$ &
-      $\mathbf{0.684}\ [0.239,\ 1.129]$ \\[2pt]
-    Irrigate   &
-      $\mathbf{0.260}\ [0.022,\ 0.496]$ &
-      $-0.146\ [-0.303,\ 0.009]$ &
-      $\mathbf{0.404}\ [0.121,\ 0.683]$ \\[2pt]
-    Fertilised &
-      $0.011\ [-0.293,\ 0.305]$ &
-      $-0.116\ [-0.316,\ 0.074]$ &
-      $-0.346\ [-0.683,\ 0.002]$ \\[2pt]
-    N\_Natural  &
-      $0.012\ [-0.392,\ 0.402]$ &
-      $0.176\ [-0.108,\ 0.447]$ &
-      $-0.096\ [-0.555,\ 0.365]$ \\
-    \bottomrule
-    \multicolumn{4}{@{}p{12cm}}{\small\textit{
-      In grassetto: CI\,90\% lontano da zero. OnFarm e Irrigate significativi per P;
-      Irrigate significativo per SOC; OnFarm significativo per N.
-      LOO-CV di A (senza $\vec\beta_r$) statisticamente equivalente a MVRE:
-      il management ha impatto predittivo trascurabile ma segnale biologico presente.}} \\
-  \end{tabular}
-\end{table}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\linewidth]{appfig01_beta.pdf}
-  \caption{Forest plot degli effetti di management $\hat\beta_{r,k}$
-    (mediana e CI\,90\%) per SOC (blu), N (verde), P (rosso) — M-SP-RIRS-MVRE.
-    OnFarm e Irrigate mostrano segnale positivo per P; Irrigate per SOC;
-    OnFarm per N. La selezione projpred non include nessun $\beta_r$:
-    gli effetti sono presenti ma non aggiungono potere predittivo
-    rispetto alla struttura di campo.}
-  \label{fig:beta}
-\end{figure}
-
-\section{Validazione projpred: covariate selezionate vs M-SP-RIRS-MVRE}
-\label{app:projpred_val}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\linewidth]{fig12_proj_vs_msp.pdf}
-  \caption{Confronto coefficienti fissi: M-SP-RIRS-MVRE (reference), proiezione
-    projpred e lme4 REML per le covariate selezionate. La coerenza tra i tre
-    metodi conferma la stabilità della selezione.}
-  \label{fig:proj_vs_msp}
-\end{figure}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\linewidth]{fig13_nonselected_gamma.pdf}
-  \caption{Covariate \emph{non} selezionate da projpred: $\hat\gamma_{r,k}$
-    in M-SP-RIRS-MVRE. CI\,90\% copre lo zero per tutti — conferma
-    che la selezione è coerente con il modello di riferimento.}
-  \label{fig:nonsel_gamma}
-\end{figure}
-
-\section{Trace plot dei parametri chiave}
+\section{Trace plot e posterior predictive check}
 \label{app:trace}
 
 \begin{figure}[htbp]
