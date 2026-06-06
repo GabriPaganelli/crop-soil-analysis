@@ -210,12 +210,12 @@ p_tri_ttplot <- wrap_elements(full = ~{
     pch = 16, col = col_land, cex = 0.7, cex.axis = 0.6,
     arrows.show = FALSE
   )
-  legend("topright", legend = paste("Landuse", land_lvls),
+  legend("topright", legend = land_lvls,
          col = pal_land, pch = 16, bty = "n", cex = 0.75, title = "Landuse")
 })
 
 p_tex_combined <- p_tri_ttplot + p_ilr_report +
-  plot_layout(widths = c(1, 1)) +
+  plot_layout(widths = c(1.4, 1)) +
   plot_annotation(
     title = "Tessitura del suolo per categoria d'uso",
     theme = theme(plot.title = element_text(face = "bold", size = 12))

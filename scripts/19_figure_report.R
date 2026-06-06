@@ -153,11 +153,14 @@ if (file.exists(varsel_path)) {
           p <- tryCatch(
             plot(vs_obj, stats = "elpd", deltas = TRUE) +
               ggtitle(sprintf("log%s", nm)) +
-              labs(x = "N. predittori", y = expression(Delta * "ELPD")) +
+              labs(x = "N. predittori", y = expression(Delta * "ELPD"),
+                   subtitle = NULL, caption = NULL) +
               theme_minimal(base_size = 13) +
               theme(
                 plot.title       = element_text(face = "bold", size = 14,
                                                 colour = resp_colors[nm]),
+                plot.subtitle    = element_blank(),
+                plot.caption     = element_blank(),
                 axis.title       = element_text(size = 12),
                 axis.text.x      = element_text(size = 11, angle = 40, hjust = 1),
                 axis.text.y      = element_text(size = 11),
@@ -176,11 +179,9 @@ if (file.exists(varsel_path)) {
       if (length(pp_ok) >= 2) {
         p_panel <- wrap_plots(pp_ok, ncol = 3) +
           plot_annotation(
-            title    = "Selezione variabili (projpred forward search, PSIS-LOO)",
-            subtitle = expression(Delta * "ELPD rispetto al reference model M-SP-RIRS-MVRE  —  linea tratteggiata: soglia α = 0.10"),
-            theme    = theme(
-              plot.title    = element_text(face = "bold", size = 14),
-              plot.subtitle = element_text(size = 12, colour = "grey35")
+            title = "Selezione variabili (projpred forward search, PSIS-LOO)",
+            theme = theme(
+              plot.title = element_text(face = "bold", size = 14)
             )
           )
         save_fig("fig_17_projpred_panel.pdf", p_panel, w = 24, h = 12)
