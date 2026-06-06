@@ -1121,12 +1121,13 @@ colori_zone <- c(
 colori_trasparenti <- adjustcolor(colori_zone, alpha.f = 0.8)
 
 plot_texture_triangle <- function(df,
-                                   sand_col  = "PercSand",
-                                   clay_col  = "PercClay",
-                                   silt_col  = "PercSilt",
-                                   color_var = NULL,
-                                   palette   = NULL,
-                                   version   = c("ggtern", "ttplot")) {
+                                   sand_col    = "PercSand",
+                                   clay_col    = "PercClay",
+                                   silt_col    = "PercSilt",
+                                   color_var   = NULL,
+                                   palette     = NULL,
+                                   show_legend = TRUE,
+                                   version     = c("ggtern", "ttplot")) {
   version <- match.arg(version)
 
   for (col in c(sand_col, clay_col, silt_col))
@@ -1202,6 +1203,13 @@ plot_texture_triangle <- function(df,
   crop_tex <- tex
   if (!is.null(color_var)) crop_tex[[color_var]] <- df[[color_var]]
 
+  # Etichette solo per le classi effettivamente presenti nel dataset
+  present_classes <- if (!is.null(color_var))
+    unique(na.omit(as.character(df[[color_var]])))
+  else
+    unique(na.omit(centroids$classe))
+  centroids <- centroids[centroids$classe %in% present_classes, ]
+
   p <- ggtern(grid_bg, aes(x = SAND, y = CLAY, z = SILT)) +
     geom_point(aes(colour = classe), shape = 15, size = 1.1, alpha = 0.85) +
     scale_colour_manual(values = colori_zone, guide = "none")
@@ -1215,7 +1223,8 @@ plot_texture_triangle <- function(df,
         shape       = 21, size = 2.8, stroke = 0.7, colour = "black",
         inherit.aes = TRUE
       ) +
-      scale_fill_manual(values = palette, name = color_var)
+      scale_fill_manual(values = palette, name = color_var,
+                        guide  = if (show_legend) "legend" else "none")
   } else {
     p <- p +
       geom_point(
@@ -1232,28 +1241,25 @@ plot_texture_triangle <- function(df,
     geom_text(
       data        = centroids,
       aes(label   = classe),
-      size        = 3.2, fontface = "bold", colour = "white",
+      size        = 2.0, fontface = "bold", colour = "white",
       inherit.aes = TRUE,
       position    = position_identity()
     ) +
     geom_text(
       data        = centroids,
       aes(label   = classe),
-      size        = 2.8, fontface = "bold", colour = "gray15",
+      size        = 1.7, fontface = "bold", colour = "gray15",
       inherit.aes = TRUE,
       position    = position_identity()
     ) +
     theme_bw() +
     theme_showarrows() +
-    labs(
-      title = paste0("Soil Texture Triangle – USDA",
-                     if (!is.null(color_var)) paste0("  (", color_var, ")")),
-      x = "Sand (%)", y = "Clay (%)", z = "Silt (%)"
-    ) +
+    theme_hidetitles() +
+    labs(title = NULL) +
     theme(
-      plot.title   = element_text(face = "bold", size = 14, hjust = 0.5),
       legend.title = element_text(face = "bold"),
-      legend.key   = element_rect(colour = "gray80")
+      legend.key   = element_rect(colour = "gray80"),
+      plot.margin  = unit(c(0.8, 0.8, 0.8, 0.8), "cm")
     )
 }
 
