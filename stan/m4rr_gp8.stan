@@ -26,23 +26,6 @@
 //   La stima di b_slope proviene da un LMM bayesiano separato (brms, script 10).
 //
 // Tutto il resto del modello e' identico a gp7.
-//
-// RISULTATI run gp8 (4 catene x 5000 sampling + 3000 warmup, adapt_delta=0.97):
-//   b_slope = 0.467 (fissato da brms LMM, CI 90% [0.21, 0.70])
-//   Divergenze: 0 | Rhat > 1.05: 0 | ESS bulk min ~3500 | E-BFMI: 0.68-0.71
-//
-//   LOO-CV: elpd_loo(gp8) = -509.0 vs elpd_loo(gp7) = -520.3
-//   DELTA_ELPD = +11.3 (SE 5.6) — rapporto 2.0 SE: gp8 migliore di gp7.
-//
-//   Effetto della modifica:
-//     theta_W_SOC:  0.302 -> 0.261  (meno varianza within SOC inspiegata)
-//     sigma_B_SOC:  0.156 -> 0.100  (meno residuo between SOC i.i.d.)
-//     psi_B_org:    0.076 -> 0.133  (nugget GP riassorbe varianza liberata)
-//     sigma_GP_org: 0.234 -> 0.182  (ampiezza GP lievemente piu' piccola)
-//     rho_org:      5.12  -> 5.21 km (invariato — struttura spaziale stabile)
-//   Tutti gli altri parametri stabili tra gp7 e gp8.
-//
-//   gp8 e' il modello finale del progetto.
 // =============================================================================
 
 functions {

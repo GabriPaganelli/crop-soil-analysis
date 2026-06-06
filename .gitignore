@@ -24,6 +24,8 @@ report/*.blg
 report/*.bbl
 report/*.out
 report/*.toc
+report/*.fdb_latexmk
+report/*.fls
 report/*.synctex*
 report/compile_log.txt
 
@@ -36,3 +38,6 @@ docs/*.toc
 # Log di esecuzione pipeline
 output/log_*.txt
 output/log_*.R
+
+# LOO output del modello GP (rigenerabile da run_loo_gp.R)
+output/loo_gp.rds

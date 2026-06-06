@@ -1,5 +1,5 @@
 # =============================================================================
-# 04_eda_spaziale.R  —  EDA spaziale: Moran's I, semivariogramma, no GP
+# 05_eda_spaziale.R  —  EDA spaziale: Moran's I, semivariogramma, no GP
 #
 # DOMANDE:
 #   A. C'è autocorrelazione spaziale nei residui between-field? (variogramma,
@@ -64,9 +64,7 @@ cat(sprintf("Distanza mediana tra campi: %.1f km | max: %.1f km\n",
             max(dist(coords[, c("x_km", "y_km")]))))
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PARTE A — STRUTTURA SPAZIALE DEGLI EFFETTI BETWEEN-FIELD
-# ═══════════════════════════════════════════════════════════════════════════════
+# ── PARTE A. STRUTTURA SPAZIALE DEGLI EFFETTI BETWEEN-FIELD ───────────────────
 
 cat("\n════════════════════════════════════════════════════════════════\n")
 cat(" PARTE A — STRUTTURA SPAZIALE\n")
@@ -186,9 +184,7 @@ for (resp in risposte) {
 }
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PARTE B — RELAZIONE INTERCETTA–SLOPE (logBottom)
-# ═══════════════════════════════════════════════════════════════════════════════
+# ── PARTE B. RELAZIONE INTERCETTA–SLOPE (logBottom) ───────────────────────────
 
 cat("\n════════════════════════════════════════════════════════════════\n")
 cat(" PARTE B — INTERCETTA–SLOPE per logBottom\n")
@@ -268,9 +264,7 @@ for (resp in risposte) {
 }
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PARTE C — CORRELAZIONI CROSS-RISPOSTA A LIVELLO DI CAMPO
-# ═══════════════════════════════════════════════════════════════════════════════
+# ── PARTE C. CORRELAZIONI CROSS-RISPOSTA A LIVELLO DI CAMPO ───────────────────
 
 cat("\n════════════════════════════════════════════════════════════════\n")
 cat(" PARTE C — CORRELAZIONI TRA RISPOSTE A LIVELLO DI CAMPO\n")
@@ -287,9 +281,7 @@ cat("\n  Interpretazione: se SOC-N alta → campi ricchi in SOC tendono\n")
 cat("  ad avere anche più N → possibile fattore comune.\n")
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PARTE D — DOMANDA GP: MATÉRN STIMATO VS CORRELAZIONE FISSA
-# ═══════════════════════════════════════════════════════════════════════════════
+# ── PARTE D. DOMANDA GP: MATÉRN STIMATO VS CORRELAZIONE FISSA ─────────────────
 
 cat("\n════════════════════════════════════════════════════════════════\n")
 cat(" PARTE D — GP NECESSARIO? CONFRONTO RANGE STIMATI\n")

@@ -1,5 +1,5 @@
 # =============================================================================
-# 02_eda_forma_icc.R  —  EDA: forma funzionale, ICC, correlazione intercetta-slope
+# 03_eda_forma_icc.R  —  EDA: forma funzionale, ICC, correlazione intercetta-slope
 #
 # STRUTTURA:
 #   Sezione 0 — Verifiche preliminari: ICC, forma funzionale del profilo
@@ -29,12 +29,6 @@ source(here("scripts", "00_utilities.R"))
 
 dir.create(here("output", "figures"), recursive = TRUE, showWarnings = FALSE)
 fig_dir <- here("output", "figures")
-
-save_fig <- function(fname, p, w = 16, h = 9, u = "cm") {
-  ggplot2::ggsave(file.path(fig_dir, fname), plot = p,
-                  width = w, height = h, units = u, device = "pdf")
-  cat(sprintf("  [fig] Salvato: %s\n", fname))
-}
 
 
 # ── 0. VERIFICHE PRELIMINARI (motivazione del modello) ────────────────────────
@@ -189,10 +183,6 @@ for (i in seq_len(nrow(corr_tbl))) {
               corr_tbl$n[i]))
 }
 
-cat("\n  Confronto con modello 20:\n")
-cat("  eta_SOC = +0.209 (forte) → atteso Corr positiva\n")
-cat("  eta_N   = -0.051 (≈0)   → atteso Corr ≈ 0\n")
-cat("  eta_P   = +0.096 (debole)→ atteso Corr positiva debole\n")
 
 
 # ── 4. SCATTER PLOT: INTERCETTA vs SLOPE (BLUP lmer) ─────────────────────────
@@ -360,5 +350,5 @@ ols_all |>
                 risposta, m, s, q5, q95, pct_pos))
   })
 
-cat("\n── Fine script 21 ──────────────────────────────────────────────\n")
+cat("\n── Fine script 03 ───────────────────────────────────────────────\n")
 

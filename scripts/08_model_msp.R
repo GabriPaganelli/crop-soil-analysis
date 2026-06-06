@@ -41,18 +41,7 @@ if (requireNamespace("bayesplot",  quietly = TRUE)) library(bayesplot)
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati <- readRDS(here("data", "dati.rds")) |>
-  mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
-                ~ as.integer(as.character(.x)))) |>
-  mutate(
-    logSOC    = log(PercSOC),
-    logN      = log(PercTotNitro),
-    logP      = log(PercTotPhos),
-    logBottom = log(Bottom)
-  ) |>
-  mutate(across(c(logBottom, Texture1, Texture2, BulkDensity, PH),
-                ~ c(scale(.x)))) |>
-  mutate(Field = factor(Field))
+dati <- carica_dati()
 
 field_levels <- sort(unique(as.integer(as.character(dati$Field))))
 J <- length(field_levels)
@@ -195,9 +184,6 @@ for (r in c("SOC", "N", "P")) {
               sig_r$median))
 }
 
-cat("\n  Confronto con gp8:     b_SOC_gp8 ≈ 0.467 (fissato da LMM bayesiano)\n")
-cat("  Confronto con LMM:     b_OLS   ≈ 0.663, Corr = +0.932\n")
-cat("  Confronto con script18: b_SOC  ≈ 0.641 (ma senza intercetta globale)\n")
 
 
 # ── 7. EFFETTI WITHIN E BETWEEN ───────────────────────────────────────────────
