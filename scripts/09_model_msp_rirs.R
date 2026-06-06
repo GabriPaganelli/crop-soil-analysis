@@ -43,18 +43,7 @@ if (requireNamespace("loo",        quietly = TRUE)) library(loo)
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati <- readRDS(here("data", "dati.rds")) |>
-  mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
-                ~ as.integer(as.character(.x)))) |>
-  mutate(
-    logSOC    = log(PercSOC),
-    logN      = log(PercTotNitro),
-    logP      = log(PercTotPhos),
-    logBottom = log(Bottom)
-  ) |>
-  mutate(across(c(logBottom, Texture1, Texture2, BulkDensity, PH),
-                ~ c(scale(.x)))) |>
-  mutate(Field = factor(Field))
+dati <- carica_dati()
 
 field_levels <- sort(unique(as.integer(as.character(dati$Field))))
 J <- length(field_levels)

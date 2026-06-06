@@ -24,8 +24,9 @@ setup_rtools <- function() {
   invisible(NULL)
 }
 
-# Carica dati.rds e applica le trasformazioni standard usate in tutti gli script.
-# Restituisce un tibble con colonne log*, Field come factor, covariate scalate.
+# Carica dati.rds e applica le trasformazioni standard (log-risposte, scaling
+# di logBottom/Texture1/Texture2/BulkDensity/PH, Field come factor).
+# Usata da tutti gli script modello (07-22) in luogo del blocco dati ripetuto.
 carica_dati <- function() {
   readRDS(here::here("data", "dati.rds")) |>
     dplyr::mutate(dplyr::across(c(OnFarm, Irrigate, Fertilised, N_Natural),
@@ -36,7 +37,7 @@ carica_dati <- function() {
       logP      = log(PercTotPhos),
       logBottom = log(Bottom)
     ) |>
-    dplyr::mutate(dplyr::across(c(logBottom, Texture1, Texture2, BulkDensity),
+    dplyr::mutate(dplyr::across(c(logBottom, Texture1, Texture2, BulkDensity, PH),
                                 ~ c(scale(.x)))) |>
     dplyr::mutate(Field = factor(Field))
 }

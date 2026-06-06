@@ -1,5 +1,6 @@
 # =============================================================================
-# 11_model_msp_landuse.R  —  Modello M-SP-Landuse (variante con landuse categoriale)
+# 11_model_msp_landuse.R  —  Modello M-SP-Landuse (variante esplorativa, non nel pipeline principale)
+# NOTA: script standalone, non incluso in run_all.R; utile per confronto interpretativo.
 #
 # STRUTTURA: identica a 03_model_proportional_slope.R.
 #   L'unica differenza è X_B: invece delle 4 variabili binarie

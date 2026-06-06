@@ -1,7 +1,7 @@
 # =============================================================================
-# run_all.R  —  Master script: esegue l'intera pipeline (07–19)
+# run_all.R  —  Master script: esegue l'intera pipeline (07–22)
 #
-# Esegue in ordine gli script 07–19. I fit (07-09) sono cachati: se esistono
+# Esegue in ordine gli script 07–22. I fit (07-09) sono cachati: se esistono
 # già vengono solo caricati. Il modello finale è M-SP-RIRS-MVRE (script 10).
 #
 # PREREQUISITI:
@@ -26,6 +26,9 @@
 #   Script 16 (MVRE-FULL LOO):        ~3 min (fit già in cache)
 #   Script 17 (frequentista):         ~2 min
 #   Script 18-19 (figure + report):   ~10 min
+#   Script 20 (spatial confounding):  ~2 min
+#   Script 21 (GP robustezza MCMC):   ~30 min se non cachato
+#   Script 22 (Lat/Long MCMC):        ~10 min se non cachato
 # =============================================================================
 
 library(here)
@@ -49,7 +52,8 @@ validate_prerequisites <- function() {
     stan_mvre = here("stan", "m_sp_rirs_mvre.stan"),
     stan_A    = here("stan", "m_sp_rirs_mvre_A.stan"),
     stan_B    = here("stan", "m_sp_rirs_mvre_B.stan"),
-    stan_full = here("stan", "m_sp_rirs_mvre_full.stan")
+    stan_full = here("stan", "m_sp_rirs_mvre_full.stan"),
+    stan_gp   = here("stan", "m_sp_rirs_mvre_gp.stan")
   )
 
   for (nm in names(required_files)) {
@@ -124,7 +128,10 @@ pipeline <- c(
   "16 MV residui"            = "16_robustezza_msp_mv.R",
   "17 Frequentista corexp"   = "17_frequentista_corexp.R",
   "18 Figure principali"     = "18_figure_principali.R",
-  "19 Figure report"         = "19_figure_report.R"
+  "19 Figure report"         = "19_figure_report.R",
+  "20 Spatial confounding"   = "20_spatial_confounding.R",
+  "21 GP robustezza"         = "21_robustezza_gp.R",
+  "22 Lat/Long robustezza"   = "22_robustezza_latlong.R"
 )
 
 results <- setNames(vector("list", length(pipeline)), names(pipeline))
@@ -161,7 +168,7 @@ cat(sprintf("  Completati: %d | Errori: %d | Saltati: %d / %d totali\n",
 
 if (n_err == 0) {
   cat("\n  Tutti gli script completati. Compila il PDF con:\n")
-  cat("    cd report && pdflatex report_skeleton.tex\n")
+  cat("    cd report && pdflatex report.tex\n")
 } else {
   cat("\n  Correggere gli errori riportati prima di compilare il PDF.\n")
 }
