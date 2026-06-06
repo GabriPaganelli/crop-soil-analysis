@@ -366,7 +366,8 @@ cat("\n[fig_10] Trace plots...\n")
 
 params_trace <- c("alpha_SOC", "tau_alpha_SOC", "tau_beta_SOC", "rho_SOC",
                   "alpha_N",   "tau_alpha_N",   "tau_beta_N",   "rho_N",
-                  "alpha_P",   "tau_alpha_P",   "tau_beta_P",   "rho_P")
+                  "alpha_P",   "tau_alpha_P",   "tau_beta_P",   "rho_P",
+                  "sigma_SOC", "sigma_N",        "sigma_P",      "rho_int_SOC_N")
 
 p_trace <- mcmc_trace(fit$draws(variables = params_trace), facet_args = list(ncol = 4)) +
   theme_minimal(base_size = 9) +
@@ -374,7 +375,7 @@ p_trace <- mcmc_trace(fit$draws(variables = params_trace), facet_args = list(nco
   labs(title    = "Trace plots — parametri strutturali di M-SP-RIRS-MVRE",
        subtitle = "4 catene × 5000 iterazioni")
 print(p_trace)
-save_fig("fig_10_trace_key.pdf", p_trace, w = 24, h = 14)
+save_fig("fig_10_trace_key.pdf", p_trace, w = 24, h = 18)
 
 
 # ── 9. FIG_11: POSTERIOR tau_r e sigma_r ──────────────────────────────────────
