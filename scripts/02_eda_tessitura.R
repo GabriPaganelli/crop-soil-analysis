@@ -155,7 +155,7 @@ tex_ttplot <- data.frame(SAND = crop$PercSand, SILT = crop$PercSilt, CLAY = crop
 p_triangle <- plot_texture_triangle(crop, color_var = "TextureClass",
                                     show_legend = FALSE, version = "ggtern")
 
-# ── ILR biplot: Texture1 vs Texture2 colorato per Landuse ────────────────────
+# ── Palette Landuse (triangolo) e TextureClass (ILR) ─────────────────────────
 land_lvls <- as.character(sort(unique(crop$Landuse)))
 pal_land  <- setNames(
   c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
@@ -163,15 +163,22 @@ pal_land  <- setNames(
   land_lvls
 )
 
+tex_lvls <- levels(crop$TextureClass)
+base_pal <- c("#2166ac","#4393c3","#1a9850","#74c476","#fdae61",
+              "#d73027","#762a83","#e08214","#a6761d","#666666",
+              "#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e")
+tex_pal  <- setNames(base_pal[seq_len(min(length(tex_lvls), length(base_pal)))], tex_lvls)
+
+# ── ILR biplot: colorato per TextureClass ────────────────────────────────────
 df_ilr <- data.frame(
   Texture1 = ilr_gran[, 1],
   Texture2 = ilr_gran[, 2],
-  Landuse  = factor(crop$Landuse)
+  Classe   = crop$TextureClass
 )
 
-p_ilr_report <- ggplot(df_ilr, aes(x = Texture1, y = Texture2, colour = Landuse)) +
+p_ilr_report <- ggplot(df_ilr, aes(x = Texture1, y = Texture2, colour = Classe)) +
   geom_point(alpha = 0.75, size = 2.2) +
-  scale_colour_manual(values = pal_land, name = "Landuse") +
+  scale_colour_manual(values = tex_pal, name = "Classe USDA") +
   labs(
     title = NULL,
     x     = expression("Texture"[1] ~ "(argilla / limo)"),
