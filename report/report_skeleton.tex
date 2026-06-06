@@ -629,68 +629,50 @@ Non emerge evidenza di correlazione residua aggiuntiva tra le risposte. La dipen
 
 
 % ==============================================================================
-\section{Discussione}
-\label{sec:discussione}
+\section{Discussione dei risultati}
 
-\subsection{SOC: correlazione slope--intercetta e meccanismi biologici}
+In questa sezione vengono discussi i risultati ottenuti dal modello, confrontandoli con quelli presenti in letteratura. Lo scopo è verificare la coerenza delle evidenze empiriche ottenute con i meccanismi biologici e fisici noti.
 
-\todo{$\hat\rho_\SOC=0.52$ [0.12, 0.80], positivo e robusto. $\tauB{\SOC}=0.22$
-significativamente positivo. Campi con SOC elevato decadono pi\`u lentamente.
-Confronto con letteratura (Jobbágy \& Jackson 2000;
-Mutambu et al.\ 2019; Kirsten et al.\ 2019). Meccanismi possibili:
-stabilizzazione organo-minerale, pratiche agronomiche. pH non significativo
-($\hat\gamma_\SOC^\text{pH}=-0.02$, CI include zero).}
+\subsection{Evidenze sulla struttura di correlazione}
 
-\subsection{N: variabilit\`a di slope senza correlazione con il livello}
+Per il \textbf{carbonio organico}, la variabilità tra campi è sostanziale sia nel livello medio ($\tau_\alpha = 0.327\,[0.234,\,0.436]$) sia nella pendenza del profilo ($\tau_\beta = 0.215\,[0.106,\,0.317]$). I campi differiscono non solo in quanta materia organica contengono, ma anche in come questa si distribuisce lungo la profondità. 
+Il risultato più rilevante è la correlazione tra intercetta e pendenza, stimata a $\rho = +0.519\,[0.119,\,0.795]$, significativamente positiva: i campi con un livello medio di carbonio più elevato tendono ad avere profili verticali più piatti, conservando il carbonio anche negli strati profondi. 
+\\ Questo pattern è coerente con il concetto di \emph{stratification ratio} ampiamente documentato nella letteratura. Franzluebbers (2002) e studi successivi hanno mostrato che suoli di alta qualità funzionale presentano una distribuzione verticale del carbonio più uniforme.
 
-\todo{$\hat\rho_N=-0.16$ con CI che include zero: le slope di N non sono correlate
-ai livelli di campo. Ma $\tauB{N}=0.145$ significativamente positivo: esiste
-variabilit\`a tra campi nella pendenza verticale dell'azoto, non catturata da M-SP.
-Biologicamente plausibile: N mobile risponde alle pratiche pi\`u che alla struttura.}
+Per l'\textbf{azoto}, la variabilità tra campi nella pendenza del profilo esiste ($\tau_\beta = 0.148\,[0.080,\,0.214]$) ma non è correlata al livello medio del campo. Questo risultato è biologicamente plausibile: l'azoto totale è fortemente correlato al carbonio in superficie (Frontiers in Environmental Science, 2022), ma possiede dinamiche proprie al variare della profondità.
 
-\subsection{P: evidenza moderata}
+Per il \textbf{fosforo}, la variabilità della pendenza tra campi è più debole ($\tau_\beta = 0.085\,[0.009,\,0.185]$), con una correlazione intercetta-pendenza positiva ma non significativa ($\rho = +0.295\,[ -0.291,\,0.705]$) e un'incertezza molto elevata. Questo è coerente con la nota immobilità del fosforo nei suoli tropicali (ScienceDirect, 2013; Margenot, 2018).
 
-\todo{$\hat\rho_P = 0.478$ con CI\,90\% ampio $[-0.29, 0.88]$: evidenza moderata
-ma alta incertezza. $\tauB{P} = 0.094$ borderline (CI\,90\% $[0.007, 0.189]$).
-Cautela nell'interpretazione: il pattern esiste ma non \`e robusto.}
-
-\subsection{Effetti di management e pH}
-
-\todo{$\hat\beta_r$ deboli (CI\,90\% quasi sempre su zero per la maggior parte).
-pH non significativo per nessuna risposta ($\hat\gamma^\text{pH} \approx 0$).
-Projpred: n\`e pH n\`e management entrano nei modelli selezionati per nessuna
-risposta. La variabilit\`a tra campi \`e catturata dalla struttura bivariata
-RI+RS pi\`u che dalle pratiche osservate.}
-
-\subsection{Indipendenza condizionale tra nutrienti e legame SOC--N}
-
-I tre nutrienti risultano condizionalmente indipendenti dati i
-predittori di M-SP-RIRS-MVRE: le correlazioni residue (M-SP-RIRS-MV) sono $\approx 0$
-e aggiungere tale struttura non migliora il LOO.
-La co-variazione osservata tra SOC, N e P \`e interamente catturata da
-profondit\`a, tessitura e struttura di campo.
-Il legame SOC--N emerge per\`o a livello di effetti casuali di campo nel modello finale:
-$\hat\rho^{\mathrm{int}}_{\SOC\text{-}N} = +0.386\ [0.038, 0.667]$ (CI\,90\% lontano da zero).
-Questo segnale biologicamente interpretabile — i campi pi\`u fertili in SOC tendono
-ad essere pi\`u fertili in N, al di l\`a dei predittori osservati — costituisce il
-risultato principale aggiunto dal modello M-SP-RIRS-MVRE rispetto a M-SP-RIRS.
+Un risultato aggiuntivo che emerge è la \textbf{correlazione tra le intercette casuali di campo} per carbonio e azoto, stimata a $\rho_{\text{int}}(\text{SOC},\text{N}) = +0.386\,[0.038,\,0.667]$. I campi con un effetto casuale positivo per il carbonio tendono ad averlo anche per l'azoto. Questo legame biologico riflette il rapporto C:N relativamente stabile della materia organica stabilizzata nei suoli agricoli, per cui campi con più carbonio hanno necessariamente più azoto organico.
+\\  Le correlazioni che coinvolgono il fosforo, a livello di intercette e pendenza sono tutte prossime a zero, confermando che il fosforo ha una dinamica indipendente dal ciclo C--N.
 
 
-% ==============================================================================
+\subsection{Evidenze sulle covariate fisiche}
+
+Tra le covariate fisiche, \textbf{Texture2} (ILR2, che cattura il contrasto tra la frazione fine argilla+limo e la sabbia) è il predittore dominante per carbonio e azoto. Il coefficiente per il carbonio è $\beta = -0.503\,[ -0.640,\,-0.361 ]$, per l'azoto per  è $\beta = -0.284\,[ -0.371,\,-0.195 ]$, entrambi nettamente significativi, mentre per il fosforo non emerge alcun effetto ($\beta = -0.068\,[ -0.213,\,+0.077 ]$). La direzione negativa indica che suoli con più argilla e limo rispetto alla sabbia contengono più carbonio e azoto. Questo è ben documentato nella letteratura: l'argilla e il limo proteggono la materia organica dalla decomposizione (Scientific Reports, 2021; ScienceDirect, 2024). \\
+La selezione predittiva con \texttt{projpred} conferma che Texture2 è la covariata fisica più importante, selezionata per prima sia per il carbonio che per l'azoto. \\
+\textbf{Texture1} (ILR$_1$, contrasto argilla vs limo), al contrario, non risulta significativa per nessuna risposta ($\beta$ compreso tra $-0.060$ e $+0.004$ con tutti gli intervalli che includono zero), né viene selezionata da \texttt{projpred}: la distinzione tra argilla e limo è meno informativa della distinzione globale tra frazioni fini e sabbia.
+
+La \textbf{densità apparente} contribuisce in modo significativo per il carbonio ($\beta = -0.237\,[ -0.380,\,-0.085 ]$) e per l'azoto ($\beta = -0.179\,[ -0.270,\,-0.084 ]$), ma non per il fosforo ($\beta = -0.122\,[ -0.278,\,+0.033 ]$). La compattazione riduce l'attività microbica azotofissatrice (PMC, 2022), spiegando perché \texttt{BulkDensity} è selezionata da \texttt{projpred} specificamente per l'azoto. Per il carbonio la tessitura cattura già gran parte della variabilità nella protezione minerale. Per il fosforo, la densità apparente non aggiunge informazione.
+
+La \textbf{profondità} in scala logaritmica è altamente significativa per il carbonio  ($\beta = -0.366\,[ -0.464,\,-0.270 ]$) e l'azoto ($\beta = -0.210\,[ -0.272,\,-0.148 ]$), e vicina alla significatività per P ($\beta = -0.075\,[ -0.160,\,+0.010 ]$). La relazione log-log corrisponde a una legge di potenza, ampiamente supportata dalla letteratura come forma funzionale standard per i profili verticali del carbonio (Jobbágy \& Jackson, 2000). Il coefficiente più alto per il carbonio rispetto a all'azoto ($-0.37$ vs $-0.21$) indica un rapporto C:N decrescente con la profondità, coerente con la progressiva stabilizzazione della materia organica in profondità.
+
+In sintesi, le proprietà fisiche del suolo sono fattori determinanti per carbonio e azoto, ma non del fosforo. Questi risultati evidenziano l'asimmetria tra il ciclo organico C--N e il ciclo inorganico del fosforo.
+
+
+
+
+\subsection{Evidenze sugli effetti gestionali}
+
+Le quattro variabili indicatrici manifestano un confondimento strutturale intrinseco: la totalità delle osservazioni on-farm risulta associata a regimi di fertilizzazione non naturali. Di conseguenza, i singoli coefficienti non sono interpretabili in chiave di effetti marginali. Gli intervalli di credibilità includono lo zero per la quasi totalità dei parametri e la procedura di selezione predittiva tramite projpred esclude le variabili di gestione per ogni variabile risposta. Conclusioni analoghe emergono analizzando i profili di gestione congiunti utilizzando la variabile Landuse: la componente gestionale non aggiunge potere predittivo rispetto alla struttura e alle proprietà fisiche del suolo. 
+
+A questo si aggiunge un \textbf{confondimento spaziale}: le pratiche agricole sono geograficamente concentrate, e gli effetti stimati possono riflettere differenze spaziali piuttosto che effetti della gestione.
+
 \section{Conclusioni}
-\label{sec:conclusioni}
 
-\todo{(1) SOC: $\hat\rho_\SOC=0.52$ [0.12, 0.80], robusto. I campi con SOC
-elevato decadono pi\`u lentamente in profondit\`a.
-(2) N: $\hat\rho_N\approx -0.16$ (CI su zero), ma $\tauB{N}=0.145$ positivo:
-la variabilit\`a di slope esiste ma non \`e correlata al livello medio.
-(3) P: $\hat\rho_P=0.48$ con alta incertezza.
-(4) pH non aggiunge potere predittivo in questo dataset.
-(5) Nuovo in MVRE: $\hat\rho^{\mathrm{int}}_{\SOC\text{-}N}=+0.386$ [0.038, 0.667]:
-legame biologico SOC--N identificabile a livello di campo, al di l\`a dei predittori osservati.
-Dal punto di vista metodologico: M-SP-RIRS-MVRE generalizza M-SP-RIRS
-stimando congiuntamente gli effetti di campo delle tre risposte.
-Implicazioni pratiche per la gestione del suolo in Tanzania.}
+Per quanto riguarda le indicazioni operative da comunicare ai gestori del terreno le evidenze empiriche evidenziano che la concentrazione di carbonio,azoto e fosforo nel profilo del suolo è determinata dalla qualità intrinseca del campo e dalle proprietà fisiche del terreno come tessitura, densità apparente e profondità, piuttosto che dalle pratiche gestionali. Il confondimento strutturale e spaziale non consente di isolare l'effetto delle singole pratiche né di formulare raccomandazioni operative specifiche.
+
+Sotto il profilo dell'evidenza statistica, la specificazione del modello M-SP-RIRS-MVRE risulta empiricamente supportata dall'evidenza dei dati; nello specifico, le intercette casuali non evidenziano una struttura di dipendenza spaziale residua a seguito del condizionamento. Sotto il profilo del disegno sperimentale, la rimozione dei fattori di confondimento richiederebbe l'adozione di un piano di campionamento caratterizzato da una maggiore eterogeneità spaziale e l'implementazione di un disegno sperimentale controllato e randomizzato.
 
 
 % ==============================================================================
