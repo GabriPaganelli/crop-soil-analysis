@@ -215,13 +215,13 @@ p_tri_ttplot <- wrap_elements(full = ~{
 })
 
 p_tex_combined <- p_tri_ttplot + p_ilr_report +
-  plot_layout(widths = c(2, 1)) +
+  plot_layout(widths = c(3, 1)) +
   plot_annotation(
     title = "Tessitura del suolo per categoria d'uso",
     theme = theme(plot.title = element_text(face = "bold", size = 12))
   )
 ggplot2::ggsave(here("output", "figures", "fig_texture_combined.pdf"),
-                plot = p_tex_combined, width = 26, height = 13, units = "cm",
+                plot = p_tex_combined, width = 30, height = 15, units = "cm",
                 device = cairo_pdf)
 cat("Salvato: output/figures/fig_texture_combined.pdf\n")
 
