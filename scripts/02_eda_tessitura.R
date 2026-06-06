@@ -151,7 +151,7 @@ crop$TextureClass <- factor(texture_class)
 
 # ── Triangolo USDA (ggtern, punti colorati per classe) ────────────────────────
 p_triangle <- plot_texture_triangle(crop, color_var = "TextureClass",
-                                    version = "ggtern")
+                                    show_legend = FALSE, version = "ggtern")
 
 # ── ILR biplot: Texture1 vs Texture2 colorato per classe tessiturale ──────────
 df_ilr <- data.frame(
@@ -183,15 +183,14 @@ p_ilr_report <- ggplot(df_ilr, aes(x = Texture1, y = Texture2, colour = Classe))
 dir.create(here("output", "figures"), recursive = TRUE, showWarnings = FALSE)
 
 # Salva il triangolo da solo
-p_triangle_noleg <- p_triangle + theme(legend.position = "none")
 ggplot2::ggsave(here("output", "figures", "fig_texture_triangle.pdf"),
-                plot = p_triangle_noleg, width = 14, height = 14, units = "cm",
+                plot = p_triangle, width = 14, height = 14, units = "cm",
                 device = cairo_pdf)
 cat("Salvato: output/figures/fig_texture_triangle.pdf\n")
 
 # Salva il pannello combinato: legenda solo nell'ILR, no titoli di pannello
 if (inherits(p_triangle, "ggplot")) {
-  p_tex_combined <- (p_triangle + theme(legend.position = "none")) + p_ilr_report +
+  p_tex_combined <- p_triangle + p_ilr_report +
     plot_layout(widths = c(1, 1))
   ggplot2::ggsave(here("output", "figures", "fig_texture_combined.pdf"),
                   plot = p_tex_combined, width = 26, height = 13, units = "cm",
