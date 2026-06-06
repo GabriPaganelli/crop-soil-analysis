@@ -1232,26 +1232,21 @@ plot_texture_triangle <- function(df,
     geom_text(
       data        = centroids,
       aes(label   = classe),
-      size        = 3.2, fontface = "bold", colour = "white",
+      size        = 2.0, fontface = "bold", colour = "white",
       inherit.aes = TRUE,
       position    = position_identity()
     ) +
     geom_text(
       data        = centroids,
       aes(label   = classe),
-      size        = 2.8, fontface = "bold", colour = "gray15",
+      size        = 1.7, fontface = "bold", colour = "gray15",
       inherit.aes = TRUE,
       position    = position_identity()
     ) +
     theme_bw() +
     theme_showarrows() +
-    labs(
-      title = paste0("Soil Texture Triangle – USDA",
-                     if (!is.null(color_var)) paste0("  (", color_var, ")")),
-      x = "Sand (%)", y = "Clay (%)", z = "Silt (%)"
-    ) +
+    labs(title = NULL, x = "Sand (%)", y = "Clay (%)", z = "Silt (%)") +
     theme(
-      plot.title   = element_text(face = "bold", size = 14, hjust = 0.5),
       legend.title = element_text(face = "bold"),
       legend.key   = element_rect(colour = "gray80")
     )

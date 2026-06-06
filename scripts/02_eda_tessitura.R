@@ -172,35 +172,27 @@ p_ilr_report <- ggplot(df_ilr, aes(x = Texture1, y = Texture2, colour = Classe))
   geom_point(alpha = 0.75, size = 2.2) +
   scale_colour_manual(values = tex_pal, name = "Classe USDA") +
   labs(
-    title    = "Coordinate ILR",
-    subtitle = "Texture1 vs Texture2  —  colore per classe USDA",
-    x        = expression("Texture"[1] ~ "(ILR"[1] * "):  contrasto argilla / limo"),
-    y        = expression("Texture"[2] ~ "(ILR"[2] * "):  finezza vs sabbia")
+    title = NULL,
+    x     = expression("Texture"[1] ~ "(argilla / limo)"),
+    y     = expression("Texture"[2] ~ "(finezza / sabbia)")
   ) +
   theme_minimal(base_size = 11) +
-  theme(
-    plot.title    = element_text(face = "bold"),
-    plot.subtitle = element_text(colour = "grey40", size = 9),
-    legend.position = "right"
-  )
+  theme(legend.position = "right")
 
 # ── Figura combinata per il report ────────────────────────────────────────────
 dir.create(here("output", "figures"), recursive = TRUE, showWarnings = FALSE)
 
-# Salva il triangolo da solo (per la caption del report)
+# Salva il triangolo da solo
+p_triangle_noleg <- p_triangle + theme(legend.position = "none")
 ggplot2::ggsave(here("output", "figures", "fig_texture_triangle.pdf"),
-                plot = p_triangle, width = 14, height = 14, units = "cm",
+                plot = p_triangle_noleg, width = 14, height = 14, units = "cm",
                 device = cairo_pdf)
 cat("Salvato: output/figures/fig_texture_triangle.pdf\n")
 
-# Salva il pannello combinato triangolo + ILR
+# Salva il pannello combinato: legenda solo nell'ILR, no titoli di pannello
 if (inherits(p_triangle, "ggplot")) {
-  p_tex_combined <- p_triangle + p_ilr_report +
-    plot_layout(widths = c(1, 1), guides = "collect") +
-    plot_annotation(
-      title = "Distribuzione tessiturale delle 220 osservazioni",
-      theme = theme(plot.title = element_text(face = "bold", size = 13))
-    )
+  p_tex_combined <- (p_triangle + theme(legend.position = "none")) + p_ilr_report +
+    plot_layout(widths = c(1, 1))
   ggplot2::ggsave(here("output", "figures", "fig_texture_combined.pdf"),
                   plot = p_tex_combined, width = 26, height = 13, units = "cm",
                   device = cairo_pdf)
