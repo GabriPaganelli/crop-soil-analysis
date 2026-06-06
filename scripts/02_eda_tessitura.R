@@ -191,7 +191,11 @@ cat("Salvato: output/figures/fig_texture_triangle.pdf\n")
 # Salva il pannello combinato: legenda solo nell'ILR, no titoli di pannello
 if (inherits(p_triangle, "ggplot")) {
   p_tex_combined <- p_triangle + p_ilr_report +
-    plot_layout(widths = c(1, 1))
+    plot_layout(widths = c(1, 1)) +
+    plot_annotation(
+      title = "Tessitura del suolo: distribuzione e coordinate ILR",
+      theme = theme(plot.title = element_text(face = "bold", size = 12))
+    )
   ggplot2::ggsave(here("output", "figures", "fig_texture_combined.pdf"),
                   plot = p_tex_combined, width = 26, height = 13, units = "cm",
                   device = cairo_pdf)

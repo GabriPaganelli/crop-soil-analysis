@@ -1254,10 +1254,11 @@ plot_texture_triangle <- function(df,
     ) +
     theme_bw() +
     theme_showarrows() +
-    labs(title = NULL, x = "Sand (%)", y = "Clay (%)", z = "Silt (%)") +
+    labs(title = NULL, x = "Sand", y = "Clay", z = "Silt") +
     theme(
       legend.title = element_text(face = "bold"),
-      legend.key   = element_rect(colour = "gray80")
+      legend.key   = element_rect(colour = "gray80"),
+      plot.margin  = unit(c(0.8, 0.8, 0.8, 0.8), "cm")
     )
 }
 
