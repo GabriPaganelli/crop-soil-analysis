@@ -26,13 +26,6 @@ dir.create(here("report", "images"),  recursive = TRUE, showWarnings = FALSE)
 fig_dir <- here("output", "figures")
 img_dir <- here("report", "images")
 
-# Helper salvataggio
-save_fig <- function(fname, p, w = 16, h = 9, u = "cm") {
-  ggplot2::ggsave(file.path(fig_dir, fname), plot = p,
-                  width = w, height = h, units = u, device = "pdf")
-  cat(sprintf("  [fig] Salvato: output/figures/%s\n", fname))
-}
-
 resp_colors <- c("SOC" = "#2166AC", "N" = "#1A9850", "P" = "#D73027")
 
 

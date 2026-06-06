@@ -19,9 +19,18 @@ setup_rtools <- function() {
     PATH = paste(file.path(rtools_path, "ucrt64/bin"),
                  file.path(rtools_path, "usr/bin"),
                  Sys.getenv("PATH"), sep = ";"),
-    RTOOLS44_HOME = rtools_path
+    RTOOLS44_HOME = rtools_path,
+    RTOOLS45_HOME = rtools_path
   )
   invisible(NULL)
+}
+
+# Salva una figura in output/figures/ come PDF.
+# Usata da tutti gli script figura (03, 12, 18, 19) in luogo della definizione locale.
+save_fig <- function(fname, p, w = 16, h = 9, u = "cm") {
+  ggplot2::ggsave(file.path(here::here("output", "figures"), fname),
+                 plot = p, width = w, height = h, units = u, device = "pdf")
+  cat(sprintf("  [fig] Salvato: %s\n", fname))
 }
 
 # Carica dati.rds e applica le trasformazioni standard (log-risposte, scaling

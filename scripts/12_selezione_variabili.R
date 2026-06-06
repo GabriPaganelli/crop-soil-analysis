@@ -39,16 +39,10 @@ dir.create(here("output", "cache"),   recursive = TRUE, showWarnings = FALSE)
 fig_dir   <- here("output", "figures")
 cache_dir <- here("output", "cache")
 
-save_fig <- function(fname, p, w = 14, h = 9, u = "cm") {
-  ggplot2::ggsave(file.path(fig_dir, fname), plot = p,
-                  width = w, height = h, units = u, device = "pdf")
-  cat(sprintf("  [fig] Salvato: %s\n", fname))
-}
-
 projpred_cache_path <- file.path(cache_dir, "projpred_varsel_mvre.rds")
 
 
-# ── 1. DATI (identici a script 09) ────────────────────────────────────────────
+# ── 1. DATI ───────────────────────────────────────────────────────────────────
 
 dati <- carica_dati()
 

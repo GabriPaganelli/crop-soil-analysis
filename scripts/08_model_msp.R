@@ -184,9 +184,6 @@ for (r in c("SOC", "N", "P")) {
               sig_r$median))
 }
 
-cat("\n  Confronto con gp8:     b_SOC_gp8 ≈ 0.467 (fissato da LMM bayesiano)\n")
-cat("  Confronto con LMM:     b_OLS   ≈ 0.663, Corr = +0.932\n")
-cat("  Confronto con script18: b_SOC  ≈ 0.641 (ma senza intercetta globale)\n")
 
 
 # ── 7. EFFETTI WITHIN E BETWEEN ───────────────────────────────────────────────

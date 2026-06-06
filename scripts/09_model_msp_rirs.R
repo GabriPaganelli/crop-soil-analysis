@@ -1,6 +1,6 @@
 # =============================================================================
 # 09_model_msp_rirs.R  —  M-SP-RIRS: random intercept + random slope bivariato
-#                         ← MODELLO FINALE
+#                         ← confronto intermedio (pre-MVRE)
 #
 # Per ogni risposta r e campo j, intercetta e slope su logBottom sono estratti
 # congiuntamente da una distribuzione bivariata:
@@ -160,15 +160,6 @@ for (r in c("SOC", "N", "P")) {
               rho$median, rho$sd, sg$median))
 }
 
-cat("\n  Interpretazione rho_r:\n")
-cat("    rho ≈ +1 → M-SP confermato: i campi con alto baseline decadono più lentamente\n")
-cat("    |rho| < 1 → alcuni campi escono dalla proporzionalità\n")
-cat("    rho ≈  0 → RI e RS indipendenti\n")
-
-cat("\n  Confronto con M-SP (tau_alpha ≈ psi, tau_beta ≈ |eta|):\n")
-cat("    M-SP:  psi_SOC = 0.330, eta_SOC = +0.204  → atteso rho_SOC ≈ +1, tau_beta_SOC ≈ 0.204\n")
-cat("    M-SP:  psi_N   = 0.203, eta_N   = -0.038  → atteso rho_N   ≈ 0,  tau_beta_N   ≈ 0\n")
-cat("    M-SP:  psi_P   = 0.400, eta_P   = +0.097  → atteso rho_P   ≈ +1, tau_beta_P   ≈ 0.097\n")
 
 cat("\n═══ EFFETTI FISSI WITHIN-FIELD (gamma_r) ═════════════════════════\n")
 cov_W <- c("logBottom", "Texture1", "Texture2", "BulkDensity", "PH")

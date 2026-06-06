@@ -1,3 +1,16 @@
+# =============================================================================
+# run_loo_gp.R  —  LOO-CV per M-SP-RIRS-MVRE-GP vs M-SP-RIRS-MVRE
+#
+# Computa e confronta ELPD per il modello con Gaussian Process (script 21)
+# e il modello finale MVRE (script 10).
+#
+# Dipende da:
+#   stan/fit_msp_rirs_mvre_gp.rds   (da script 21)
+#   stan/fit_msp_rirs_mvre.rds      (da script 10)
+# Produce:
+#   output/loo_gp.rds
+# =============================================================================
+
 library(loo); library(here)
 fit_gp   <- readRDS(here("stan","fit_msp_rirs_mvre_gp.rds"))
 loo_gp   <- loo(fit_gp$draws("log_lik", format="matrix"), cores=2)

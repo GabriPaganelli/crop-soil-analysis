@@ -1,7 +1,7 @@
 % ============================================================
-% report_skeleton.tex  —  SCHELETRO strutturale
-%   Sezioni + figure + tabelle + equazioni, nessun testo narrativo.
-%   Usare per discutere la struttura con i colleghi prima di scrivere.
+% report.tex  —  Report analisi Bayesiana gerarchica profili SOC/N/P
+%   Struttura definitiva con figure, tabelle ed equazioni del
+%   modello M-SP-RIRS-MVRE.
 %
 % Compilazione: pdflatex -> bibtex -> pdflatex x 2
 % ============================================================
@@ -196,7 +196,6 @@ ILR (base di Helmert via \texttt{compositions::ilr}):
 necessario e ben identificato.}
 
 \subsection{Profili verticali individuali}
-RENDERE VERTICALE e aggiungere P e togliere scritte brutte
 
 \begin{figure}[htbp]
   \centering
@@ -212,7 +211,10 @@ RENDERE VERTICALE e aggiungere P e togliere scritte brutte
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.8\linewidth]{fig03_scatter.pdf}
-  \caption{rimuovibile}
+  \caption{Scatter plot intercetta--slope OLS per campo (logSOC).
+    La correlazione positiva indica che i campi con SOC elevato in superficie
+    mostrano profili con declino più marcato in profondità,
+    confermando il pattern proporzionale del modello M-SP.}
   \label{fig:scatter}
 \end{figure}
 

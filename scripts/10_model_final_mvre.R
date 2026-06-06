@@ -32,7 +32,7 @@ if (requireNamespace("bayesplot",  quietly = TRUE)) library(bayesplot)
 if (requireNamespace("loo",        quietly = TRUE)) library(loo)
 
 
-# ── 1. DATI (identici a script 09) ────────────────────────────────────────────
+# ── 1. DATI ───────────────────────────────────────────────────────────────────
 
 dati <- carica_dati()
 
