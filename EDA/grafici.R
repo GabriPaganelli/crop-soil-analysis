@@ -272,7 +272,85 @@ fig3 <- (p3_SOC + p3_N + p3_P) +
 save_fig("eda_03_traiettorie.pdf", fig3, w = 28, h = 18)
 
 
+# ══════════════════════════════════════════════════════════════
+#  FIGURA 4 — Traiettorie su scala originale (%)
+#  Identica alla figura 3 ma asse X = concentrazione %
+# ══════════════════════════════════════════════════════════════
+
+dati_traj_orig <- dati |>
+  pivot_longer(c(PercSOC, PercTotNitro, PercTotPhos),
+               names_to  = "Variabile",
+               values_to = "Val") |>
+  mutate(
+    Variabile = recode(Variabile,
+                       PercSOC = "SOC", PercTotNitro = "N", PercTotPhos = "P"),
+    Variabile = factor(Variabile, levels = c("SOC", "N", "P"))
+  )
+
+mediana_glob_orig <- dati_traj_orig |>
+  group_by(Variabile, Bottom) |>
+  summarise(med = median(Val, na.rm = TRUE),
+            q25 = quantile(Val, 0.25, na.rm = TRUE),
+            q75 = quantile(Val, 0.75, na.rm = TRUE),
+            .groups = "drop") |>
+  arrange(Variabile, Bottom)
+
+x_labels_orig <- c("SOC" = "SOC (%)", "N" = "N (%)", "P" = "P (%)")
+
+make_traj_panel_orig <- function(var, show_y_title = FALSE) {
+  d   <- filter(dati_traj_orig,   Variabile == var) |> arrange(Field, Bottom)
+  med <- filter(mediana_glob_orig, Variabile == var) |> arrange(Bottom)
+  col <- col_trio[var]
+
+  ggplot(d, aes(x = Val, y = Bottom, group = Field)) +
+    geom_path(color = "#999999", linewidth = 0.5, alpha = 0.45) +
+    geom_point(color = "#999999", size = 1.0, alpha = 0.4) +
+    geom_ribbon(data = med, aes(xmin = q25, xmax = q75, y = Bottom, group = 1),
+                fill = col, alpha = 0.18, inherit.aes = FALSE) +
+    geom_path(data = med, aes(x = med, y = Bottom, group = 1),
+              color = col, linewidth = 1.4, lineend = "round",
+              inherit.aes = FALSE) +
+    geom_point(data = med, aes(x = med, y = Bottom, group = 1),
+               color = col, size = 2.8, shape = 21,
+               fill = "#FAFAF8", stroke = 1.3,
+               inherit.aes = FALSE) +
+    scale_y_reverse(
+      breaks = depth_num,
+      labels = paste0(depth_num, " cm"),
+      expand = expansion(mult = c(0.04, 0.06))
+    ) +
+    labs(
+      title = var,
+      x     = x_labels_orig[var],
+      y     = if (show_y_title) "Profondità (cm)" else NULL
+    ) +
+    th_traj +
+    theme(
+      axis.title.y = if (show_y_title) element_text() else element_blank(),
+      axis.text.y  = element_text(size = 9, color = "#555555")
+    )
+}
+
+p4_SOC <- make_traj_panel_orig("SOC", show_y_title = TRUE)
+p4_N   <- make_traj_panel_orig("N")
+p4_P   <- make_traj_panel_orig("P")
+
+fig4 <- (p4_SOC + p4_N + p4_P) +
+  plot_layout(ncol = 3) +
+  plot_annotation(
+    title = "Profili verticali di SOC, N e P nei 40 campi (scala originale)",
+    theme = theme(
+      plot.title      = element_text(size = 14, face = "bold", hjust = 0.5,
+                                     color = "#1A1A1A"),
+      plot.background = element_rect(fill = "#FAFAF8", color = NA)
+    )
+  )
+
+save_fig("eda_04_traiettorie_orig.pdf", fig4, w = 28, h = 18)
+
+
 message("\n✓ EDA completata — output in EDA/:")
 message("  eda_01_distribuzioni.pdf")
 message("  eda_02_gestione.pdf")
 message("  eda_03_traiettorie.pdf")
+message("  eda_04_traiettorie_orig.pdf")
