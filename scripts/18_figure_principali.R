@@ -32,12 +32,6 @@ fig_dir   <- here("output", "figures")
 cache_dir <- here("output", "cache")
 tab_dir   <- here("output", "tables")
 
-save_fig <- function(fname, p, w = 16, h = 9, u = "cm") {
-  ggplot2::ggsave(file.path(fig_dir, fname), plot = p,
-                  width = w, height = h, units = u, device = "pdf")
-  cat(sprintf("  [fig] Salvato: %s\n", fname))
-}
-
 cov_W_labels <- c("logBottom", "Texture1 (ILR1)", "Texture2 (ILR2)", "BulkDensity", "pH")
 cov_B_labels <- c("OnFarm", "Irrigate", "Fertilised", "N_Natural")
 resp_levels  <- c("SOC", "N", "P")

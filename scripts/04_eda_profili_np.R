@@ -1,5 +1,5 @@
 # =============================================================================
-# 03_eda_profili_np.R  —  EDA: analisi approfondita profili N e P
+# 04_eda_profili_np.R  —  EDA: analisi approfondita profili N e P
 #
 # Motivazione: dallo script 04 emergono due pattern:
 #   - N: pochi campi erratici sembrano mascherare un segnale nei campi "ricchi"
@@ -290,4 +290,4 @@ for (nm in c("SOC", "N", "P")) {
 cat("\n  SNR < 1 = slope stimata è più piccola del suo errore standard\n")
 cat("  (normale con pochi punti per campo, ma segnala alta incertezza)\n")
 
-cat("\n── Fine script 21b ──────────────────────────────────────────────\n")
+cat("\n── Fine script 04 ───────────────────────────────────────────────\n")

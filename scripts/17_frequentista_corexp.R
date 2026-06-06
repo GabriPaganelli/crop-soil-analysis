@@ -1,8 +1,20 @@
-# ═══════════════════════════════════════════════════════════
-# STEP 0 — Preparazione dati
-# ═══════════════════════════════════════════════════════════
+# =============================================================================
+# 17_frequentista_corexp.R  —  Modello frequentista lme (nlme) con correlazione
+#                              esponenziale residua cross-risposta
+#
+# Verifica di robustezza: la struttura di correlazione residua R stimata da
+# un modello frequentista (nlme, corSymm) è vicina alla diagonale?
+# Se R ≈ I, la correlazione cross-risposta è catturata dai RE e non dai residui,
+# confermando la scelta di MVRE.
+#
+# NOTA: script standalone. Usa nlme (non cmdstanr). I dati vengono caricati in
+#       formato long specifico per nlme con risposta e profondità.
+# Dipende da: data/dati.rds
+# =============================================================================
 
-rm(list = ls())
+
+# ── STEP 0. Preparazione dati ─────────────────────────────────────────────────
+
 library(nlme)
 library(tidyverse)
 library(here)
@@ -36,9 +48,7 @@ crop_long <- crop %>%
   mutate(response = factor(response))
 
 
-# ═══════════════════════════════════════════════════════════
-# STEP 1a — Trivariato base: R piena (corSymm) + G correlata
-# ═══════════════════════════════════════════════════════════
+# ── STEP 1a. Trivariato base: R piena (corSymm) + G correlata ─────────────────
 
 fit_step1 <- lme(
   y ~ response:(Texture1 + Texture2 + Irrigate + Fertilised +
@@ -55,9 +65,7 @@ cat("AIC:", AIC(fit_step1), "\n\n")
 summary(fit_step1)
 
 
-# ═══════════════════════════════════════════════════════════
-# STEP 1b — Visualizzazione correlazione residua R
-# ═══════════════════════════════════════════════════════════
+# ── STEP 1b. Visualizzazione correlazione residua R ───────────────────────────
 
 # Estrai correlazione residua da corSymm
 cs <- corMatrix(fit_step1$modelStruct$corStruct)[[1]]
@@ -104,13 +112,10 @@ p_G <- ggplot(re_long, aes(var1, var2, fill = cor)) +
 print(p_G)
 
 
-# ═══════════════════════════════════════════════════════════
-# STEP 2 — Semplificazione: togli corSymm (R diagonale)
-#
+# ── STEP 2. Semplificazione: togli corSymm (R diagonale) ──────────────────────
 # Motivazione: le correlazioni residue sono trascurabili
 # (0.005, 0.009, 0.112). Togliendo corSymm risparmiamo
 # 3 parametri senza perdita di informazione.
-# ═══════════════════════════════════════════════════════════
 
 fit_step2 <- lme(
   y ~ response:(Texture1 + Texture2 + Irrigate + Fertilised +
@@ -128,14 +133,10 @@ cat("Differenza AIC:", AIC(fit_step1) - AIC(fit_step2),
     "(negativo = R diagonale migliore)\n\n")
 summary(fit_step2)
 
-# ═══════════════════════════════════════════════════════════
-# STEP 3 — Test corExp per ogni risposta (modelli separati)
-#
-# Scopo: verificare per quale risposta l'autocorrelazione
-# verticale è significativa. Usiamo modelli univariati
-# perché nel formato long non è possibile specificare
+# ── STEP 3. Test corExp per ogni risposta (modelli separati) ──────────────────
+# Verifica per quale risposta l'autocorrelazione verticale è significativa.
+# Modelli univariati: nel formato long non è possibile specificare
 # corExp risposta-specifico.
-# ═══════════════════════════════════════════════════════════
 
 # --- logSOC: con e senza corExp ---
 fit_SOC_base <- lme(
@@ -200,20 +201,12 @@ cat("logN:  ", coef(fit_N_exp$modelStruct$corStruct, unconstrained = FALSE), "cm
 cat("logP:  ", coef(fit_P_exp$modelStruct$corStruct, unconstrained = FALSE), "cm\n")
 
 
-# ═══════════════════════════════════════════════════════════
-# STEP 4 — corExp selettivo per logSOC nel modello trivariato
-#
-# Scopo: integrare la correlazione esponenziale nel modello
-# trivariato mantenendo G correlata, ma applicando corExp
-# solo a logSOC (dove è significativo).
-#
-# Tecnica: coordinate bidimensionali artificiali. La prima
-# dimensione è la profondità (reale per SOC, gonfiata per
-# N e P). La seconda dimensione separa le risposte con
-# distanza enorme. corExp opera sulla distanza euclidea 2D:
-# tra profondità diverse di SOC la distanza è reale (~10 cm),
-# tra qualsiasi altra coppia è enorme (~5000) → α ≈ 0.
-# ═══════════════════════════════════════════════════════════
+# ── STEP 4. corExp selettivo per logSOC nel modello trivariato ────────────────
+# Integra la correlazione esponenziale nel modello trivariato mantenendo G
+# correlata, applicando corExp solo a logSOC (dove è significativo).
+# Tecnica: coordinate bidimensionali artificiali — profondità reale per SOC,
+# gonfiata per N e P; distanza cross-risposta enorme (~5000) → corExp ≈ 0
+# per le coppie N-N e P-P.
 
 crop_long <- crop_long %>%
   mutate(
@@ -252,17 +245,9 @@ cat(coef(fit_step4$modelStruct$corStruct, unconstrained = FALSE), "\n\n")
 summary(fit_step4)
 
 
-# ═══════════════════════════════════════════════════════════
-# STEP 5 — Test interazioni Bottom × gestione
-#
-# Scopo: verificare se il gradiente verticale dei nutrienti
-# cambia con il tipo di gestione. Es: l'irrigazione modifica
-# la velocità con cui SOC decade in profondità?
-#
-# 4 interazioni (Bottom × Irrigate, Fertilised, OnFarm,
-# N_Natural) × 3 risposte = 12 parametri aggiuntivi.
-# Test con LRT (richiede stima ML, non REML).
-# ═══════════════════════════════════════════════════════════
+# ── STEP 5. Test interazioni Bottom × gestione ────────────────────────────────
+# Verifica se il gradiente verticale cambia con la gestione
+# (4 interazioni × 3 risposte = 12 parametri). LRT via ML.
 
 fit_step5_no <- lme(
   y ~ response:(Texture1 + Texture2 + Irrigate + Fertilised +
@@ -337,19 +322,9 @@ cat("Range con value iniziale 12:", coef(fit_step4$modelStruct$corStruct, uncons
 cat("Range con value iniziale 5: ", coef(fit_test2$modelStruct$corStruct, unconstrained = FALSE), "\n")
 
 
-# ═══════════════════════════════════════════════════════════
-# STEP 6 — Analisi di confondimento: gestione vs proprietà fisiche
-#
-# Scopo: verificare se l'effetto apparente della gestione
-# è confuso con le proprietà fisiche del suolo (Texture,
-# BulkDensity). I siti on-farm potrebbero avere più SOC
-# non perché la gestione è migliore, ma perché occupano
-# suoli con tessitura e densità intrinsecamente favorevoli.
-#
-# Approccio: confrontare i coefficienti di gestione nel
-# modello completo (con covariate fisiche) vs modello
-# ridotto (senza covariate fisiche).
-# ═══════════════════════════════════════════════════════════
+# ── STEP 6. Analisi di confondimento: gestione vs proprietà fisiche ───────────
+# Confronto tra modello completo (con Texture, BulkDensity) e ridotto
+# (senza covariate fisiche) per isolare l'effetto puro della gestione.
 
 # Modello SENZA covariate fisiche (Texture1, Texture2, BulkDensity)
 fit_step6_no_phys <- lme(
@@ -399,14 +374,9 @@ for (resp in c("logSOC", "logN", "logP")) {
 }
 
 
-# ═══════════════════════════════════════════════════════════
-# STEP 7 - MODELLO FINALE: senza PH, logBottom come fisso, Bottom cm per corExp
-#
-# Modifiche rispetto a Step 4:
-#   - Rimosso PH (non significativo per nessuna risposta)
-#   - logBottom standardizzato come effetto fisso (power-law)
-#   - Bottom in cm come coordinata per corExp (range in cm)
-# ═══════════════════════════════════════════════════════════
+# ── STEP 7. Modello finale: senza PH, logBottom come fisso ────────────────────
+# Rispetto a Step 4: rimosso PH (non significativo), logBottom standardizzato
+# come effetto fisso, Bottom in cm come coordinata per corExp.
 
 # Aggiungi logBottom standardizzato al dataset
 crop$logBottom <- c(scale(log(crop$Bottom)))
@@ -460,9 +430,7 @@ cat(coef(fit_finale$modelStruct$corStruct, unconstrained = FALSE), "\n\n")
 summary(fit_finale)
 
 
-# ═══════════════════════════════════════════════════════════
-# TEST: modello finale senza N_Natural
-# ═══════════════════════════════════════════════════════════
+# ── TEST. Modello finale senza N_Natural ──────────────────────────────────────
 
 fit_finale_noNat <- lme(
   y ~ response:(Texture2 + Irrigate + Fertilised +

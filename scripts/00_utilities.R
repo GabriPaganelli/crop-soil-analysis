@@ -19,13 +19,23 @@ setup_rtools <- function() {
     PATH = paste(file.path(rtools_path, "ucrt64/bin"),
                  file.path(rtools_path, "usr/bin"),
                  Sys.getenv("PATH"), sep = ";"),
-    RTOOLS44_HOME = rtools_path
+    RTOOLS44_HOME = rtools_path,
+    RTOOLS45_HOME = rtools_path
   )
   invisible(NULL)
 }
 
-# Carica dati.rds e applica le trasformazioni standard usate in tutti gli script.
-# Restituisce un tibble con colonne log*, Field come factor, covariate scalate.
+# Salva una figura in output/figures/ come PDF.
+# Usata da tutti gli script figura (03, 12, 18, 19) in luogo della definizione locale.
+save_fig <- function(fname, p, w = 16, h = 9, u = "cm") {
+  ggplot2::ggsave(file.path(here::here("output", "figures"), fname),
+                 plot = p, width = w, height = h, units = u, device = "pdf")
+  cat(sprintf("  [fig] Salvato: %s\n", fname))
+}
+
+# Carica dati.rds e applica le trasformazioni standard (log-risposte, scaling
+# di logBottom/Texture1/Texture2/BulkDensity/PH, Field come factor).
+# Usata da tutti gli script modello (07-22) in luogo del blocco dati ripetuto.
 carica_dati <- function() {
   readRDS(here::here("data", "dati.rds")) |>
     dplyr::mutate(dplyr::across(c(OnFarm, Irrigate, Fertilised, N_Natural),
@@ -36,7 +46,7 @@ carica_dati <- function() {
       logP      = log(PercTotPhos),
       logBottom = log(Bottom)
     ) |>
-    dplyr::mutate(dplyr::across(c(logBottom, Texture1, Texture2, BulkDensity),
+    dplyr::mutate(dplyr::across(c(logBottom, Texture1, Texture2, BulkDensity, PH),
                                 ~ c(scale(.x)))) |>
     dplyr::mutate(Field = factor(Field))
 }
