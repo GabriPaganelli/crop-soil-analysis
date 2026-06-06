@@ -153,12 +153,15 @@ if (file.exists(varsel_path)) {
           p <- tryCatch(
             plot(vs_obj, stats = "elpd", deltas = TRUE) +
               ggtitle(sprintf("log%s", nm)) +
-              labs(x = "Numero di predittori", y = "ΔELPD") +
-              theme_minimal(base_size = 11) +
+              labs(x = "N. predittori", y = expression(Delta * "ELPD")) +
+              theme_minimal(base_size = 13) +
               theme(
-                plot.title  = element_text(face = "bold", colour = resp_colors[nm]),
-                axis.title  = element_text(size = 9),
-                axis.text   = element_text(size = 8)
+                plot.title       = element_text(face = "bold", size = 14,
+                                                colour = resp_colors[nm]),
+                axis.title       = element_text(size = 12),
+                axis.text.x      = element_text(size = 11, angle = 40, hjust = 1),
+                axis.text.y      = element_text(size = 11),
+                panel.grid.minor = element_blank()
               ),
             error = function(e) {
               cat(sprintf("  Errore plot %s: %s\n", nm, conditionMessage(e))); NULL
@@ -174,13 +177,13 @@ if (file.exists(varsel_path)) {
         p_panel <- wrap_plots(pp_ok, ncol = 3) +
           plot_annotation(
             title    = "Selezione variabili (projpred forward search, PSIS-LOO)",
-            subtitle = "ΔELPD rispetto al reference model M-SP-RIRS. Linea tratteggiata = soglia α=0.10",
+            subtitle = expression(Delta * "ELPD rispetto al reference model M-SP-RIRS-MVRE  —  linea tratteggiata: soglia α = 0.10"),
             theme    = theme(
-              plot.title    = element_text(face = "bold", size = 12),
-              plot.subtitle = element_text(size = 10, colour = "grey40")
+              plot.title    = element_text(face = "bold", size = 14),
+              plot.subtitle = element_text(size = 12, colour = "grey35")
             )
           )
-        save_fig("fig_17_projpred_panel.pdf", p_panel, w = 22, h = 8)
+        save_fig("fig_17_projpred_panel.pdf", p_panel, w = 24, h = 12)
       } else {
         cat("  AVVISO: meno di 2 pannelli prodotti, fig_17 non salvata.\n")
         cat("  I 3 grafici individuali in fig_08_projpred_*.pdf rimangono validi.\n")

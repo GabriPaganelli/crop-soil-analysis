@@ -138,20 +138,73 @@ print(
     count(texture, sort = TRUE)
 )
 
-p_triangle <- plot_texture_triangle(crop, version = "ttplot")
+# ── Classe tessiturale USDA per ogni osservazione ────────────────────────────
+mat_tex_full <- TT.points.in.classes(
+  tri.data  = data.frame(SAND = crop$PercSand, SILT = crop$PercSilt,
+                         CLAY = crop$PercClay),
+  class.sys = "USDA.TT"
+)
+texture_class <- apply(mat_tex_full, 1, function(x) {
+  nm <- names(x)[x > 0]; if (length(nm)) nm[1] else NA_character_
+})
+crop$TextureClass <- factor(texture_class)
 
-# Salva per il report
+# ── Triangolo USDA (ggtern, punti colorati per classe) ────────────────────────
+p_triangle <- plot_texture_triangle(crop, color_var = "TextureClass",
+                                    version = "ggtern")
+
+# ── ILR biplot: Texture1 vs Texture2 colorato per classe tessiturale ──────────
+df_ilr <- data.frame(
+  Texture1 = ilr_gran[, 1],
+  Texture2 = ilr_gran[, 2],
+  Classe   = crop$TextureClass
+)
+
+# Usa la stessa palette del triangolo
+tex_lvls  <- levels(crop$TextureClass)
+base_pal  <- c("#2166ac", "#4393c3", "#1a9850", "#74c476", "#fdae61",
+               "#d73027", "#762a83", "#e08214", "#a6761d", "#666666",
+               "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e")
+tex_pal   <- setNames(base_pal[seq_len(min(length(tex_lvls), length(base_pal)))],
+                      tex_lvls)
+
+p_ilr_report <- ggplot(df_ilr, aes(x = Texture1, y = Texture2, colour = Classe)) +
+  geom_point(alpha = 0.75, size = 2.2) +
+  scale_colour_manual(values = tex_pal, name = "Classe USDA") +
+  labs(
+    title    = "Coordinate ILR",
+    subtitle = "Texture1 vs Texture2  —  colore per classe USDA",
+    x        = expression("Texture"[1] ~ "(ILR"[1] * "):  contrasto argilla / limo"),
+    y        = expression("Texture"[2] ~ "(ILR"[2] * "):  finezza vs sabbia")
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title    = element_text(face = "bold"),
+    plot.subtitle = element_text(colour = "grey40", size = 9),
+    legend.position = "right"
+  )
+
+# ── Figura combinata per il report ────────────────────────────────────────────
 dir.create(here("output", "figures"), recursive = TRUE, showWarnings = FALSE)
-if (!is.null(p_triangle) && inherits(p_triangle, "ggplot")) {
-  ggplot2::ggsave(here("output", "figures", "fig_texture_triangle.pdf"),
-                  plot = p_triangle, width = 14, height = 14, units = "cm", device = "pdf")
-  cat("Salvato: output/figures/fig_texture_triangle.pdf\n")
-} else {
-  # Salva come raster se la funzione restituisce un plot base
-  pdf(here("output", "figures", "fig_texture_triangle.pdf"), width = 6, height = 6)
-  plot_texture_triangle(crop, version = "ttplot")
-  dev.off()
-  cat("Salvato (PDF base): output/figures/fig_texture_triangle.pdf\n")
+
+# Salva il triangolo da solo (per la caption del report)
+ggplot2::ggsave(here("output", "figures", "fig_texture_triangle.pdf"),
+                plot = p_triangle, width = 14, height = 14, units = "cm",
+                device = cairo_pdf)
+cat("Salvato: output/figures/fig_texture_triangle.pdf\n")
+
+# Salva il pannello combinato triangolo + ILR
+if (inherits(p_triangle, "ggplot")) {
+  p_tex_combined <- p_triangle + p_ilr_report +
+    plot_layout(widths = c(1, 1), guides = "collect") +
+    plot_annotation(
+      title = "Distribuzione tessiturale delle 220 osservazioni",
+      theme = theme(plot.title = element_text(face = "bold", size = 13))
+    )
+  ggplot2::ggsave(here("output", "figures", "fig_texture_combined.pdf"),
+                  plot = p_tex_combined, width = 26, height = 13, units = "cm",
+                  device = cairo_pdf)
+  cat("Salvato: output/figures/fig_texture_combined.pdf\n")
 }
 
 cat("\n── Fine script 02 ─────────────────────────────────────────────\n")
