@@ -236,26 +236,27 @@ covariate \textit{within-field} ($\log \texttt{bottom}$, \texttt{Texture$_1$}, \
 dove $y_{ij}$ è l'osservazione alla profondità $j$ nel campo $i$, 
 $\mathbf{x}_{ij}$ è il vettore delle covariate, $u_i$ è l'intercetta casuale del campo $i$.
 
-Prima di stimare i modelli, le covariate continue sono state standardizzate.
+Prima di stimare i modelli, le covariate continue sono state standardizzate
+(incluso $\log B$, centrato sulla propria media).
 Per SOC e N emergono gli stessi predittori significativi:
-la profondit\`a con effetto nonlineare (termine lineare e quadratico entrambi
-significativi, $p < 0.001$ e $p < 0.01$ rispettivamente), \texttt{Texture$_2$}
-($\hat\beta_{\mathrm{SOC}} = -0.52$, $\hat\beta_{\mathrm{N}} = -0.31$,
+$\log B$ ($p < 0.001$), \texttt{Texture$_2$}
+($\hat\beta_{\mathrm{SOC}} = -0.50$, $\hat\beta_{\mathrm{N}} = -0.30$,
 entrambi $p < 0.001$) e \texttt{BulkDensity}
-($\hat\beta_{\mathrm{SOC}} = -0.26$, $\hat\beta_{\mathrm{N}} = -0.18$,
-entrambi $p < 0.01$). \texttt{pH} e \texttt{Texture$_1$} non risultano significativi.
+($\hat\beta_{\mathrm{SOC}} = -0.28$, $p < 0.01$;
+ $\hat\beta_{\mathrm{N}} = -0.19$, $p < 0.001$).
+\texttt{pH} e \texttt{Texture$_1$} non risultano significativi.
 Tutte le variabili di gestione sono non significative per entrambe le risposte.
 
-Per \texttt{P} il quadro \`e opposto: la profondit\`a non \`e significativa
-n\`e nel termine lineare n\`e in quello quadratico, e nessuna covariata fisica
-risulta predittiva. Al contrario, emergono effetti di gestione significativi:
-\texttt{OnFarm} ($\hat\beta = 0.72$, $p = 0.012$) e \texttt{Irrigate}
-($\hat\beta = 0.47$, $p = 0.008$).
+Per \texttt{P} il quadro \`e opposto: $\log B$ non \`e significativo ($p = 0.10$)
+e nessuna covariata fisica risulta predittiva. Al contrario, emergono effetti di
+gestione significativi: \texttt{OnFarm} ($\hat\beta = 0.72$, $p = 0.011$) e
+\texttt{Irrigate} ($\hat\beta = 0.47$, $p = 0.008$).
 Questo pattern \`e biologicamente coerente: il fosforo \`e poco mobile nel
 suolo e non mostra un decadimento verticale sistematico; la sua concentrazione
 superficiale \`e invece influenzata dalle pratiche agronomiche.
 
-Sul fronte degli effetti casuali, i coefficienti di correlazione intraclasse ($\mathrm{ICC} \approx 0.23$ per SOC, $0.26$ per N, $0.32$ per P)
+Sul fronte degli effetti casuali, i coefficienti di correlazione intraclasse
+($\mathrm{ICC} \approx 0.22$ per SOC, $0.26$ per N, $0.33$ per P)
 indicano che parte della varianza non spiegata dalle covariate
 \`e attribuibile alle differenze tra campi, la struttura gerarchica \`e quindi giustificata.
 

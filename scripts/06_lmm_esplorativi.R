@@ -6,7 +6,7 @@
 #
 # ── Variante A (Sezione 1) ── modello base con covariabili binarie (0/1)
 #    Risposta log-scale; predittori: N_Natural, OnFarm, Irrigate, Fertilised,
-#    Bottom_c, PH, BulkDensity, Texture1, Texture2
+#    logBottom_c, PH, BulkDensity, Texture1, Texture2
 #
 # ── Variante B (Sezione 2) ── usa Landuse (7 livelli) come between-field
 #    Al posto dei 4 binari, una singola variabile categorica.
@@ -49,8 +49,7 @@ rename <- dplyr::rename
 # ──────────────────────────────────────────────────────────────────────────────
 
 dati <- readRDS(here("data", "dati.rds"))
-dati$Bottom_c  <- dati$Bottom - mean(dati$Bottom)
-dati$Bottom_c2 <- dati$Bottom_c^2
+dati$logBottom_c <- log(dati$Bottom) - mean(log(dati$Bottom))
 
 dati <- dati |>
   mutate(
@@ -77,12 +76,16 @@ cat(sprintf("  G 6×6 (int + slope):   %d param,  %.1f gruppi/param → AL LIMIT
 
 # Correlazione BLUP empirica
 formula_fx <- "~ N_Natural + OnFarm + Irrigate + Fertilised +
-                 Bottom_c + Bottom_c2 + PH + BulkDensity + Texture1 + Texture2"
+                 logBottom_c + PH + BulkDensity + Texture1 + Texture2"
+
+dati_sc <- dati |> mutate(
+  across(c(logBottom_c, BulkDensity, PH, Texture1, Texture2), scale)
+)
 
 m_uni <- setNames(
   lapply(target_vars, function(y) {
     lmer(as.formula(paste(y, formula_fx, "+ (1 | Field)")),
-         data = dati, REML = TRUE)
+         data = dati_sc, REML = TRUE)
   }),
   target_vars
 )
@@ -96,7 +99,7 @@ print(round(cor(blup_mat), 3))
 # MCMCglmm — random intercept
 dati_long <- dati |>
   select(Field, N_Natural, OnFarm, Irrigate, Fertilised,
-         Bottom_c, Bottom_c2, PH, BulkDensity, Texture1, Texture2,
+         logBottom_c, PH, BulkDensity, Texture1, Texture2,
          logSOC, logN, logP) |>
   pivot_longer(cols = all_of(target_vars),
                names_to  = "componente",
@@ -111,7 +114,7 @@ prior_int <- list(
 
 formula_mcmc <- y ~ componente - 1 +
   componente:N_Natural + componente:OnFarm + componente:Irrigate + componente:Fertilised +
-  componente:Bottom_c + componente:Bottom_c2 +
+  componente:logBottom_c +
   componente:PH + componente:BulkDensity + componente:Texture1 + componente:Texture2
 
 cat("\nAvvio MCMCglmm — variante base (G 3×3)...\n")
@@ -150,7 +153,7 @@ prior_slope <- list(
 set.seed(43)
 m_A_slope <- MCMCglmm(
   formula_mcmc,
-  random  = ~ us(componente + componente:Bottom_c):Field,
+  random  = ~ us(componente + componente:logBottom_c):Field,
   rcov    = ~ us(componente):units,
   family  = "gaussian",
   prior   = prior_slope,
@@ -170,7 +173,7 @@ dati_s <- dati |>
 m_sommer <- tryCatch(
   mmer(cbind(logSOC, logN, logP) ~
          N_Natural + OnFarm + Irrigate + Fertilised +
-         Bottom_c + Bottom_c2 + PH + BulkDensity + Texture1 + Texture2,
+         logBottom_c + PH + BulkDensity + Texture1 + Texture2,
        random  = ~ vsr(Field, Gtc = unsm(3)),
        rcov    = ~ vsr(units, Gtc = unsm(3)),
        data    = as.data.frame(dati_s), verbose = FALSE),
@@ -192,7 +195,7 @@ dati2 <- dati |>
   mutate(Landuse = relevel(factor(crop$Landuse), ref = "4"))
 
 dati_long2 <- dati2 |>
-  select(Field, Landuse, Bottom_c, Bottom_c2, PH, BulkDensity, Texture1, Texture2,
+  select(Field, Landuse, logBottom_c, PH, BulkDensity, Texture1, Texture2,
          logSOC, logN, logP) |>
   pivot_longer(cols = all_of(target_vars),
                names_to  = "componente",
@@ -202,7 +205,7 @@ dati_long2 <- dati2 |>
 
 formula_B <- y ~ componente - 1 +
   componente:Landuse +
-  componente:Bottom_c + componente:Bottom_c2 +
+  componente:logBottom_c +
   componente:PH + componente:BulkDensity + componente:Texture1 + componente:Texture2
 
 set.seed(44)
@@ -240,7 +243,7 @@ dati3 <- dati |>
 
 dati_long3 <- dati3 |>
   select(Field, N_Natural, OnFarm, Irrigate, Fertilised,
-         Bottom_c, Bottom_c2, PH, BulkDensity, Texture1, Texture2,
+         logBottom_c, PH, BulkDensity, Texture1, Texture2,
          ySOC, yN, yP) |>
   pivot_longer(cols = c(ySOC, yN, yP),
                names_to  = "componente",
@@ -250,7 +253,7 @@ dati_long3 <- dati3 |>
 
 formula_C <- y ~ componente - 1 +
   componente:N_Natural + componente:OnFarm + componente:Irrigate + componente:Fertilised +
-  componente:Bottom_c + componente:Bottom_c2 +
+  componente:logBottom_c +
   componente:PH + componente:Texture1 + componente:Texture2
 
 set.seed(45)
