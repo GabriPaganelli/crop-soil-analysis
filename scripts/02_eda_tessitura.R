@@ -215,7 +215,7 @@ p_tri_ttplot <- wrap_elements(full = ~{
 })
 
 p_tex_combined <- p_tri_ttplot + p_ilr_report +
-  plot_layout(widths = c(1.4, 1)) +
+  plot_layout(widths = c(2, 1)) +
   plot_annotation(
     title = "Tessitura del suolo per categoria d'uso",
     theme = theme(plot.title = element_text(face = "bold", size = 12))
