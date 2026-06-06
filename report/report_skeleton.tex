@@ -188,50 +188,94 @@ ILR (base di Helmert via \texttt{compositions::ilr}):
 \section{Analisi esplorativa}
 \label{sec:eda}
 
-\subsection{Scelta della forma funzionale}
+La Figura~\ref{fig:eda_traj} mostra i profili verticali dei 40 campi per le tre
+risposte in scala logaritmica. Il decadimento con la profondità è evidente per SOC e N, mentre per
+P la tendenza è più debole. Si osserva una notevole variabilità tra le traiettorie, giustificando l'introduzione di un'intercetta casuale per campo.
+Inoltre, le traiettorie individuali non sono parallele,
+indicando che la velocità di decadimento con la profondità varia
+sistematicamente da campo a campo. 
 
-\subsection{Variabilit\`a tra campi: ICC}
+Per SOC e N si osserva un'apparente risalita dei valori all'ultima profondità 
+di campionamento (80 cm). Questo è tuttavia riconducibile a un artefatto nel disegno di campionamento: non tutti i campi raggiungono 80 cm 
+di profilo campionato, e le traiettorie visibili a tale quota rappresentano 
+pertanto un sottoinsieme selezionato di campi. Considerando
+esclusivamente i campi con profilo completo fino a 80 cm, si osserva 
+che il decadimento rimane monotono anche all'ultima profondità per SOC e N.
 
-\todo{ICC $\approx 0.72$ per logSOC dal modello nullo lmer; random intercept
-necessario e ben identificato.}
-
-\subsection{Profili verticali individuali}
-RENDERE VERTICALE e aggiungere P e togliere scritte brutte
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.8\linewidth]{fig02_spaghetti.pdf}
-  \caption{Spaghetti plot dei profili verticali di logSOC (colorati per livello
-    medio del campo) e logN (grigio). I campi con SOC elevato mostrano profili
-    pi\`u piatti.}
-  \label{fig:spaghetti}
+  \includegraphics[width=\linewidth]{fig_eda_traiettorie.pdf}
+  \caption{Profili verticali di SOC, N e P nei 40 campi (scala log).
+    Linee grigie: singoli campi; linea colorata: mediana globale per profondit\`a;
+    banda: intervallo interquartile.}
+  \label{fig:eda_traj}
 \end{figure}
 
-\subsection{Correlazione intercetta--slope: motivazione empirica di M-SP}
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.8\linewidth]{fig03_scatter.pdf}
-  \caption{rimuovibile}
-  \label{fig:scatter}
-\end{figure}
-
-A parole: correlazione tra slope e intercept
-
-\subsection{Struttura spaziale}
-
-\todo{Moran's I e semivariogramma: nessuna autocorrelazione significativa per
-N e P; SOC debole. Conclusione: GP non necessario (confermato da LOO-CV,
-Sezione~\ref{subsec:loo4}).}
-
-
-% ==============================================================================
-\section{Modello statistico e inferenza}
+% =============================================================================
+\section{Modelli statistici e inferenza}
 \label{sec:modello}
 
-\subsection{Selezione dell'approccio modellistico}
+\subsection{Analisi preliminari}
 
-Alla luce delle caratteristiche dei dati e della struttura suggerita dai primi modelli esplorativi, si propone un modello che tiene conto degli effetti fissi delle covariate, specifiche del singolo campo e del singolo carotaggio, oltre ad effetti casuali che catturano la variabilità tra campi sia nel livello medio sia nella rapidità di decadimento delle sostanze lungo il profilo. La struttura gerarchica consente inoltre di modellare congiuntamente le tre risposte (SOC, N e P), permettendo correlazioni tra gli effetti casuali appartenenti allo stesso campo. Si assume invece indipendenza condizionale tra i residui delle tre risposte. L'approccio bayesiano è adottato per favorire il \textit{borrowing of information} tra parametri e garantire maggiore stabilità inferenziale in presenza di un numero elevato di parametri rispetto alla dimensione del campione.
+In prima istanza, le tre variabili risposta sono state trattate come indipendenti e modellate separatamente tramite modelli univariati.
+Un modello a intercetta casuale per campo consente al 
+livello medio della risposta di variare tra campi, in modo tale da tenere conto delle caratteristiche intrinseche di ogni terreno. Gli effetti fissi comprendono le 
+covariate \textit{within-field} ($\log \texttt{bottom}$, \texttt{Texture$_1$}, \texttt{Texture$_2$}, 
+\texttt{BulkDensity}, \texttt{pH}) e le covariate \textit{between-field} (\texttt{OnFarm}, \texttt{Irrigate}, 
+\texttt{Fertilised}, \texttt{N\_Natural}). Il modello assume la forma
+%
+\begin{equation}
+	y_{ij} = \alpha + \mathbf{x}_{ij}^\top \boldsymbol{\beta} + u_i + \varepsilon_{ij},
+	\qquad u_i \sim \mathcal{N}(0,\, \sigma^2_u), 
+	\quad \varepsilon_{ij} \sim \mathcal{N}(0,\, \sigma^2_\varepsilon),
+	\label{eq:ri}
+\end{equation}
+%
+dove $y_{ij}$ è l'osservazione alla profondità $j$ nel campo $i$, 
+$\mathbf{x}_{ij}$ è il vettore delle covariate, $u_i$ è l'intercetta casuale del campo $i$.
+
+Prima di stimare i modelli, le covariate continue sono state standardizzate.
+Per SOC e N emergono gli stessi predittori significativi:
+la profondit\`a con effetto nonlineare (termine lineare e quadratico entrambi
+significativi, $p < 0.001$ e $p < 0.01$ rispettivamente), \texttt{Texture$_2$}
+($\hat\beta_{\mathrm{SOC}} = -0.52$, $\hat\beta_{\mathrm{N}} = -0.31$,
+entrambi $p < 0.001$) e \texttt{BulkDensity}
+($\hat\beta_{\mathrm{SOC}} = -0.26$, $\hat\beta_{\mathrm{N}} = -0.18$,
+entrambi $p < 0.01$). \texttt{pH} e \texttt{Texture$_1$} non risultano significativi.
+Tutte le variabili di gestione sono non significative per entrambe le risposte.
+
+Per \texttt{P} il quadro \`e opposto: la profondit\`a non \`e significativa
+n\`e nel termine lineare n\`e in quello quadratico, e nessuna covariata fisica
+risulta predittiva. Al contrario, emergono effetti di gestione significativi:
+\texttt{OnFarm} ($\hat\beta = 0.72$, $p = 0.012$) e \texttt{Irrigate}
+($\hat\beta = 0.47$, $p = 0.008$).
+Questo pattern \`e biologicamente coerente: il fosforo \`e poco mobile nel
+suolo e non mostra un decadimento verticale sistematico; la sua concentrazione
+superficiale \`e invece influenzata dalle pratiche agronomiche.
+
+Sul fronte degli effetti casuali, i coefficienti di correlazione intraclasse ($\mathrm{ICC} \approx 0.23$ per SOC, $0.26$ per N, $0.32$ per P)
+indicano che parte della varianza non spiegata dalle covariate
+\`e attribuibile alle differenze tra campi, la struttura gerarchica \`e quindi giustificata.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=\linewidth]{fig_eda_blup_cross.pdf}
+	\caption{Grafici di dispersione delle intercette casuali di campo stimate dai modelli a intercetta casuale
+		univariati.}
+	\label{fig:eda_blup}
+\end{figure}
+
+Tuttavia, questi modelli presentano un limite strutturale: le tre risposte
+sono stimate in modo indipendente l'una dall'altra. La correlazione
+positiva tra le intercette casuali di SOC e N evidenziata in
+Figura~\ref{fig:eda_blup} ($r \approx 0.37$)
+indica che una parte rilevante della variabilit\`a tra campi \`e condivisa
+tra nutrienti e non \`e catturata da questo approccio marginale.
+
+Questi limiti motivano l'adozione di un approccio multivariato in cui
+gli effetti casuali delle tre risposte sono modellati congiuntamente.
 
 \subsection{Struttura del modello finale}
 \label{subsec:msp}
