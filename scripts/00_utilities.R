@@ -1254,7 +1254,8 @@ plot_texture_triangle <- function(df,
     ) +
     theme_bw() +
     theme_showarrows() +
-    labs(title = NULL, x = "Sand", y = "Clay", z = "Silt") +
+    theme_hidetitles() +
+    labs(title = NULL) +
     theme(
       legend.title = element_text(face = "bold"),
       legend.key   = element_rect(colour = "gray80"),
