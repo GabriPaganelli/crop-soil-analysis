@@ -150,27 +150,28 @@ texture_class <- apply(mat_tex_full, 1, function(x) {
 crop$TextureClass <- factor(texture_class)
 
 # ── Triangolo USDA (ggtern, punti colorati per classe) ────────────────────────
+tex_ttplot <- data.frame(SAND = crop$PercSand, SILT = crop$PercSilt, CLAY = crop$PercClay)
+
 p_triangle <- plot_texture_triangle(crop, color_var = "TextureClass",
                                     show_legend = FALSE, version = "ggtern")
 
-# ── ILR biplot: Texture1 vs Texture2 colorato per classe tessiturale ──────────
+# ── ILR biplot: Texture1 vs Texture2 colorato per Landuse ────────────────────
+land_lvls <- as.character(sort(unique(crop$Landuse)))
+pal_land  <- setNames(
+  c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+    "#FF7F00", "#A65628", "#F781BF")[seq_along(land_lvls)],
+  land_lvls
+)
+
 df_ilr <- data.frame(
   Texture1 = ilr_gran[, 1],
   Texture2 = ilr_gran[, 2],
-  Classe   = crop$TextureClass
+  Landuse  = factor(crop$Landuse)
 )
 
-# Usa la stessa palette del triangolo
-tex_lvls  <- levels(crop$TextureClass)
-base_pal  <- c("#2166ac", "#4393c3", "#1a9850", "#74c476", "#fdae61",
-               "#d73027", "#762a83", "#e08214", "#a6761d", "#666666",
-               "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e")
-tex_pal   <- setNames(base_pal[seq_len(min(length(tex_lvls), length(base_pal)))],
-                      tex_lvls)
-
-p_ilr_report <- ggplot(df_ilr, aes(x = Texture1, y = Texture2, colour = Classe)) +
+p_ilr_report <- ggplot(df_ilr, aes(x = Texture1, y = Texture2, colour = Landuse)) +
   geom_point(alpha = 0.75, size = 2.2) +
-  scale_colour_manual(values = tex_pal, name = "Classe USDA") +
+  scale_colour_manual(values = pal_land, name = "Landuse") +
   labs(
     title = NULL,
     x     = expression("Texture"[1] ~ "(argilla / limo)"),
@@ -188,18 +189,33 @@ ggplot2::ggsave(here("output", "figures", "fig_texture_triangle.pdf"),
                 device = cairo_pdf)
 cat("Salvato: output/figures/fig_texture_triangle.pdf\n")
 
-# Salva il pannello combinato: legenda solo nell'ILR, no titoli di pannello
-if (inherits(p_triangle, "ggplot")) {
-  p_tex_combined <- p_triangle + p_ilr_report +
-    plot_layout(widths = c(1, 1)) +
-    plot_annotation(
-      title = "Tessitura del suolo: distribuzione e coordinate ILR",
-      theme = theme(plot.title = element_text(face = "bold", size = 12))
-    )
-  ggplot2::ggsave(here("output", "figures", "fig_texture_combined.pdf"),
-                  plot = p_tex_combined, width = 26, height = 13, units = "cm",
-                  device = cairo_pdf)
-  cat("Salvato: output/figures/fig_texture_combined.pdf\n")
-}
+# Salva il pannello combinato: TT.plot (Landuse) + ILR biplot (Landuse)
+col_land <- pal_land[as.character(crop$Landuse)]
+
+p_tri_ttplot <- wrap_elements(full = ~{
+  TT.plot(
+    class.sys      = "USDA.TT",
+    tri.data       = tex_ttplot,
+    bg             = "white", frame.bg.col = "white",
+    class.p.bg.col = colori_trasparenti,
+    class.line.col = "grey60",
+    class.lab.show = "abr", class.lab.col = "#3A2408", cex.lab = 0.75,
+    pch = 16, col = col_land, cex = 0.7, cex.axis = 0.6,
+    arrows.show = FALSE
+  )
+  legend("topright", legend = paste("Landuse", land_lvls),
+         col = pal_land, pch = 16, bty = "n", cex = 0.75, title = "Landuse")
+})
+
+p_tex_combined <- p_tri_ttplot + p_ilr_report +
+  plot_layout(widths = c(1, 1)) +
+  plot_annotation(
+    title = "Tessitura del suolo per categoria d'uso",
+    theme = theme(plot.title = element_text(face = "bold", size = 12))
+  )
+ggplot2::ggsave(here("output", "figures", "fig_texture_combined.pdf"),
+                plot = p_tex_combined, width = 26, height = 13, units = "cm",
+                device = cairo_pdf)
+cat("Salvato: output/figures/fig_texture_combined.pdf\n")
 
 cat("\n── Fine script 02 ─────────────────────────────────────────────\n")
