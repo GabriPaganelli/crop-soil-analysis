@@ -46,14 +46,14 @@ validate_prerequisites <- function() {
   # Solo i prerequisiti che non vengono prodotti dalla pipeline stessa
   required_files <- list(
     dati      = here("data", "dati.rds"),
-    stan_07   = here("stan", "m4rr_v2_no_gp_mu.stan"),
-    stan_08   = here("stan", "m4rr_v2_ri_slope_mu.stan"),
-    stan_09   = here("stan", "m_sp_rirs.stan"),
-    stan_mvre = here("stan", "m_sp_rirs_mvre.stan"),
-    stan_A    = here("stan", "m_sp_rirs_mvre_A.stan"),
-    stan_B    = here("stan", "m_sp_rirs_mvre_B.stan"),
-    stan_full = here("stan", "m_sp_rirs_mvre_full.stan"),
-    stan_gp   = here("stan", "m_sp_rirs_mvre_gp.stan")
+    stan_07   = here("stan", "model_ri.stan"),
+    stan_08   = here("stan", "model_ri_slope.stan"),
+    stan_09   = here("stan", "model_rirs.stan"),
+    stan_mvre = here("stan", "model_mvre.stan"),
+    stan_A    = here("stan", "model_mvre_A.stan"),
+    stan_B    = here("stan", "model_mvre_B.stan"),
+    stan_full = here("stan", "model_mvre_full.stan"),
+    stan_gp   = here("stan", "model_mvre_gp.stan")
   )
 
   for (nm in names(required_files)) {

@@ -21,6 +21,10 @@
 % ── Matematica ─────────────────────────────────────────────────────────────────
 \usepackage{amsmath, amssymb, bm}
 \usepackage{mathtools}
+\setlength{\abovedisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\abovedisplayshortskip}{2pt plus 1pt}
+\setlength{\belowdisplayshortskip}{4pt plus 2pt minus 2pt}
 
 % ── Tabelle ────────────────────────────────────────────────────────────────────
 \usepackage{booktabs}
@@ -107,6 +111,7 @@
 \begin{abstract}
 \noindent
 La distribuzione verticale dei nutrienti del suolo è un indicatore chiave della qualità agronomica, ma i meccanismi che determinano le differenze tra campi nella forma del profilo di profondità restano poco quantificati. In questo lavoro analizziamo i profili verticali di carbonio organico (SOC), azoto totale e fosforo totale in 40 campi agricoli, con misurazioni fino a sei profondità per campo, per un totale di 220 osservazioni. Sviluppiamo un modello bayesiano gerarchico con pendenza proporzionale che stima esplicitamente come la variabilità inter-campo del profilo verticale cambi con la profondità. I risultati mostrano che i campi con maggiore contenuto medio di carbonio organico presentano profili significativamente più uniformi: la fertilità carboniosa si conserva meglio in profondità. Per l'azoto questo \textit{pattern} è assente; per il fosforo è presente con evidenza moderata. La selezione predittiva identifica la tessitura fine (contrasto frazioni fini/sabbia) come principale predittore \textit{within-field}, mentre le pratiche di gestione risultano essenzialmente non significative dopo aver controllato per la struttura fisica del suolo. A differenza degli approcci standard basati su confronti stratificati per profondità, il modello proposto fornisce stime inferenziali dirette della relazione tra livello medio di campo e forma del profilo verticale, aprendo la strada a una caratterizzazione quantitativa dell'eterogeneità agronomica tra campi.
+Il codice è disponibile su: \url{https://github.com/GabriPaganelli/crop-soil-analysis}.
 \end{abstract}
 
 \newpage
@@ -118,9 +123,9 @@ La distribuzione verticale dei nutrienti del suolo è un indicatore chiave della
 \label{sec:intro}
 
 
-La gestione degli spazi agricoli si presenta come un problema molto complesso, in cui le caratteristiche geo-fisiche del suolo interagiscono con diversi tipi di trattamenti artificiali per definirne la composizione chimica.
-È fondamentale quindi riuscire a studiare come avvengono queste dinamiche e quantificare il loro impatto, così da attuare una gestione il più efficace possibile, al fine di massimizzare la rendita agricola.
-In questo studio si analizzerà il \textit{dataset} \texttt{crop}, contenente rilevazioni effettuate in campi agricoli nel Sud della Tanzania, con l'obiettivo di valutare come varia la ricchezza del suolo rispetto a tipi di trattamenti e gestioni differenti.
+La distribuzione verticale dei nutrienti del suolo è un indicatore fondamentale della qualità agronomica: un campo che conserva materia organica anche negli strati profondi risponde in modo diverso agli input gestionali rispetto a uno in cui la fertilità è concentrata nella sola superficie. Quantificare questa variabilità inter-campo, intesa non soltanto come differenza nel livello medio ma anche nella forma del profilo verticale, è un passaggio necessario per caratterizzare l'eterogeneità agronomica del territorio.
+
+Gli approcci standard modellano i profili con ANOVA stratificata per profondità o con modelli misti a sola intercetta casuale, analizzando i nutrienti separatamente. Questi metodi stimano il livello medio di campo ma non la variabilità nella pendenza verticale, né la covariazione tra nutrienti a livello di campo. Con poche decine di campi ciascuno misurato a più profondità, la stima di queste strutture richiede una regolarizzazione esplicita, che l'approccio bayesiano fornisce in modo naturale attraverso le distribuzioni a priori. In questo lavoro si adotta un modello gerarchico multivariato che stima entrambe le strutture, con l'obiettivo di valutare se e in che misura le proprietà fisiche del suolo e le pratiche di gestione ne spiegano la variabilità.
 
 
 % ==============================================================================
@@ -138,7 +143,7 @@ Le tre variabili risposta (carbonio organico, azoto totale e fosforo totale) son
 
 che stabilizza la varianza e linearizza la relazione con la profondità. Le tre percentuali non condividono alcun vincolo di somma e i valori osservati rimangono ampiamente al di sotto del 100\%, rendendo superfluo qualsiasi aggiustamento composizionale.
 
-Alcune caratteristiche del suolo variano all'interno dello stesso campo al variare della profondità. Il pH e la densità apparente (\texttt{BulkDensity}) descrivono l'acidità e la compattazione del suolo lungo il profilo. La composizione granulometrica richiede invece un trattamento particolare: argilla, limo e sabbia sommano per costruzione al 100\%, definendo un sistema composizionale in cui le tre frazioni non sono linearmente indipendenti. Inserirle direttamente come predittori introdurrebbe una dipendenza lineare perfetta e correlazioni spurie tra i coefficienti. Si è pertanto applicata la trasformazione Isometric Log-Ratio (ILR) \citep{egozcue2003isometric}, che ricava due coordinate ortogonali prive di vincolo:
+Alcune caratteristiche del suolo differiscono all'interno dello stesso campo con la profondità. Il pH e la densità apparente (\texttt{BulkDensity}) descrivono l'acidità e la compattazione del suolo lungo il profilo. La composizione granulometrica richiede invece un trattamento particolare: argilla, limo e sabbia sommano per costruzione al 100\%, definendo un sistema composizionale in cui le tre frazioni non sono linearmente indipendenti. Inserirle direttamente come predittori introdurrebbe una dipendenza lineare perfetta e correlazioni spurie tra i coefficienti. Si è pertanto applicata la trasformazione Isometric Log-Ratio (ILR) \citep{egozcue2003isometric}, che ricava due coordinate ortogonali prive di vincolo:
 
 \[
   T_1 = \sqrt{\tfrac{1}{2}}\,\log\!\left(\frac{\text{Clay}}{\text{Silt}}\right),
@@ -147,35 +152,12 @@ Alcune caratteristiche del suolo variano all'interno dello stesso campo al varia
         \log\!\left(\frac{\sqrt{\text{Clay}\cdot\text{Silt}}}{\text{Sand}}\right).
 \]
 
-Le due coordinate, denominate \texttt{Texture1} e \texttt{Texture2}, hanno un'interpretazione diretta: $T_1$ cattura il contrasto tra argilla e limo all'interno della frazione fine, $T_2$ il gradiente tra le frazioni fini nel loro insieme e la sabbia. La distribuzione delle osservazioni nello spazio tessiturale è illustrata in Figura~\ref{fig:texture_triangle}: le 220 osservazioni ricadono in sei classi USDA, con una concentrazione nelle zone limosa e franco-limosa.
+Le due coordinate, denominate \texttt{Texture1} e \texttt{Texture2}, hanno un'interpretazione diretta: $T_1$ cattura il contrasto tra argilla e limo all'interno della frazione fine, $T_2$ il gradiente tra le frazioni fini nel loro insieme e la sabbia. La distribuzione delle osservazioni nello spazio tessiturale è illustrata in Figura~\ref{fig:texture_triangle}: le 220 osservazioni ricadono in sei classi del triangolo tessiturale USDA (United States Department of Agriculture), con una concentrazione nelle zone limosa e franco-limosa.
 
-\vspace{0.5cm}
 \begin{figure}[htbp]
   \centering
-
-  \begin{subfigure}[t]{0.60\linewidth}
-    \centering
-    \includegraphics[
-      height=5cm,
-      trim={1.5cm 2cm 1.5cm 0cm},
-      clip
-    ]{images/fig_texture_ttplot.pdf}
-    \caption{Distribuzione delle osservazioni nel triangolo USDA, colorata per categoria
-             d'uso del suolo (\textit{Landuse}).}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[t]{0.36\linewidth}
-    \centering
-    \includegraphics[
-      height=5cm,
-      trim={0.2cm 0.2cm 0.2cm 0.2cm},
-      clip
-    ]{images/fig_texture_ilr.pdf}
-    \caption{Proiezione ILR (Texture$_1$ vs Texture$_2$), colorata per classe
-             tessiturale USDA.}
-  \end{subfigure}
-
-  \caption{Tessitura del suolo: triangolo USDA (sinistra) e coordinate ILR (destra).}
+  \includegraphics[width=\linewidth]{fig_texture_combined.pdf}
+  \caption{Tessitura del suolo: triangolo tessiturale colorato per categoria d'uso del suolo (sinistra) e coordinate ILR colorate per classe tessiturale (destra).}
   \label{fig:texture_triangle}
 \end{figure}
 
@@ -201,13 +183,11 @@ La Figura~\ref{fig:map} mostra la distribuzione spaziale dei 40 campi: essi non 
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.8\linewidth]{images/fig_eda_mappa.pdf}
-  \caption{Distribuzione spaziale dei 40 campi nel sud della Tanzania. I campi si concentrano
-           in due aree distinte: il gruppo settentrionale comprende prevalentemente campi
-           \textit{off-farm} con diversi regimi di fertilizzazione; quello meridionale include la
-           maggior parte dei campi \textit{on-farm}, tutti fertilizzati. La sovrapposizione tra
-           prossimità geografica e pratiche di gestione costituisce un confondimento
-           strutturale del disegno.}
+  \includegraphics[width=0.8\linewidth]{fig_eda_mappa.pdf}
+  \caption{Distribuzione spaziale dei 40 campi nel sud della Tanzania. Il gruppo settentrionale
+           comprende prevalentemente campi \textit{off-farm}; quello meridionale i campi \textit{on-farm},
+           tutti fertilizzati. La sovrapposizione geografica con le pratiche di gestione
+           costituisce un confondimento strutturale del disegno.}
   \label{fig:map}
 \end{figure}
 
@@ -245,7 +225,7 @@ e azoto.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\linewidth]{images/fig_eda_traiettorie.pdf}
+  \includegraphics[width=\linewidth]{fig_eda_traiettorie.pdf}
   \caption{Profili verticali di SOC, N e P nei 40 campi (scala log).
     Linee grigie: singoli campi; linea colorata: mediana globale per profondità;
     banda: intervallo interquartile.}
@@ -317,7 +297,7 @@ con
   \Omega \sim \mathrm{LKJ}(2).
 \]
 
-La matrice $\Omega$ è $6\times6$ e descrive sia il legame intercetta-pendenza all'interno di ciascuna risposta, sia le correlazioni tra nutrienti a livello di campo. Queste ultime sono la quantità di interesse primario dell'analisi.
+La matrice $\Omega$ è $6\times6$ e descrive sia il legame intercetta-pendenza all'interno di ciascuna risposta, sia le correlazioni tra nutrienti a livello di campo. Queste ultime catturano la covariazione biologica tra nutrienti, abilitando un'inferenza più coerente sugli effetti di gestione.
 
 \subsection{\textit{Prior}}
 \label{subsec:prior}
@@ -366,7 +346,7 @@ Totale
 \end{tabular}
 \end{table}
 
-I vettori $\mathbf{z}_j$ corrispondono alla \textit{parametrizzazione non centrata} degli effetti casuali: invece di campionare $\mathbf{b}_j$ direttamente, si campionano variabili ausiliarie standard da cui $\mathbf{b}_j$ è ricavato deterministicamente, migliorando l'efficienza del campionamento MCMC nelle strutture gerarchiche.
+I vettori $\mathbf{z}_j$ corrispondono alla parametrizzazione non centrata degli effetti casuali: invece di campionare $\mathbf{b}_j$ direttamente, si campionano variabili ausiliarie standard da cui $\mathbf{b}_j$ è ricavato deterministicamente, migliorando l'efficienza del campionamento MCMC nelle strutture gerarchiche.
 
 Le \textit{prior} adottate sono debolmente informative: sulla scala standardizzata delle covariate, le normali centrate in zero introducono una regolarizzazione simmetrica dei coefficienti, le \textit{half-normal} sui parametri di scala favoriscono valori contenuti senza escludere quelli elevati se supportati dai dati, e la $\mathrm{LKJ}(2)$ regolarizza lievemente le correlazioni verso zero lasciando spazio a strutture sostanziali.
 
@@ -387,7 +367,7 @@ Le stime sono riportate come mediane a posteriori con intervalli di credibilità
 
 \begin{table}[htbp]
 \centering
-\caption{Effetti fissi (mediana e CI al 90\%).}
+\caption{Stime a posteriori degli effetti fissi (mediana e CI al 90\%).}
 \label{tab:fixed}
 \small
 \begin{tabular}{@{}lrrr@{}}
@@ -457,8 +437,7 @@ Per il fosforo, nessuna covariata fisica \textit{within-field} produce un interv
 
 \begin{table}[htbp]
 \centering
-\caption{Stime a posteriori dei parametri strutturali
-(mediana e CI\,90\%).}
+\caption{Stime a posteriori dei parametri strutturali (mediana e CI al 90\%).}
 \label{tab:main}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -531,9 +510,17 @@ La Tabella~\ref{tab:cross_corr} riporta le correlazioni tra gli effetti casuali 
 
 \subsection{Selezione delle covariate}
 
+La selezione delle covariate è condotta tramite selezione predittiva proiettiva:
+partendo dal modello completo come riferimento, la sua distribuzione a posteriori viene
+proiettata su sottoinsiemi crescenti di predittori, scegliendo a ogni passo quello che
+minimizza la perdita predittiva rispetto al riferimento. Il metodo è \textit{post-hoc}
+ma privo dell'inflazione della significatività tipica della selezione \textit{stepwise},
+poiché non ricerca \textit{pattern} direttamente nei dati ma misura la perdita
+informativa rispetto al modello completo già stimato.
+
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{images/fig06_projpred.pdf}
+\includegraphics[width=0.95\linewidth]{fig06_projpred.pdf}
 \caption{Selezione predittiva per SOC, N e P: $\Delta$ELPD in funzione del numero di predittori (linea tratteggiata: soglia di accettazione).}
 \label{fig:projpred}
 \end{figure}
@@ -543,36 +530,41 @@ La Figura~\ref{fig:projpred} mostra il percorso di selezione predittiva per cias
 \subsection{Confronto tra strutture gerarchiche}
 \label{subsec:loo}
 
+Per confrontare i modelli si utilizza la validazione incrociata LOO (Leave-One-Out): ogni
+osservazione viene rimossa a turno e il modello la predice fuori campione, senza mai
+averla vista in fase di stima. La qualità predittiva è misurata dall'ELPD (Expected Log
+Predictive Density): valori più alti indicano migliore capacità predittiva. Il calcolo
+esatto richiederebbe una nuova stima del modello per ciascuna osservazione rimossa; PSIS
+(Pareto Smoothed Importance Sampling) lo approssima efficientemente, e l'indice $\hat{k}$
+quantifica localmente l'affidabilità dell'approssimazione: osservazioni con
+$\hat{k} \geq 0.7$ sono monitorate separatamente nell'analisi di robustezza.
+
 \begin{table}[htbp]
 \centering
 \caption{Confronto LOO-CV tra strutture gerarchiche alternative ($\Delta$ELPD rispetto al modello finale).}
 \label{tab:loo4}
 \small
-\begin{tabular}{@{}p{5.0cm}p{4.8cm}rrr@{}}
+\begin{tabular}{@{}p{10.5cm}rrr@{}}
 \toprule
-Modello & Descrizione & $\Delta$ELPD & SE & $|z|$ \\
+Modello & $\Delta$ELPD & SE & $|z|$ \\
 \midrule
 
-\textbf{Modello multivariato completo}
-& Effetti casuali 6D, correlazioni cross-risposta
+\textbf{Modello multivariato con intercette e pendenze casuali}
 & $\mathbf{0.0}$
 & ---
 & --- \\
 
-Modelli univariati
-& Intercetta e pendenza casuali per risposta
+Modelli univariati con intercetta e pendenza casuali
 & $-0.4$
 & $\approx 4$
 & $\approx 0.1$ \\
 
-Modello con pendenza proporzionale
-& Intercetta casuale, pendenza proporzionale
+Modello con pendenza di campo vincolata all'intercetta
 & $-4.1$
 & $4.2$
 & $\approx 1.0$ \\
 
 Modello a sole intercette casuali
-& Solo intercette casuali
 & $-9.2$
 & $5.7$
 & $1.6$ \\
@@ -581,7 +573,7 @@ Modello a sole intercette casuali
 \end{tabular}
 \end{table}
 
-La Tabella~\ref{tab:loo4} confronta la capacità predittiva delle diverse specificazioni gerarchiche mediante validazione incrociata LOO. Le differenze tra modelli sono modeste rispetto alle rispettive incertezze: il modello finale non presenta un vantaggio predittivo netto rispetto ai modelli univariati con intercetta e pendenza casuale. La progressione verso strutture più semplici porta a deterioramenti crescenti, ma mai chiaramente separati dalla rispettiva incertezza. La preferenza per il modello finale non è quindi motivata dalla \textit{performance} predittiva, ma dalla sua struttura: è l'unico che consente di stimare le correlazioni tra nutrienti a livello di campo, quantità di interesse primario per l'interpretazione nella sezione successiva. Specificazioni più parsimoniose, incluse varianti fattoriali della struttura casuale, non migliorano e talvolta peggiorano la predizione rispetto al modello completo.
+La Tabella~\ref{tab:loo4} confronta la capacità predittiva delle diverse specificazioni gerarchiche. Le differenze tra modelli sono modeste rispetto alle rispettive incertezze: il modello finale non presenta un vantaggio predittivo netto rispetto ai modelli univariati con intercetta e pendenza casuale. La progressione verso strutture più semplici porta a deterioramenti crescenti, ma mai chiaramente separati dalla rispettiva incertezza. La preferenza per il modello finale non è quindi motivata dalla \textit{performance} predittiva, ma dalla sua struttura: è l'unico che consente di stimare le correlazioni tra nutrienti a livello di campo, quantità di interesse primario per l'interpretazione nella sezione successiva. Specificazioni più parsimoniose, incluse varianti fattoriali della struttura casuale, non migliorano e talvolta peggiorano la predizione rispetto al modello completo.
 
 \subsection{Analisi di robustezza}
 \label{subsec:robustezza}
@@ -610,7 +602,7 @@ La correlazione positiva tra intercetta e pendenza casuale del carbonio
 l'osservazione esplorativa: i campi con un livello medio di carbonio più
 elevato presentano profili verticali più uniformi, conservando il carbonio
 anche negli strati profondi. Questo schema è coerente con la nozione di
-\emph{stratification ratio} \citep{mielniczuk2008}: una distribuzione
+\emph{stratification ratio} \citep{franzluebbers2002}: una distribuzione
 verticale più uniforme del carbonio segnala una maggiore qualità funzionale
 del suolo.
 
@@ -636,11 +628,11 @@ fosforo sono tutte compatibili con zero.
 
 \subsection{Evidenze sulle covariate fisiche}
 
-Il gradiente di finezza della tessitura (Texture$_2$) è il predittore
+Il gradiente di finezza della tessitura (\texttt{Texture$_2$}) è il predittore
 fisico dominante per carbonio e azoto: suoli con maggiore contenuto relativo
 di argilla e limo trattengono più materia organica, in accordo con la
 letteratura sulla stabilizzazione minerale \citep{scientificreports2021}.
-Il contrasto argilla/limo (Texture$_1$) non aggiunge invece informazione
+Il contrasto argilla/limo (\texttt{Texture$_1$}) non aggiunge invece informazione
 predittiva: è il contrasto globale tra frazioni fini e sabbia che conta, non la
 ripartizione interna tra le due frazioni fini.
 
@@ -649,11 +641,8 @@ carbonio e azoto, con un'intensità inferiore rispetto alla tessitura. Per il
 fosforo nessuna covariata fisica risulta informativa.
 
 Il profilo verticale segue una relazione log-log (legge di potenza), forma
-funzionale consolidata per i profili di carbonio in suoli agricoli
-\citep{jobbagy2000}. I coefficienti di profondità differiscono tra carbonio
-($\gamma \approx -0.37$) e azoto ($\gamma \approx -0.21$): il rapporto
-carbonio/azoto decresce con la profondità, in linea con la progressiva
-stabilizzazione della materia organica negli strati più profondi.
+funzionale consolidata per i profili di nutrienti in suoli agricoli
+\citep{jobbagy2000}.
 
 L'asimmetria tra i due cicli è sistematica e pervasiva: tessitura,
 densità apparente e profondità governano carbonio e azoto, ma non il fosforo.
@@ -717,6 +706,9 @@ Un limite rilevante è l'assenza di interazioni tra profondità e gestione:
 con i dati disponibili non è possibile verificare se la gestione modifica
 anche la forma del profilo verticale, oltre al livello medio. Questa rimane
 una domanda aperta per studi futuri con disegno sperimentale controllato.
+
+Il codice R e Stan utilizzato per l'analisi è disponibile nella repository pubblica:
+\url{https://github.com/GabriPaganelli/crop-soil-analysis}.
 
 \newpage
 % ==============================================================================

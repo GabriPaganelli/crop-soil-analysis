@@ -1,10 +1,11 @@
 # ============================================================
 #  EDA — Proprietà chimico-fisiche del suolo
 #
-#  Output (cartella EDA/):
+#  Output (output/figures/):
 #    eda_01_distribuzioni.pdf   istogramma + densità (scala originale e log)
 #    eda_02_gestione.pdf        boxplot + beeswarm per classe di gestione
 #    eda_03_traiettorie.pdf     spaghetti plot profondità × campo × variabile
+#    eda_04_traiettorie_orig.pdf spaghetti plot scala originale (%)
 #
 #  Pacchetti: tidyverse, patchwork, ggbeeswarm
 # ============================================================
@@ -59,7 +60,7 @@ th <- theme_minimal(base_size = 11) +
   )
 
 save_fig <- function(fname, p, w = 28, h = 20, u = "cm") {
-  path <- here::here("EDA", fname)
+  path <- here::here("output", "figures", fname)
   ggsave(path, plot = p, width = w, height = h, units = u,
          device = cairo_pdf, bg = "#FAFAF8")
   message("✓ ", path)
@@ -349,7 +350,7 @@ fig4 <- (p4_SOC + p4_N + p4_P) +
 save_fig("eda_04_traiettorie_orig.pdf", fig4, w = 28, h = 18)
 
 
-message("\n✓ EDA completata — output in EDA/:")
+message("\n✓ EDA completata — output in output/figures/:")
 message("  eda_01_distribuzioni.pdf")
 message("  eda_02_gestione.pdf")
 message("  eda_03_traiettorie.pdf")

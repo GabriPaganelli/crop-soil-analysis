@@ -1,7 +1,7 @@
 # =============================================================================
 # 08_model_msp.R  —  Modello M-SP (Slope Proporzionale, confronto intermedio)
 #
-# STRUTTURA (stan/m4rr_v2_ri_slope_mu.stan):
+# STRUTTURA (stan/model_ri_slope.stan):
 #   Per r ∈ {SOC, N, P}:
 #     mu_r[i,j] = alpha_r                                    ← intercetta globale
 #               + z_nu_r[j] · (psi_r + eta_r · logBottom_i) ← RI + slope prop.
@@ -82,8 +82,8 @@ rm(X_W, X_B); gc()
 
 # ── 2. COMPILAZIONE ───────────────────────────────────────────────────────────
 
-stan_file <- here("stan", "m4rr_v2_ri_slope_mu.stan")
-cat("\nCompilazione m4rr_v2_ri_slope_mu...\n")
+stan_file <- here("stan", "model_ri_slope.stan")
+cat("\nCompilazione model_ri_slope...\n")
 mod <- cmdstan_model(stan_file, compile = TRUE)
 cat("OK. CmdStan version:", cmdstan_version(), "\n")
 

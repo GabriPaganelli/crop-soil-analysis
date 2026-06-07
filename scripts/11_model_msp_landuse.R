@@ -129,8 +129,8 @@ rm(X_W, X_B); gc()
 # ── 2. COMPILAZIONE ───────────────────────────────────────────────────────────
 # Stesso file Stan di M-SP: K_B viene passato come dato, non hardcodato.
 
-stan_file <- here("stan", "m4rr_v2_ri_slope_mu.stan")
-cat("\nCompilazione m4rr_v2_ri_slope_mu...\n")
+stan_file <- here("stan", "model_ri_slope.stan")
+cat("\nCompilazione model_ri_slope...\n")
 mod <- cmdstan_model(stan_file, compile = TRUE)
 cat("OK. CmdStan version:", cmdstan_version(), "\n")
 

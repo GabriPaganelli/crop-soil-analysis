@@ -17,7 +17,7 @@ output/cache/*.rds
 scripts/_tmp_*.R
 Rplots.pdf
 
-# LaTeX ausiliari
+# LaTeX ausiliari e PDF compilato (il deliverable finale sta alla root)
 report/*.aux
 report/*.log
 report/*.blg
@@ -28,12 +28,17 @@ report/*.fdb_latexmk
 report/*.fls
 report/*.synctex*
 report/compile_log.txt
+report/*.pdf
+report/images/
 
 # Docs ausiliari
 docs/*.aux
 docs/*.log
 docs/*.out
 docs/*.toc
+
+# Log nella cache (pattern più ampio)
+output/cache/log_*.txt
 
 # Log di esecuzione pipeline
 output/log_*.txt

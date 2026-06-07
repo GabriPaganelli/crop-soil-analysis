@@ -4,7 +4,7 @@
 #  Versioni alternative di eda_03_traiettorie:
 #  linee mediane separate per gruppi di covariata.
 #
-#  Output (EDA/):
+#  Output (output/figures/):
 #    eda_traj_onfarm.pdf      OnFarm vs Off-farm (2 gruppi)
 #    eda_traj_irrigate.pdf    Irrigato vs Non irrigato (2 gruppi)
 #    eda_traj_fertilised.pdf  Fertilizzato vs Non (2 gruppi)
@@ -124,7 +124,7 @@ make_fig <- function(cov_col, pal, title) {
 }
 
 save_fig <- function(fname, p, w = 30, h = 18, u = "cm") {
-  path <- here::here("EDA", fname)
+  path <- here::here("output", "figures", fname)
   ggsave(path, plot = p, width = w, height = h, units = u,
          device = cairo_pdf, bg = "#FAFAF8")
   message("✓ ", path)
@@ -209,4 +209,4 @@ fig_macro <- make_fig("MacroGest", pal_macro,
                       "Profili verticali per macro-gruppo di gestione")
 save_fig("eda_traj_gestione3.pdf", fig_macro)
 
-message("\n✓ Tutte le figure covariate generate in EDA/")
+message("\n✓ Tutte le figure covariate generate in output/figures/")

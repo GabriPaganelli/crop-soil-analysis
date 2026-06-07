@@ -22,7 +22,7 @@
 #   |rho_r| < 1 →  alcuni campi escono dalla proporzionalità
 #   tau_beta_r ≈ 0  →  M-RI (nessuna variazione nelle pendenze)
 #
-# Stan: stan/m_sp_rirs.stan
+# Stan: stan/model_rirs.stan
 # Fit:  stan/fit_msp_rirs.rds
 # Parametri totali: 6J + 42 = 282  (J=40, K_W=5)
 # =============================================================================
@@ -78,10 +78,10 @@ rm(dati, dati_int); gc()
 # ── 2. COMPILAZIONE E FIT ─────────────────────────────────────────────────────
 
 fit_path  <- here("stan", "fit_msp_rirs.rds")
-stan_file <- here("stan", "m_sp_rirs.stan")
+stan_file <- here("stan", "model_rirs.stan")
 
 mod <- cmdstan_model(stan_file, compile = TRUE)
-cat("Compilazione m_sp_rirs: OK\n")
+cat("Compilazione model_rirs: OK\n")
 
 if (!file.exists(fit_path)) {
   cat("Avvio MCMC M-SP-RIRS (4 catene × 5000 sampling + 3000 warmup)...\n\n")

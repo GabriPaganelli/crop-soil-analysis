@@ -5,7 +5,7 @@
 # intercetti di campo con un GP esponenziale per risposta (kernel Matérn 1/2).
 # Le slope restano iid. Non esiste più la struttura 6D MVRE (nessuna Omega_6).
 #
-# Stan file: stan/m_sp_rirs_mvre_gp.stan
+# Stan file: stan/model_mvre_gp.stan
 # Fit file:  stan/fit_msp_rirs_mvre_gp.rds
 #
 # DOMANDE:
@@ -99,7 +99,7 @@ cat(sprintf("N = %d | J = %d | K_W = %d | K_B = %d | Dmat dim = %dx%d\n",
 # ── 4. FIT ─────────────────────────────────────────────────────────────────────
 
 fit_path  <- here("stan", "fit_msp_rirs_mvre_gp.rds")
-stan_file <- here("stan", "m_sp_rirs_mvre_gp.stan")
+stan_file <- here("stan", "model_mvre_gp.stan")
 
 if (!file.exists(fit_path)) {
   mod <- cmdstan_model(stan_file, compile = TRUE)

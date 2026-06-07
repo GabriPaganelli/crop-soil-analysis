@@ -13,7 +13,7 @@
 # Struttura V[6,J]: [SOC_int, SOC_slope, N_int, N_slope, P_int, P_slope]
 # mu_r[i,j] = alpha_r + V[2r-1,j] + V[2r,j]*logBottom_i + gamma_r*X_W + beta_r*X_B
 #
-# Stan: stan/m_sp_rirs_mvre.stan
+# Stan: stan/model_mvre.stan
 # Fit:  stan/fit_msp_rirs_mvre.rds
 # TOTALE PARAMETRI: 6J + 57 = 297 (J=40)
 # =============================================================================
@@ -67,7 +67,7 @@ cat(sprintf("N = %d | J = %d | K_W = %d\n", N, J, length(X_W_cols)))
 # ── 2. FIT ────────────────────────────────────────────────────────────────────
 
 fit_path  <- here("stan", "fit_msp_rirs_mvre.rds")
-stan_file <- here("stan", "m_sp_rirs_mvre.stan")
+stan_file <- here("stan", "model_mvre.stan")
 
 if (!file.exists(fit_path)) {
   mod <- cmdstan_model(stan_file, compile = TRUE)

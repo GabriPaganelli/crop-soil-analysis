@@ -1,7 +1,7 @@
 # ============================================================
 #  EDA — Grafici motivazione modello
 #
-#  Output (EDA/):
+#  Output (output/figures/):
 #    eda_mod_04_mappa.pdf       mappa spaziale campi (colorata per SOC medio)
 #    eda_mod_05_blup_cross.pdf  correlazione BLUP intercette (LMM univariati)
 # ============================================================
@@ -38,7 +38,7 @@ th <- theme_minimal(base_size = 11) +
   )
 
 save_fig <- function(fname, p, w = 28, h = 18, u = "cm") {
-  path <- here::here("EDA", fname)
+  path <- here::here("output", "figures", fname)
   ggsave(path, plot = p, width = w, height = h, units = u,
          device = cairo_pdf, bg = "#FAFAF8")
   message("✓ ", path)
@@ -139,6 +139,6 @@ fig5 <- (p_b_soc_n + p_b_soc_p + p_b_n_p) +
 
 save_fig("eda_mod_05_blup_cross.pdf", fig5, w = 28, h = 14)
 
-message("\n✓ Figure motivazione modello generate in EDA/:")
+message("\n✓ Figure motivazione modello generate in output/figures/:")
 message("  eda_mod_04_mappa.pdf")
 message("  eda_mod_05_blup_cross.pdf")

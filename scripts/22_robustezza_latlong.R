@@ -3,7 +3,7 @@
 #
 # Baseline spaziale semplice: aggiunge le coordinate geografiche standardizzate
 # (Lat_std, Long_std) come covariate between-field, usando lo stesso Stan file
-# di MVRE (m_sp_rirs_mvre.stan) con K_B = 6 invece di 4.
+# di MVRE (model_mvre.stan) con K_B = 6 invece di 4.
 #
 # Cattura la tendenza spaziale lineare (trend di primo ordine), NON la struttura
 # spaziale locale. Atteso: effetti di gestione beta_r cambiano (se confounding),
@@ -14,7 +14,7 @@
 #   B. Lat e Long sono predittori utili (CI lontani da zero)?
 #   C. Il LOO migliora o peggiora rispetto a MVRE (base)?
 #
-# Stan file riusato: stan/m_sp_rirs_mvre.stan  (K_B è variabile data → K_B=6 ok)
+# Stan file riusato: stan/model_mvre.stan  (K_B è variabile data → K_B=6 ok)
 # Fit file: stan/fit_msp_rirs_latlong.rds
 # =============================================================================
 
@@ -105,7 +105,7 @@ cat(sprintf("N = %d | J = %d | K_W = %d | K_B = %d (4 gestione + 2 coordinate)\n
 # ── 4. FIT ─────────────────────────────────────────────────────────────────────
 
 fit_path  <- here("stan", "fit_msp_rirs_latlong.rds")
-stan_file <- here("stan", "m_sp_rirs_mvre.stan")   # stesso Stan file, K_B diverso
+stan_file <- here("stan", "model_mvre.stan")   # stesso Stan file, K_B diverso
 
 if (!file.exists(fit_path)) {
   mod <- cmdstan_model(stan_file, compile = TRUE)

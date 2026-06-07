@@ -190,8 +190,8 @@ cat("\n═══ FIT M-SP SENZA INFLUENTI ════════════�
 fit_noinfl_path <- here("stan", "fit_msp_rirs_mvre_noinfl.rds")
 
 if (!file.exists(fit_noinfl_path)) {
-  cat("Compilazione (riusa m_sp_rirs_mvre.stan)...\n")
-  mod_msp <- cmdstan_model(here("stan", "m_sp_rirs_mvre.stan"), compile = TRUE)
+  cat("Compilazione (riusa model_mvre.stan)...\n")
+  mod_msp <- cmdstan_model(here("stan", "model_mvre.stan"), compile = TRUE)
   cat("OK.\n\n")
 
   cat("Avvio MCMC (4 × 3000wu + 5000samp)...\n\n")

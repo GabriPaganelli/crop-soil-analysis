@@ -3,12 +3,12 @@
 #
 # Testa due varianti semplificate di M-SP-RIRS-MVRE (modello finale):
 #
-#   Modello A (m_sp_rirs_mvre_A.stan):
+#   Modello A (model_mvre_A.stan):
 #     MVRE senza effetti between-field (beta) e senza Texture1 (ILR1).
 #     X_W = {logBottom[1], Texture2[2], BulkDensity[3], PH[4]}  (K_W = 4)
 #     Domanda: management e ILR1 contribuiscono predittivamente?
 #
-#   Modello B (m_sp_rirs_mvre_B.stan):
+#   Modello B (model_mvre_B.stan):
 #     Response-specific: SOC/P con RI+RS; N con solo RI (struttura 5D).
 #     X_W come MVRE (K_W = 5), X_B presente.
 #     Domanda: la variabilità di slope per N è predittivamente rilevante?
@@ -123,8 +123,8 @@ cat("\n═══ MODELLO A ═════════════════�
 fit_A_path <- here("stan", "fit_mvre_A.rds")
 
 if (!file.exists(fit_A_path)) {
-  cat("Compilazione m_sp_rirs_mvre_A.stan...\n")
-  mod_A <- cmdstan_model(here("stan", "m_sp_rirs_mvre_A.stan"), compile = TRUE)
+  cat("Compilazione model_mvre_A.stan...\n")
+  mod_A <- cmdstan_model(here("stan", "model_mvre_A.stan"), compile = TRUE)
   cat("Compilazione OK.\n\n")
   fit_A <- mod_A$sample(
     data            = stan_data_A,
@@ -173,8 +173,8 @@ cat("\n═══ MODELLO B ═════════════════�
 fit_B_path <- here("stan", "fit_mvre_B.rds")
 
 if (!file.exists(fit_B_path)) {
-  cat("Compilazione m_sp_rirs_mvre_B.stan...\n")
-  mod_B <- cmdstan_model(here("stan", "m_sp_rirs_mvre_B.stan"), compile = TRUE)
+  cat("Compilazione model_mvre_B.stan...\n")
+  mod_B <- cmdstan_model(here("stan", "model_mvre_B.stan"), compile = TRUE)
   cat("Compilazione OK.\n\n")
   fit_B <- mod_B$sample(
     data            = stan_data_B,

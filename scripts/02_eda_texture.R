@@ -225,4 +225,27 @@ ggplot2::ggsave(here("output", "figures", "fig_texture_combined.pdf"),
                 device = cairo_pdf)
 cat("Salvato: output/figures/fig_texture_combined.pdf\n")
 
+# Salva TT.plot standalone (per composizione LaTeX in report.tex)
+pdf(here("output", "figures", "fig_texture_ttplot.pdf"), width = 6, height = 6)
+TT.plot(
+  class.sys      = "USDA.TT",
+  tri.data       = tex_ttplot,
+  bg             = "white", frame.bg.col = "white",
+  class.p.bg.col = colori_trasparenti,
+  class.line.col = "grey60",
+  class.lab.show = "abr", class.lab.col = "#3A2408", cex.lab = 0.75,
+  pch = 16, col = col_land, cex = 0.7, cex.axis = 0.6,
+  arrows.show = FALSE
+)
+legend("topright", legend = land_lvls,
+       col = pal_land, pch = 16, bty = "n", cex = 0.75, title = "Landuse")
+dev.off()
+cat("Salvato: output/figures/fig_texture_ttplot.pdf\n")
+
+# Salva ILR biplot standalone
+ggplot2::ggsave(here("output", "figures", "fig_texture_ilr.pdf"),
+                plot = p_ilr_report, width = 10, height = 8, units = "cm",
+                device = cairo_pdf)
+cat("Salvato: output/figures/fig_texture_ilr.pdf\n")
+
 cat("\n── Fine script 02 ─────────────────────────────────────────────\n")

@@ -1,7 +1,7 @@
 # =============================================================================
 # 07_model_ri.R  —  Modello M-RI (Random Intercept, confronto baseline)
 #
-# STRUTTURA (stan/m4rr_v2_no_gp_mu.stan):
+# STRUTTURA (stan/model_ri.stan):
 #   Per r ∈ {SOC, N, P}:
 #     mu_r[i,j] = alpha_r              ← intercetta globale
 #               + psi_r · z_nu_r[j]   ← random intercept i.i.d. (NCP)
@@ -80,8 +80,8 @@ rm(X_W, X_B); gc()
 
 # ── 2. COMPILAZIONE ───────────────────────────────────────────────────────────
 
-stan_file <- here("stan", "m4rr_v2_no_gp_mu.stan")
-cat("\nCompilazione m4rr_v2_no_gp_mu...\n")
+stan_file <- here("stan", "model_ri.stan")
+cat("\nCompilazione model_ri...\n")
 mod <- cmdstan_model(stan_file, compile = TRUE)
 cat("OK. CmdStan version:", cmdstan_version(), "\n")
 

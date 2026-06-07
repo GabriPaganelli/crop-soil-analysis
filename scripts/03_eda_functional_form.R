@@ -350,5 +350,29 @@ ols_all |>
                 risposta, m, s, q5, q95, pct_pos))
   })
 
+cat("\n── Statistiche descrittive riassuntive ───────────────────────────────────\n")
+
+field_means <- aggregate(cbind(logSOC, logN, logP) ~ Field, data = dati, FUN = mean)
+cat("Correlazioni medie per campo (raw):\n")
+cat(sprintf("  SOC-N: %.3f\n", cor(field_means$logSOC, field_means$logN)))
+cat(sprintf("  SOC-P: %.3f\n", cor(field_means$logSOC, field_means$logP)))
+cat(sprintf("  N-P:   %.3f\n", cor(field_means$logN,   field_means$logP)))
+
+cat("\nVarianza between vs within:\n")
+for(resp in c("logSOC","logN","logP")){
+  v_tot <- var(dati[[resp]])
+  m_fld <- tapply(dati[[resp]], dati$Field, mean)
+  v_bet <- var(m_fld)
+  cat(sprintf("  %s: SD_between=%.3f  SD_within=%.3f  frac_between=%.2f\n",
+              resp, sqrt(v_bet), sqrt(v_tot - v_bet), v_bet/v_tot))
+}
+
+cat("\nCorrelazione livello medio vs slope per campo:\n")
+get_slopes <- function(y) sapply(split(dati, dati$Field), function(d) coef(lm(d[[y]] ~ d$logBottom))[2])
+sl_SOC <- get_slopes("logSOC"); sl_N <- get_slopes("logN"); sl_P <- get_slopes("logP")
+cat(sprintf("  cor(mean SOC, slope SOC): %.3f\n", cor(tapply(dati$logSOC, dati$Field, mean), sl_SOC)))
+cat(sprintf("  cor(mean N,   slope N):   %.3f\n", cor(tapply(dati$logN,   dati$Field, mean), sl_N)))
+cat(sprintf("  cor(mean P,   slope P):   %.3f\n", cor(tapply(dati$logP,   dati$Field, mean), sl_P)))
+
 cat("\n── Fine script 03 ───────────────────────────────────────────────\n")
 

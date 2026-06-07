@@ -20,7 +20,7 @@
 #   rho_res_SOC_N ≈ +0.015 [-0.121, +0.151] → zero
 #   ΔELPD MVRE-FULL vs MVRE = -3.1 (SE=1.1) → MVRE preferibile
 #
-# Stan: stan/m_sp_rirs_mvre_full.stan
+# Stan: stan/model_mvre_full.stan
 # Fit:  stan/fit_mvre_full.rds
 # TOTALE PARAMETRI: 6J + 60 = 300 (J=40)
 #
@@ -96,8 +96,8 @@ rm(dati_int); gc()
 fit_path <- here("stan", "fit_mvre_full.rds")
 
 if (!file.exists(fit_path)) {
-  cat("\nCompilazione m_sp_rirs_mvre_full.stan...\n")
-  mod <- cmdstan_model(here("stan", "m_sp_rirs_mvre_full.stan"), compile = TRUE)
+  cat("\nCompilazione model_mvre_full.stan...\n")
+  mod <- cmdstan_model(here("stan", "model_mvre_full.stan"), compile = TRUE)
   cat("Avvio MCMC (4 catene × 5000 sampling + 3000 warmup)...\n")
   t0 <- proc.time()["elapsed"]
   fit <- mod$sample(
@@ -281,5 +281,64 @@ loo_tab <- as.data.frame(cmp) |>
   mutate(across(where(is.numeric), ~round(.x, 2)))
 write.csv(loo_tab, file.path(tab_dir, "tab_16_loo_mv.csv"), row.names = FALSE)
 cat("\n  Salvato: output/tables/tab_16_loo_mv.csv\n")
+
+cat("\n── Diagnostica residui: autocorrelazione lag-1 (MVRE) ──────────────────\n")
+
+if (file.exists(here("stan", "fit_msp_rirs_mvre.rds"))) {
+  fit_mvre_diag <- readRDS(here("stan", "fit_msp_rirs_mvre.rds"))
+  dati_diag <- readRDS(here("data", "dati.rds")) |>
+    mutate(lb_sc = as.numeric(scale(log(Bottom))),
+           bd_sc = as.numeric(scale(BulkDensity)),
+           ph_sc = as.numeric(scale(PH)))
+  fields_diag <- sort(unique(dati_diag$Field))
+  dati_diag$field_idx <- match(dati_diag$Field, fields_diag)
+
+  get_mean_par <- function(par) mean(as.vector(fit_mvre_diag$draws(par)))
+  alpha_SOC <- get_mean_par("alpha_SOC"); alpha_N <- get_mean_par("alpha_N"); alpha_P <- get_mean_par("alpha_P")
+  gamma_SOC <- sapply(1:5, function(k) get_mean_par(sprintf("gamma_SOC[%d]",k)))
+  gamma_N   <- sapply(1:5, function(k) get_mean_par(sprintf("gamma_N[%d]",k)))
+  gamma_P   <- sapply(1:5, function(k) get_mean_par(sprintf("gamma_P[%d]",k)))
+  beta_SOC  <- sapply(1:4, function(k) get_mean_par(sprintf("beta_SOC[%d]",k)))
+  beta_N    <- sapply(1:4, function(k) get_mean_par(sprintf("beta_N[%d]",k)))
+  beta_P    <- sapply(1:4, function(k) get_mean_par(sprintf("beta_P[%d]",k)))
+  V_mean_diag <- matrix(NA, 6, 40)
+  for(k in 1:6) for(j in 1:40)
+    V_mean_diag[k,j] <- get_mean_par(sprintf("V[%d,%d]",k,j))
+
+  field_df_diag <- dati_diag |> group_by(Field, field_idx) |>
+    summarise(OnFarm=first(OnFarm), Irrigate=first(Irrigate),
+              Fertilised=first(Fertilised), N_Natural=first(N_Natural), .groups="drop") |>
+    arrange(field_idx)
+  X_B_d <- as.matrix(field_df_diag[, c("OnFarm","Irrigate","Fertilised","N_Natural")])
+  X_W_d <- cbind(dati_diag$lb_sc, dati_diag$Texture1, dati_diag$Texture2, dati_diag$bd_sc, dati_diag$ph_sc)
+  j_idx_d <- dati_diag$field_idx
+
+  mu_SOC_d <- alpha_SOC + V_mean_diag[1,j_idx_d] + V_mean_diag[2,j_idx_d]*dati_diag$lb_sc +
+              as.numeric(X_W_d %*% gamma_SOC) + as.numeric(X_B_d %*% beta_SOC)[j_idx_d]
+  mu_N_d   <- alpha_N   + V_mean_diag[3,j_idx_d] + V_mean_diag[4,j_idx_d]*dati_diag$lb_sc +
+              as.numeric(X_W_d %*% gamma_N)   + as.numeric(X_B_d %*% beta_N)[j_idx_d]
+  mu_P_d   <- alpha_P   + V_mean_diag[5,j_idx_d] + V_mean_diag[6,j_idx_d]*dati_diag$lb_sc +
+              as.numeric(X_W_d %*% gamma_P)   + as.numeric(X_B_d %*% beta_P)[j_idx_d]
+
+  df_res_diag <- bind_rows(
+    data.frame(Field=dati_diag$Field, Bottom=dati_diag$Bottom, resid=log(dati_diag$PercSOC)-mu_SOC_d, response="logSOC"),
+    data.frame(Field=dati_diag$Field, Bottom=dati_diag$Bottom, resid=log(dati_diag$PercTotNitro)-mu_N_d, response="logN"),
+    data.frame(Field=dati_diag$Field, Bottom=dati_diag$Bottom, resid=log(dati_diag$PercTotPhos)-mu_P_d, response="logP")
+  )
+
+  cat("Lag-1 autocorrelazione residui (mediana su campi con n>=3):\n")
+  for(resp in c("logSOC","logN","logP")){
+    d <- df_res_diag |> filter(response == resp) |>
+      group_by(Field) |> arrange(Bottom, .by_group=TRUE) |>
+      filter(n() >= 3) |>
+      summarise(ac = cor(resid[-n()], resid[-1]), .groups="drop")
+    cat(sprintf("  %s: mediana=%.3f  [Q10=%.3f, Q90=%.3f]  n=%d\n",
+                resp, median(d$ac,na.rm=T), quantile(d$ac,.10,na.rm=T),
+                quantile(d$ac,.90,na.rm=T), sum(!is.na(d$ac))))
+  }
+  rm(fit_mvre_diag); gc()
+} else {
+  cat("  fit_msp_rirs_mvre.rds non trovato — skip diagnostica residui.\n")
+}
 
 cat("\n── Fine script 16 ──────────────────────────────────────────────\n")

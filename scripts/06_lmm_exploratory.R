@@ -278,7 +278,7 @@ cat("  La scala log è preferita: distribuzioni più simmetriche, residui più n
 # MOTIVAZIONE PER IL PASSAGGIO AL MODELLO BAYESIANO STAN
 # ──────────────────────────────────────────────────────────────────────────────
 
-cat("\n\n═══ MOTIVAZIONE PER M-SP-RIRS (stan/m_sp_rirs.stan) ════════════\n\n")
+cat("\n\n═══ MOTIVAZIONE PER M-SP-RIRS (stan/model_rirs.stan) ════════════\n\n")
 cat("  1. PARAMETRO ETA/RHO NON IDENTIFICABILE VIA MCMCglmm:\n")
 cat("     η_r (o ρ_r in RIRS) quantifica la correlazione slope-intercetta per campo.\n")
 cat("     In MCMCglmm, la matrice G 6×6 ha 21 param con J=40 (1.9 gruppi/param).\n")
