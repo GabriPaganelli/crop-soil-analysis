@@ -142,8 +142,7 @@ che stabilizza la varianza e linearizza la relazione con la profondità. Le tre 
   \centering
   \includegraphics[width=0.75\linewidth]{eda_04_traiettorie_orig}
   \caption{Profili verticali di carbonio organico, azoto e fosforo nella scala originale.
-           Il decadimento con la profondità è compatibile con un andamento log-lineare,
-           che motiva la trasformazione adottata nell'analisi.}
+           Il decadimento con la profondità è compatibile con un andamento log-lineare.}
   \label{fig:eda_traiettorie_orig}
 \end{figure}
 
@@ -158,29 +157,32 @@ Alcune caratteristiche del suolo variano all'interno dello stesso campo al varia
 
 Le due coordinate, denominate \texttt{Texture1} e \texttt{Texture2}, hanno un'interpretazione diretta: $T_1$ cattura il contrasto tra argilla e limo all'interno della frazione fine, $T_2$ il gradiente tra le frazioni fini nel loro insieme e la sabbia. La distribuzione delle osservazioni nello spazio tessiturale è illustrata in Figura~\ref{fig:texture_triangle}: le 220 osservazioni ricadono in sei classi USDA, con una concentrazione nelle zone limosa e franco-limosa.
 
+\vspace{0.5cm}
 \begin{figure}[htbp]
   \centering
-  \begin{subfigure}[t]{0.58\linewidth}
+
+  \begin{subfigure}[t]{0.60\linewidth}
     \centering
     \includegraphics[
-      width  = \linewidth,
-      trim   = {1.2cm 0.4cm 1.2cm 0.4cm},
-      clip   = true
+      height=5cm,
+      trim={1.5cm 2cm 1.5cm 0cm},
+      clip
     ]{images/fig_texture_ttplot.pdf}
     \caption{Distribuzione delle osservazioni nel triangolo USDA, colorata per categoria
              d'uso del suolo (\textit{Landuse}).}
   \end{subfigure}
   \hfill
-  \begin{subfigure}[t]{0.38\linewidth}
+  \begin{subfigure}[t]{0.36\linewidth}
     \centering
     \includegraphics[
-      width  = \linewidth,
-      trim   = {0.2cm 0.2cm 0.2cm 0.2cm},
-      clip   = true
+      height=5cm,
+      trim={0.2cm 0.2cm 0.2cm 0.2cm},
+      clip
     ]{images/fig_texture_ilr.pdf}
     \caption{Proiezione ILR (Texture$_1$ vs Texture$_2$), colorata per classe
              tessiturale USDA.}
   \end{subfigure}
+
   \caption{Tessitura del suolo: triangolo USDA (sinistra) e coordinate ILR (destra).}
   \label{fig:texture_triangle}
 \end{figure}
@@ -230,14 +232,14 @@ Considerando le medie per campo, carbonio e azoto mostrano una correlazione posi
 
 Per carbonio e azoto si osserva un'apparente risalita dei valori a 80 cm, riconducibile a un artefatto del disegno campionario: a tale profondità sono presenti solo i campi con profilo completo, un sottoinsieme selezionato.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=\linewidth]{images/fig_eda_traiettorie.pdf}
-  \caption{Profili verticali di SOC, N e P nei 40 campi (scala log).
-    Linee grigie: singoli campi; linea colorata: mediana globale per profondità;
-    banda: intervallo interquartile.}
-  \label{fig:eda_traj}
-\end{figure}
+%\begin{figure}[htbp]
+%  \centering
+%  \includegraphics[width=\linewidth]{images/fig_eda_traiettorie.pdf}
+%  \caption{Profili verticali di SOC, N e P nei 40 campi (scala log).
+%    Linee grigie: singoli campi; linea colorata: mediana globale per profondità;
+%    banda: intervallo interquartile.}
+%  \label{fig:eda_traj}
+%\end{figure}
 % =============================================================================
 \section{Modelli statistici e inferenza}
 \label{sec:modello}
@@ -520,7 +522,7 @@ La Tabella~\ref{tab:cross_corr} riporta le correlazioni tra gli effetti casuali 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\linewidth]{fig06_projpred.pdf}
+\includegraphics[width=0.95\linewidth]{images/fig06_projpred.pdf}
 \caption{Selezione predittiva per SOC, N e P: $\Delta$ELPD in funzione del numero di predittori (linea tratteggiata: soglia di accettazione).}
 \label{fig:projpred}
 \end{figure}
