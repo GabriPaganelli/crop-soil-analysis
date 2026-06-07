@@ -120,7 +120,7 @@ La distribuzione verticale dei nutrienti del suolo è un indicatore chiave della
 
 La gestione degli spazi agricoli si presenta come un problema molto complesso, in cui le caratteristiche geo-fisiche del suolo interagiscono con diversi tipi di trattamenti artificiali per definirne la composizione chimica.
 È fondamentale quindi riuscire a studiare come avvengono queste dinamiche e quantificare il loro impatto, così da attuare una gestione il più efficace possibile, al fine di massimizzare la rendita agricola.
-In questo studio si analizzerà il dataset "crop", contenente rilevazioni effettuate in campi agricoli nel Sud della Tanzania, con l'obiettivo di valutare come varia la ricchezza del suolo rispetto a tipi di trattamenti e gestioni differenti.
+In questo studio si analizzerà il \textit{dataset} \texttt{crop}, contenente rilevazioni effettuate in campi agricoli nel Sud della Tanzania, con l'obiettivo di valutare come varia la ricchezza del suolo rispetto a tipi di trattamenti e gestioni differenti.
 
 
 % ==============================================================================
@@ -179,7 +179,7 @@ Le due coordinate, denominate \texttt{Texture1} e \texttt{Texture2}, hanno un'in
   \label{fig:texture_triangle}
 \end{figure}
 
-Le caratteristiche di gestione sono fisse per campo. \texttt{OnFarm} indica se il campo è collocato nell'area principale della fattoria, \texttt{Irrigate} e \texttt{Fertilised} registrano il regime idrico e di fertilizzazione, \texttt{N\_Natural} individua i cinque campi non coltivati inclusi come riferimento naturale. Queste quattro variabili presentano una struttura di co-occorrenza parzialmente deterministica: come mostra la Tabella~\ref{tab:freq_fert}, nessun campo on-farm è privo di fertilizzazione. Il dataset include anche la variabile \texttt{Landuse}, che codifica le sette combinazioni di gestione osservate; si è scelto di inserire i quattro effetti individualmente, così da preservare la leggibilità dei singoli coefficienti e mantenere la possibilità di separare, almeno parzialmente, il contributo delle singole pratiche.
+Le caratteristiche di gestione sono fisse per campo. \texttt{OnFarm} indica se il campo è collocato nell'area principale della fattoria, \texttt{Irrigate} e \texttt{Fertilised} registrano il regime idrico e di fertilizzazione, \texttt{N\_Natural} individua i cinque campi non coltivati inclusi come riferimento naturale. Queste quattro variabili presentano una struttura di co-occorrenza parzialmente deterministica: come mostra la Tabella~\ref{tab:freq_fert}, nessun campo \textit{on-farm} è privo di fertilizzazione. Il \textit{dataset} include anche la variabile \texttt{Landuse}, che codifica le sette combinazioni di gestione osservate; si è scelto di inserire i quattro effetti individualmente, così da preservare la leggibilità dei singoli coefficienti e mantenere la possibilità di separare, almeno parzialmente, il contributo delle singole pratiche.
 
 \begin{table}[htbp]
   \centering
@@ -197,15 +197,15 @@ Le caratteristiche di gestione sono fisse per campo. \texttt{OnFarm} indica se i
   \label{tab:freq_fert}
 \end{table}
 
-La Figura~\ref{fig:map} mostra la distribuzione spaziale dei 40 campi: essi non coprono uniformemente il territorio, bensì si concentrano in due aree ben distinte all'interno di una regione compatta di circa 20\,km nel sud della Tanzania. Il gruppo settentrionale comprende prevalentemente campi off-farm con diversi regimi di fertilizzazione, mentre il gruppo meridionale include la maggior parte dei campi on-farm, tutti fertilizzati. Questa sovrapposizione tra prossimità geografica e pratiche di gestione costituisce un confondimento strutturale del disegno di campionamento: non è possibile separare con certezza l'effetto della posizione spaziale da quello delle variabili di gestione. Le coordinate latitudine e longitudine, sebbene disponibili, non sono state quindi incluse come predittori nel modello, in quanto una loro inclusione implicherebbe un andamento lineare con la posizione geografica privo di interpretazione agronomica e difficilmente generalizzabile.
+La Figura~\ref{fig:map} mostra la distribuzione spaziale dei 40 campi: essi non coprono uniformemente il territorio, bensì si concentrano in due aree ben distinte all'interno di una regione compatta di circa 20\,km nel sud della Tanzania. Il gruppo settentrionale comprende prevalentemente campi \textit{off-farm} con diversi regimi di fertilizzazione, mentre il gruppo meridionale include la maggior parte dei campi \textit{on-farm}, tutti fertilizzati. Questa sovrapposizione tra prossimità geografica e pratiche di gestione costituisce un confondimento strutturale del disegno di campionamento: non è possibile separare con certezza l'effetto della posizione spaziale da quello delle variabili di gestione. Le coordinate latitudine e longitudine, sebbene disponibili, non sono state quindi incluse come predittori nel modello, in quanto una loro inclusione implicherebbe un andamento lineare con la posizione geografica privo di interpretazione agronomica e difficilmente generalizzabile.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.8\linewidth]{images/fig_eda_mappa.pdf}
   \caption{Distribuzione spaziale dei 40 campi nel sud della Tanzania. I campi si concentrano
            in due aree distinte: il gruppo settentrionale comprende prevalentemente campi
-           off-farm con diversi regimi di fertilizzazione; quello meridionale include la
-           maggior parte dei campi on-farm, tutti fertilizzati. La sovrapposizione tra
+           \textit{off-farm} con diversi regimi di fertilizzazione; quello meridionale include la
+           maggior parte dei campi \textit{on-farm}, tutti fertilizzati. La sovrapposizione tra
            prossimità geografica e pratiche di gestione costituisce un confondimento
            strutturale del disegno.}
   \label{fig:map}
@@ -216,13 +216,28 @@ La Figura~\ref{fig:map} mostra la distribuzione spaziale dei 40 campi: essi non 
 \section{Analisi esplorativa}
 \label{sec:eda}
 
-La Figura~\ref{fig:eda_traj} mostra i profili verticali dei 40 campi in scala logaritmica. Per carbonio e azoto il decadimento con la profondità è sistematico: solo 3 campi su 40 mostrano un profilo crescente per ciascuna delle due risposte, con una pendenza mediana di $-1.30$ e $-0.72$ rispettivamente in scala log-log. Per il fosforo il quadro è molto più eterogeneo: 13 campi su 40 presentano profili crescenti e la relazione con le covariate fisiche come tessitura e densità apparente non mostra un \textit{pattern} stabile tra campi.
+La Figura~\ref{fig:eda_traj} mostra i profili verticali dei 40 campi per le tre
+risposte in scala logaritmica. Il decadimento con la profondità è evidente per SOC e N
+(pendenza mediana $-1.30$ e $-0.72$ in scala log-log; solo 3 campi su 40 mostrano un
+profilo crescente per ciascuna risposta), mentre per P la tendenza è molto più debole
+(13 campi su 40 con profilo crescente).
+Si osserva una notevole variabilità tra le traiettorie, giustificando l'introduzione
+di un'intercetta casuale per campo. Inoltre, le traiettorie individuali non sono
+parallele, indicando che la velocità di decadimento con la profondità varia
+sistematicamente da campo a campo.
 
-Le traiettorie non sono parallele per nessuna delle tre risposte. Per il carbonio in particolare, i campi con concentrazioni più elevate tendono ad avere profili più piatti, conservando il carbonio anche negli strati profondi; per azoto e fosforo questo \textit{pattern} non è visibile.
+Considerando le medie non condizionate per campo, carbonio e azoto mostrano una
+correlazione positiva forte ($r \approx 0.73$): i campi più ricchi in carbonio tendono
+ad esserlo anche in azoto. Il fosforo mostra correlazioni più contenute con SOC e N ($r \approx 0.49$),
+indicando una parziale autonomia del suo ciclo.
 
-Considerando le medie per campo, carbonio e azoto mostrano una correlazione positiva forte ($r \approx 0.73$): i campi più ricchi in carbonio tendono ad esserlo anche in azoto. Il fosforo è correlato agli altri due nutrienti in misura più contenuta ($r \approx 0.49$), indicando una parziale autonomia del suo ciclo.
+Per SOC e N si osserva un'apparente risalita dei valori all'ultima profondità
+di campionamento (80 cm). Questo è tuttavia riconducibile a un artefatto nel disegno
+di campionamento: non tutti i campi raggiungono 80 cm di profilo campionato, e le
+traiettorie visibili a tale quota rappresentano pertanto un sottoinsieme selezionato
+di campi. Considerando esclusivamente i campi con profilo completo fino a 80 cm,
+si osserva che il decadimento rimane monotono anche all'ultima profondità per SOC e N.
 
-Per carbonio e azoto si osserva un'apparente risalita dei valori a 80 cm, riconducibile a un artefatto del disegno campionario: a tale profondità sono presenti solo i campi con profilo completo, un sottoinsieme selezionato.
 
 \begin{figure}[htbp]
   \centering
@@ -239,9 +254,9 @@ Per carbonio e azoto si osserva un'apparente risalita dei valori a 80 cm, ricond
 \subsection{Analisi preliminari}
 \label{subsec:prelim}
 
-Come punto di partenza, le tre risposte sono state analizzate separatamente tramite modelli lineari misti con intercetta casuale per campo. I predittori considerati sono le covariate fisiche (profondità, Texture$_1$, Texture$_2$, densità apparente e pH) e le variabili di gestione: posizione in fattoria, regime idrico, fertilizzazione e presenza di campi naturali di riferimento. Le covariate continue (profondità in scala logaritmica, densità apparente e pH) sono state standardizzate prima della stima, in modo da rendere i coefficienti confrontabili tra loro; Texture$_1$ e Texture$_2$, essendo già nella loro scala naturale di coordinate ILR, non richiedono ulteriore trasformazione.
+Come punto di partenza, le tre risposte sono state analizzate separatamente tramite modelli lineari misti con intercetta casuale per campo. I predittori considerati sono le covariate fisiche (profondità, Texture$_1$, Texture$_2$, densità apparente e pH) e le variabili di gestione: posizione in fattoria, regime idrico, fertilizzazione e appartenenza a classe naturale di riferimento.
 
-Per la profondità, tra le diverse specifiche funzionali testate (lineare, quadratica, logaritmica), la relazione log-log, corrispondente a una legge di potenza, risulta la più parsimoniosa e ha un'interpretazione diretta nel contesto dei profili verticali di nutrienti: un incremento percentuale fisso della profondità corrisponde a una variazione costante della risposta in scala logaritmica.
+Per la profondità, tra le diverse forme funzionali testate (lineare, quadratica, logaritmica), la relazione log-log, corrispondente a una legge di potenza, risulta la più parsimoniosa e ha un'interpretazione diretta nel contesto dei profili verticali di nutrienti: un incremento percentuale fisso della profondità corrisponde a una variazione costante della risposta in scala logaritmica.
 
 Per carbonio e azoto emerge un quadro coerente: il decadimento con la profondità è il predittore dominante; Texture$_2$ e densità apparente mostrano effetti negativi stabili, mentre pH e Texture$_1$ non aggiungono potere predittivo. Le variabili di gestione non mostrano segnali apprezzabili per queste due risposte. Per il fosforo il comportamento è opposto: la profondità non contribuisce in modo sistematico, mentre la posizione in fattoria e l'irrigazione mostrano un'associazione positiva con le concentrazioni. L'analisi frequentista rileva inoltre una lieve autocorrelazione verticale nei profili del carbonio, assente per azoto e fosforo, suggerendo che la dipendenza verticale del carbonio meriti attenzione nella specificazione del modello finale.
 
@@ -254,7 +269,7 @@ I coefficienti di correlazione intraclasse indicano che una quota rilevante dell
   \label{fig:eda_blup}
 \end{figure}
 
-Questo quadro motiva l'adozione di un approccio bayesiano. Con 40 campi, stimare in modo affidabile la struttura di correlazione tra effetti casuali richiede una regolarizzazione esplicita, che le \textit{prior} debolmente informative forniscono in modo trasparente e verificabile. L'approccio bayesiano offre inoltre distribuzioni a posteriori complete per tutti i parametri, incluse le correlazioni tra nutrienti, quantità di interesse primario, nonché una quantificazione dell'incertezza coerente con la struttura gerarchica del problema.
+Questo quadro motiva l'adozione di un approccio bayesiano multivariato. Con 40 campi, stimare in modo affidabile la struttura di correlazione tra effetti casuali richiede una regolarizzazione esplicita, che le \textit{prior} debolmente informative forniscono in modo trasparente e verificabile. L'approccio bayesiano offre inoltre distribuzioni a posteriori complete per tutti i parametri, incluse le correlazioni tra nutrienti, quantità di interesse primario, nonché una quantificazione dell'incertezza coerente con la struttura gerarchica del problema.
 
 \subsection{Struttura del modello finale}
 \label{subsec:msp}
@@ -377,49 +392,49 @@ Covariata & SOC & N & P \\
 \midrule
 \multicolumn{4}{@{}l}{\textit{Within-field} ($\boldsymbol{\gamma}_r$)} \\[2pt]
 
-\quad logBottom &
+\quad \texttt{logBottom} &
 $\mathbf{-0.366}\ \CI{-0.464}{-0.270}$ &
 $\mathbf{-0.210}\ \CI{-0.272}{-0.148}$ &
 $-0.075\ \CI{-0.160}{0.010}$ \\[2pt]
 
-\quad Texture1 (ILR$_1$) &
+\quad \texttt{Texture1} (ILR$_1$) &
 $-0.060\ \CI{-0.143}{0.024}$ &
 $-0.024\ \CI{-0.078}{0.030}$ &
 $0.004\ \CI{-0.079}{0.088}$ \\[2pt]
 
-\quad Texture2 (ILR$_2$) &
+\quad \texttt{Texture2} (ILR$_2$) &
 $\mathbf{-0.503}\ \CI{-0.640}{-0.361}$ &
 $\mathbf{-0.284}\ \CI{-0.371}{-0.195}$ &
 $-0.068\ \CI{-0.213}{0.077}$ \\[2pt]
 
-\quad BulkDensity &
+\quad \texttt{BulkDensity} &
 $\mathbf{-0.237}\ \CI{-0.380}{-0.085}$ &
 $\mathbf{-0.179}\ \CI{-0.270}{-0.084}$ &
 $-0.122\ \CI{-0.278}{0.033}$ \\[2pt]
 
-\quad pH &
+\quad \texttt{pH} &
 $-0.032\ \CI{-0.122}{0.055}$ &
 $0.003\ \CI{-0.052}{0.058}$ &
 $0.016\ \CI{-0.074}{0.105}$ \\[4pt]
 
 \multicolumn{4}{@{}l}{\textit{Between-field (gestione)} ($\boldsymbol{\beta}_r$)} \\[2pt]
 
-\quad OnFarm &
+\quad \texttt{OnFarm} &
 $-0.137\ \CI{-0.528}{0.274}$ &
 $\mathbf{+0.294}\ \CI{0.037}{0.567}$ &
 $\mathbf{+0.684}\ \CI{0.239}{1.129}$ \\[2pt]
 
-\quad Irrigate &
+\quad \texttt{Irrigate} &
 $\mathbf{+0.260}\ \CI{0.022}{0.496}$ &
 $-0.146\ \CI{-0.303}{0.009}$ &
 $\mathbf{+0.404}\ \CI{0.121}{0.683}$ \\[2pt]
 
-\quad Fertilised &
+\quad \texttt{Fertilised} &
 $+0.011\ \CI{-0.293}{0.305}$ &
 $-0.116\ \CI{-0.316}{0.074}$ &
 $-0.346\ \CI{-0.683}{0.002}$ \\[2pt]
 
-\quad N\_Natural &
+\quad \texttt{N\_Natural} &
 $+0.012\ \CI{-0.392}{0.402}$ &
 $+0.176\ \CI{-0.108}{0.447}$ &
 $-0.096\ \CI{-0.555}{0.365}$ \\
@@ -529,12 +544,12 @@ La Figura~\ref{fig:projpred} mostra il percorso di selezione predittiva per cias
 \caption{Confronto LOO-CV tra strutture gerarchiche alternative ($\Delta$ELPD rispetto al modello finale).}
 \label{tab:loo4}
 \small
-\begin{tabular}{@{}llrrr@{}}
+\begin{tabular}{@{}p{5.0cm}p{4.8cm}rrr@{}}
 \toprule
 Modello & Descrizione & $\Delta$ELPD & SE & $|z|$ \\
 \midrule
 
-\textbf{Modello multirisposta completo}
+\textbf{Modello multivariato completo}
 & Effetti casuali 6D, correlazioni cross-risposta
 & $\mathbf{0.0}$
 & ---
@@ -562,7 +577,7 @@ Modello a sole intercette casuali
 \end{tabular}
 \end{table}
 
-La Tabella~\ref{tab:loo4} confronta la capacità predittiva delle diverse specificazioni gerarchiche mediante validazione incrociata LOO. Le differenze tra modelli sono modeste rispetto alle rispettive incertezze: il modello finale non presenta un vantaggio predittivo netto rispetto ai modelli univariati con intercetta e pendenza casuale. La progressione verso strutture più semplici porta a deterioramenti crescenti, ma mai chiaramente separati dalla rispettiva incertezza. La preferenza per il modello finale non è quindi motivata dalla performance predittiva, ma dalla sua struttura: è l'unico che consente di stimare le correlazioni tra nutrienti a livello di campo, quantità di interesse primario per l'interpretazione nella sezione successiva. Specificazioni più parsimoniose, incluse varianti fattoriali della struttura casuale, non migliorano e talvolta peggiorano la predizione rispetto al modello completo.
+La Tabella~\ref{tab:loo4} confronta la capacità predittiva delle diverse specificazioni gerarchiche mediante validazione incrociata LOO. Le differenze tra modelli sono modeste rispetto alle rispettive incertezze: il modello finale non presenta un vantaggio predittivo netto rispetto ai modelli univariati con intercetta e pendenza casuale. La progressione verso strutture più semplici porta a deterioramenti crescenti, ma mai chiaramente separati dalla rispettiva incertezza. La preferenza per il modello finale non è quindi motivata dalla \textit{performance} predittiva, ma dalla sua struttura: è l'unico che consente di stimare le correlazioni tra nutrienti a livello di campo, quantità di interesse primario per l'interpretazione nella sezione successiva. Specificazioni più parsimoniose, incluse varianti fattoriali della struttura casuale, non migliorano e talvolta peggiorano la predizione rispetto al modello completo.
 
 \subsection{Analisi di robustezza}
 \label{subsec:robustezza}
@@ -577,7 +592,7 @@ L'estensione del modello con una struttura di errore multivariata tra le tre ris
 
 L'autocorrelazione verticale rilevata nei profili del carbonio dall'analisi frequentista (§\ref{subsec:prelim}) è assorbita dalla pendenza casuale per campo nel modello finale: la correlazione tra residui di strati contigui è prossima allo zero per tutte e tre le risposte, senza evidenza di dipendenza seriale residua.
 
-Un ultimo controllo riguarda il confondimento spaziale. Le pratiche di gestione e le principali proprietà fisiche del suolo non sono distribuite casualmente nello spazio: OnFarm e Fertilised mostrano autocorrelazione geografica significativa, e Texture$_2$ e densità apparente (i predittori più rilevanti per carbonio e azoto) la mostrano in misura ancora maggiore. Aggiungendo la longitudine come predittore tra campo, i coefficienti di gestione si spostano sensibilmente, indicando che gestione e posizione geografica non sono separabili nei dati disponibili. Gli intercetti casuali di campo a posteriori non mostrano invece autocorrelazione spaziale residua apprezzabile: la struttura gerarchica, condizionando sulle covariate fisiche spazialmente strutturate, assorbe già la geografia dei nutrienti. Un modello con processo gaussiano sugli intercetti di campo converge senza difficoltà ma con iperparametri scarsamente identificati con $J=40$ campi e senza guadagno predittivo in LOO. Le stime degli effetti di gestione vanno pertanto interpretate con cautela, in linea con quanto già osservato nella Sezione~\ref{subsec:fixed}.
+Un ultimo controllo riguarda il confondimento spaziale. Le pratiche di gestione e le principali proprietà fisiche del suolo non sono distribuite casualmente nello spazio: \texttt{OnFarm} e \texttt{Fertilised} mostrano autocorrelazione geografica significativa, \texttt{Texture2} e densità apparente (i predittori più rilevanti per carbonio e azoto) la mostrano in misura ancora maggiore. Aggiungendo la longitudine come predittore tra campo, i coefficienti di gestione si spostano sensibilmente, indicando che gestione e posizione geografica non sono separabili nei dati disponibili. Gli intercetti casuali di campo a posteriori non mostrano invece autocorrelazione spaziale residua apprezzabile: la struttura gerarchica, condizionando sulle covariate fisiche spazialmente strutturate, assorbe già la geografia dei nutrienti. Un modello con processo gaussiano sugli intercetti di campo converge senza difficoltà ma con iperparametri scarsamente identificati con $J=40$ campi e senza guadagno predittivo in LOO. Le stime degli effetti di gestione vanno pertanto interpretate con cautela, in linea con quanto già osservato nella Sezione~\ref{subsec:fixed}.
 
 
 % ==============================================================================
@@ -603,12 +618,12 @@ incerta, in linea con la ridotta mobilità di questo elemento nei suoli tropical
 
 La correlazione tra le intercette casuali di carbonio e azoto
 ($\rho_{\mathrm{int}} \approx +0.39$, CI al 90\% lontano da zero) è
-attenuata rispetto alla correlazione tra le medie di campo osservata
-nell'analisi esplorativa ($r \approx 0.73$): il modello, controllando per
-profondità e tessitura, separa la quota sistematica legata alla struttura
-del profilo da quella attribuibile alla covariazione delle covariate fisiche.
+inferiore alla correlazione grezza osservata nell'analisi esplorativa ($r \approx 0.73$):
+il modello, controllando per profondità e tessitura, separa la quota
+sistematica legata alla struttura del profilo da quella attribuibile alla
+covariazione delle covariate fisiche.
 La correlazione residua riflette il rapporto carbonio/azoto relativamente
-stabile della materia organica stabilizzata \citep{cleveland2007}: campi con
+costante della materia organica stabilizzata \citep{cleveland2007}: campi con
 più carbonio organico tendono proporzionalmente ad avere più azoto organico.
 La correlazione opera a livello di campo, non di osservazione: dopo aver
 rimosso l'effetto di campo, le fluttuazioni locali dei due nutrienti alla
@@ -622,7 +637,7 @@ fisico dominante per carbonio e azoto: suoli con maggiore contenuto relativo
 di argilla e limo trattengono più materia organica, in accordo con la
 letteratura sulla stabilizzazione minerale \citep{scientificreports2021}.
 Il contrasto argilla/limo (Texture$_1$) non aggiunge invece informazione
-predittiva: è il contrasto globale frazioni fini/sabbia che conta, non la
+predittiva: è il contrasto globale tra frazioni fini e sabbia che conta, non la
 ripartizione interna tra le due frazioni fini.
 
 La densità apparente mostra effetti negativi chiaramente non nulli per entrambi
@@ -722,16 +737,16 @@ una domanda aperta per studi futuri con disegno sperimentale controllato.
     N totale (\%)               & 0.105  & 0.062 & 0.010 & 0.100 & 0.390 \\
     P totale (\%)               & 0.105  & 0.098 & 0.010 & 0.080 & 0.920 \\
     Profondit\`a (cm)           & 43.6   & 17.8  & 20.0  & 40.0  & 80.0  \\
-    Texture1 (ILR$_1$)          & $-0.635$ & 0.331 & $-2.040$ & $-0.630$ & 0.458 \\
-    Texture2 (ILR$_2$)          & 1.118  & 0.563 & $-0.412$ & 1.139 & 2.572 \\
-    Densit\`a app.\ (g/cm$^3$) & 1.36   & 0.35  & 0.62  & 1.28  & 2.06  \\
-    pH                          & 5.72   & 0.34  & 4.84  & 5.69  & 6.99  \\
+    \texttt{Texture1} (ILR$_1$)  & $-0.635$ & 0.331 & $-2.040$ & $-0.630$ & 0.458 \\
+    \texttt{Texture2} (ILR$_2$)  & 1.118  & 0.563 & $-0.412$ & 1.139 & 2.572 \\
+    Densit\`a app.\ (g/cm$^3$)  & 1.36   & 0.35  & 0.62  & 1.28  & 2.06  \\
+    pH                           & 5.72   & 0.34  & 4.84  & 5.69  & 6.99  \\
     \midrule
     \multicolumn{6}{@{}l}{\small\textit{Variabili di gestione (between-field, 0/1):}} \\
-    \quad OnFarm      & \multicolumn{5}{l}{10/40 campi (25\%)} \\
-    \quad Irrigate    & \multicolumn{5}{l}{15/40 campi (37\%)} \\
-    \quad Fertilised  & \multicolumn{5}{l}{20/40 campi (50\%)} \\
-    \quad N\_Natural  & \multicolumn{5}{l}{5/40 campi (12\%)}  \\
+    \quad \texttt{OnFarm}     & \multicolumn{5}{l}{10/40 campi (25\%)} \\
+    \quad \texttt{Irrigate}   & \multicolumn{5}{l}{15/40 campi (37\%)} \\
+    \quad \texttt{Fertilised} & \multicolumn{5}{l}{20/40 campi (50\%)} \\
+    \quad \texttt{N\_Natural} & \multicolumn{5}{l}{5/40 campi (12\%)}  \\
     \bottomrule
   \end{tabular}
 \end{table}
