@@ -130,21 +130,13 @@ In questo studio si analizzerà il dataset "crop", contenente rilevazioni effett
 
 Il \textit{dataset} comprende 40 campi agricoli nel sud della Tanzania. Per ognuno di essi sono state campionate cinque o sei profondità (20, 30, 40, 50, 60 e, in alcuni casi, 80\,cm), per un totale di 220 osservazioni. Ogni carotaggio è stato suddiviso in sezioni verticali e per ciascuna l'analisi chimica è stata condotta su un campione di terra omogeneizzata, così da ottenere una misura integrata sull'intero segmento verticale piuttosto che su un singolo punto.
 
-Le tre variabili risposta (carbonio organico, azoto totale e fosforo totale) sono espresse come percentuale in peso del suolo secco. Nella scala originale le distribuzioni sono marcatamente asimmetriche e il decadimento con la profondità è compatibile con un andamento log-lineare (Figura~\ref{fig:eda_traiettorie_orig}), come riportato in letteratura per i profili di nutrienti nei suoli tropicali. Si è pertanto adottata la trasformazione logaritmica:
+Le tre variabili risposta (carbonio organico, azoto totale e fosforo totale) sono espresse come percentuale in peso del suolo secco. Nella scala originale le distribuzioni sono marcatamente asimmetriche e il decadimento con la profondità è compatibile con un andamento log-lineare, come riportato in letteratura per i profili di nutrienti nei suoli tropicali. Si è pertanto adottata la trasformazione logaritmica:
 
 \[
   y_r = \log(\text{Perc}_r), \quad r \in \{\SOC, N, P\},
 \]
 
 che stabilizza la varianza e linearizza la relazione con la profondità. Le tre percentuali non condividono alcun vincolo di somma e i valori osservati rimangono ampiamente al di sotto del 100\%, rendendo superfluo qualsiasi aggiustamento composizionale.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.75\linewidth]{eda_04_traiettorie_orig}
-  \caption{Profili verticali di carbonio organico, azoto e fosforo nella scala originale.
-           Il decadimento con la profondità è compatibile con un andamento log-lineare.}
-  \label{fig:eda_traiettorie_orig}
-\end{figure}
 
 Alcune caratteristiche del suolo variano all'interno dello stesso campo al variare della profondità. Il pH e la densità apparente (\texttt{BulkDensity}) descrivono l'acidità e la compattazione del suolo lungo il profilo. La composizione granulometrica richiede invece un trattamento particolare: argilla, limo e sabbia sommano per costruzione al 100\%, definendo un sistema composizionale in cui le tre frazioni non sono linearmente indipendenti. Inserirle direttamente come predittori introdurrebbe una dipendenza lineare perfetta e correlazioni spurie tra i coefficienti. Si è pertanto applicata la trasformazione Isometric Log-Ratio (ILR) \citep{egozcue2003isometric}, che ricava due coordinate ortogonali prive di vincolo:
 
@@ -232,14 +224,14 @@ Considerando le medie per campo, carbonio e azoto mostrano una correlazione posi
 
 Per carbonio e azoto si osserva un'apparente risalita dei valori a 80 cm, riconducibile a un artefatto del disegno campionario: a tale profondità sono presenti solo i campi con profilo completo, un sottoinsieme selezionato.
 
-%\begin{figure}[htbp]
-%  \centering
-%  \includegraphics[width=\linewidth]{images/fig_eda_traiettorie.pdf}
-%  \caption{Profili verticali di SOC, N e P nei 40 campi (scala log).
-%    Linee grigie: singoli campi; linea colorata: mediana globale per profondità;
-%    banda: intervallo interquartile.}
-%  \label{fig:eda_traj}
-%\end{figure}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{images/fig_eda_traiettorie.pdf}
+  \caption{Profili verticali di SOC, N e P nei 40 campi (scala log).
+    Linee grigie: singoli campi; linea colorata: mediana globale per profondità;
+    banda: intervallo interquartile.}
+  \label{fig:eda_traj}
+\end{figure}
 % =============================================================================
 \section{Modelli statistici e inferenza}
 \label{sec:modello}
