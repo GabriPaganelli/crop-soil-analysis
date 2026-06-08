@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it as below."
+type: software
+title: "Bayesian Hierarchical Analysis of Soil Nutrient Vertical Profiles"
+abstract: >
+  Bayesian hierarchical model for soil nutrient (SOC, N, P) vertical depth profiles
+  in 40 Tanzanian agricultural fields. Uses a multivariate random effects structure
+  (M-SP-RIRS-MVRE) with proportional slope and 6D LKJ covariance, implemented in Stan
+  via cmdstanr. Includes projpred variable selection and robustness checks.
+authors:
+  - family-names: Bortoletto
+    given-names: Davide
+    affiliation: "University of Padova"
+  - family-names: Faedo
+    given-names: Piero
+    affiliation: "University of Padova"
+  - family-names: Paganelli
+    given-names: Gabriele
+    affiliation: "University of Padova"
+    email: gabrielepaganelli13@gmail.com
+  - family-names: Zannini
+    given-names: Pietro
+    affiliation: "University of Padova"
+keywords:
+  - Bayesian
+  - hierarchical model
+  - Stan
+  - MCMC
+  - soil science
+  - random effects
+  - projpred
+  - ILR
+  - multivariate
+license: MIT
+repository-code: "https://github.com/GabriPaganelli/crop-soil-analysis"
+date-released: "2026-06-08"
