@@ -1,12 +1,15 @@
 # stan/
-
-Modelli Stan per l'analisi bayesiana gerarchica. I file `.stan` sono il
-sorgente compilabile; i file `.rds` con i fit MCMC sono esclusi dal repository
-(`.gitignore`) per via delle dimensioni (100–700 MB ciascuno).
+# *Bayesian Hierarchical Stan Models*
 
 ---
 
-## Gerarchia dei modelli
+## Italiano
+
+Modelli Stan per l'analisi bayesiana gerarchica dei profili verticali di nutrienti del suolo.
+I file `.stan` sono la sorgente compilabile; i file `.rds` con i fit MCMC sono esclusi dal
+repository (`.gitignore`) per via delle dimensioni (100–700 MB ciascuno).
+
+### Gerarchia dei modelli
 
 I modelli sono stati sviluppati in progressione di complessità crescente:
 
@@ -16,20 +19,18 @@ M-RI  →  M-SP  →  M-SP-RIRS  →  M-SP-RIRS-MVRE  ← modello finale
                               varianti A / B / full / gp
 ```
 
----
+### File Stan
 
-## File Stan
-
-### Modelli principali (confronto)
+**Modelli principali (confronto)**
 
 | File | Sigla | Descrizione |
 |---|---|---|
 | `model_ri.stan` | **M-RI** | Random intercept puro (baseline). Un effetto casuale scalare per campo. |
-| `model_ri_slope.stan` | **M-SP** | Aggiunge pendenza proporzionale: `slope_j = ρ_r · intercept_j`. La slope dipende linearmente dall'intercetta. |
+| `model_ri_slope.stan` | **M-SP** | Pendenza proporzionale: `slope_j = ρ_r · intercept_j`. La slope dipende linearmente dall'intercetta. |
 | `model_rirs.stan` | **M-SP-RIRS** | Pendenza risposta-specifica: `(intercept_j, slope_j)` bivariati per ciascuna risposta (SOC, N, P) separatamente. |
-| `model_mvre.stan` | **M-SP-RIRS-MVRE** ⭐ | **Modello finale.** Effetti casuali 6D multivariati `V[1:6, j]` = (int_SOC, slope_SOC, int_N, slope_N, int_P, slope_P). Stima le correlazioni cross-risposta a livello di campo tramite LKJ. |
+| `model_mvre.stan` | **M-SP-RIRS-MVRE** ⭐ | **Modello finale.** Effetti casuali 6D multivariati `V[1:6, j]`. Stima le correlazioni cross-risposta a livello di campo tramite LKJ. |
 
-### Modelli di robustezza e varianti
+**Modelli di robustezza e varianti**
 
 | File | Descrizione |
 |---|---|
@@ -38,12 +39,10 @@ M-RI  →  M-SP  →  M-SP-RIRS  →  M-SP-RIRS-MVRE  ← modello finale
 | `model_mvre_full.stan` | MVRE + correlazioni residue tra risposte (MVNormal sui residui). Verifica indipendenza condizionale (script 16). |
 | `model_mvre_gp.stan` | MVRE + Gaussian Process sugli intercetti di campo (kernel squared-exponential). Robustezza spaziale (script 21). |
 | `model_rirs_mv.stan` | RIRS + residui multivariati. Step intermedio tra RIRS e MVRE. |
-| `model_gp_fixed_slope.stan` | GP + pendenza fissa globale. Alternativa spaziale non gerarchica (script 21, confronto). |
+| `model_gp_fixed_slope.stan` | GP + pendenza fissa globale. Alternativa spaziale non gerarchica (script 21). |
 | `model_gp_full.stan` | GP completo sulle 3 risposte. Confronto computazionalmente pesante. |
 
----
-
-## Parametri chiave del modello finale (`model_mvre.stan`)
+### Parametri chiave del modello finale
 
 ```
 N, J, K_W, K_B      dimensioni dati (osservazioni, campi, predittori within/between)
@@ -66,19 +65,95 @@ L_Omega[6×6]        Cholesky della matrice di correlazione LKJ
 - `ρ_slope(SOC, N) > 0` — i campi con profilo SOC più uniforme hanno anche N più uniforme
 - ΔELPD MVRE vs RIRS = +0.4 (SE 0.9) — miglioramento marginale ma struttura interpretabile
 
----
-
-## Compilazione e sampling
+### Compilazione e sampling
 
 I modelli vengono compilati e campionati automaticamente dagli script R
 corrispondenti (07–22) tramite `cmdstanr`. Tutti i fit usano `seed = 2024`
 per garantire la riproducibilità.
 
 ```r
-# Esempio: compilazione manuale
+# Compilazione manuale
 library(cmdstanr)
 library(here)
 mod <- cmdstan_model(here("stan", "model_mvre.stan"))
 ```
 
 I file compilati (`.exe` su Windows) sono esclusi dal repository.
+
+---
+
+## English
+
+Stan models for the Bayesian hierarchical analysis of soil nutrient vertical profiles.
+The `.stan` files are compilable source; the `.rds` MCMC fit files are excluded from the
+repository (`.gitignore`) due to size (100–700 MB each).
+
+### Model hierarchy
+
+Models were developed in order of increasing complexity:
+
+```
+M-RI  →  M-SP  →  M-SP-RIRS  →  M-SP-RIRS-MVRE  ← final model
+                                        ↓
+                              variants A / B / full / gp
+```
+
+### Stan files
+
+**Main models (comparison)**
+
+| File | Label | Description |
+|---|---|---|
+| `model_ri.stan` | **M-RI** | Pure random intercept (baseline). One scalar random effect per field. |
+| `model_ri_slope.stan` | **M-SP** | Proportional slope: `slope_j = ρ_r · intercept_j`. Slope depends linearly on the intercept. |
+| `model_rirs.stan` | **M-SP-RIRS** | Response-specific slope: bivariate `(intercept_j, slope_j)` for each response (SOC, N, P) separately. |
+| `model_mvre.stan` | **M-SP-RIRS-MVRE** ⭐ | **Final model.** 6D multivariate random effects `V[1:6, j]`. Estimates cross-response field-level correlations via LKJ. |
+
+**Robustness models and variants**
+
+| File | Description |
+|---|---|
+| `model_mvre_A.stan` | Reduced MVRE: no management predictors (K_B = 0), Texture1 excluded. Comparison in script 14. |
+| `model_mvre_B.stan` | Parsimonious MVRE: N treated as random intercept only (5D instead of 6D). Comparison in script 14. |
+| `model_mvre_full.stan` | MVRE + residual cross-response correlations (MVNormal on residuals). Tests conditional independence (script 16). |
+| `model_mvre_gp.stan` | MVRE + Gaussian Process on field intercepts (squared-exponential kernel). Spatial robustness (script 21). |
+| `model_rirs_mv.stan` | RIRS + multivariate residuals. Intermediate step between RIRS and MVRE. |
+| `model_gp_fixed_slope.stan` | GP + fixed global slope. Non-hierarchical spatial alternative (script 21). |
+| `model_gp_full.stan` | Full GP over all 3 responses. Computationally intensive comparison. |
+
+### Key parameters of the final model
+
+```
+N, J, K_W, K_B      data dimensions (observations, fields, within/between predictors)
+field_id[N]         field index for each observation
+logSOC, logN, logP  response variables (log scale)
+X_W[N, K_W]         within-field predictors: logBottom, Texture1, Texture2, BulkDensity, PH
+X_B[J, K_B]         between-field predictors: OnFarm, Irrigate, Fertilised, N_Natural
+
+α_r                 global intercept for response r ∈ {SOC, N, P}
+γ_r[K_W]            within-field fixed effects for response r
+β_r[K_B]            between-field fixed effects for response r
+V[6, J]             field random effects (6D multivariate)
+L_Omega[6×6]        Cholesky factor of the LKJ correlation matrix
+τ_alpha_r, τ_beta_r standard deviations of the V components
+σ_r                 residual standard deviation for response r
+```
+
+**Key results**:
+- `ρ_int(SOC, N) = +0.386` — correlation between SOC and N field intercepts
+- `ρ_slope(SOC, N) > 0` — fields with a flatter SOC profile also show a flatter N profile
+- ΔELPD MVRE vs RIRS = +0.4 (SE 0.9) — marginal improvement but interpretable structure
+
+### Compilation and sampling
+
+Models are compiled and sampled automatically by the corresponding R scripts (07–22)
+via `cmdstanr`. All fits use `seed = 2024` for reproducibility.
+
+```r
+# Manual compilation
+library(cmdstanr)
+library(here)
+mod <- cmdstan_model(here("stan", "model_mvre.stan"))
+```
+
+Compiled files (`.exe` on Windows) are excluded from the repository.
