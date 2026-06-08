@@ -1,5 +1,5 @@
 # =============================================================================
-# 13_validazione_projpred.R  —  Validazione: posteriors proiettati da projpred vs M-SP-RIRS-MVRE
+# 13_projpred_validation.R  —  Validation: projected posteriors from projpred vs M-SP-RIRS-MVRE
 #
 # Per ogni risposta r, costruisce il "modello finale" come il sottosistema
 # selezionato da projpred (script 12) e ne verifica la coerenza con M-SP-RIRS-MVRE.
@@ -53,7 +53,7 @@ save_fig <- function(fname, p, w = 18, h = 12, u = "cm") {
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati <- carica_dati()
+dati <- load_data()
 
 field_levels <- sort(unique(as.integer(as.character(dati$Field))))
 J <- length(field_levels)

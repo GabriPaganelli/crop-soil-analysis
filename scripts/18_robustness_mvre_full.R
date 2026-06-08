@@ -1,5 +1,5 @@
 # =============================================================================
-# 16_robustezza_msp_mv.R  —  MVRE-FULL: MVRE + residui multivariati (robustezza)
+# 18_robustness_mvre_full.R  —  MVRE-FULL: MVRE + multivariate residuals (robustness check)
 #
 # Estensione di M-SP-RIRS-MVRE (modello finale):
 #   Aggiunge correlazioni tra residui alla stessa osservazione (i,j) tramite

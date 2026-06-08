@@ -1,5 +1,5 @@
 # =============================================================================
-# 22_robustezza_latlong.R  —  Lat/Long come effetti fissi in X_B
+# 22_robustness_latlong.R  —  Lat/Long as fixed between-field effects in X_B
 #
 # Baseline spaziale semplice: aggiunge le coordinate geografiche standardizzate
 # (Lat_std, Long_std) come covariate between-field, usando lo stesso Stan file
@@ -33,7 +33,7 @@ if (requireNamespace("loo",        quietly = TRUE)) library(loo)
 
 # ── 1. DATI ────────────────────────────────────────────────────────────────────
 
-dati <- carica_dati()
+dati <- load_data()
 
 field_levels <- sort(unique(as.integer(as.character(dati$Field))))
 J <- length(field_levels)

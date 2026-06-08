@@ -1,5 +1,5 @@
 # =============================================================================
-# 18_figure_principali.R  —  Export figure principali dal fit M-SP-RIRS-MVRE
+# 16_figures_main.R  —  Export main figures from M-SP-RIRS-MVRE fit
 #
 # Produce in output/figures/:
 #   fig_04_posterior_rho.pdf       — distribuzioni a posteriori di rho_r e tau_beta_r

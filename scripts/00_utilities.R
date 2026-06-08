@@ -3,8 +3,8 @@
 # =============================================================================
 #
 # Struttura:
-#   1. Helper di progetto  (setup_rtools, carica_dati, fit_field)
-#   2. EDA generica        (analizza_dataset, correlazione_*, grafico_*, plot_*)
+#   1. Helper di progetto  (setup_rtools, load_data, fit_field)
+#   2. EDA generica        (summarize_dataset, correlate_*, plot_*)
 #   3. Visualizzazioni     (plot_depth_profiles, plot_texture_triangle)
 # =============================================================================
 
@@ -26,17 +26,17 @@ setup_rtools <- function() {
 }
 
 # Salva una figura in output/figures/ come PDF.
-# Usata da tutti gli script figura (03, 12, 18, 19) in luogo della definizione locale.
+# Used by all figure scripts (03, 12, 16, 17) instead of a repeated local definition.
 save_fig <- function(fname, p, w = 16, h = 9, u = "cm") {
   ggplot2::ggsave(file.path(here::here("output", "figures"), fname),
                  plot = p, width = w, height = h, units = u, device = "pdf")
   cat(sprintf("  [fig] Salvato: %s\n", fname))
 }
 
-# Carica dati.rds e applica le trasformazioni standard (log-risposte, scaling
-# di logBottom/Texture1/Texture2/BulkDensity/PH, Field come factor).
-# Usata da tutti gli script modello (07-22) in luogo del blocco dati ripetuto.
-carica_dati <- function() {
+# Loads dati.rds and applies standard transformations (log-responses, scaling
+# of logBottom/Texture1/Texture2/BulkDensity/PH, Field as factor).
+# Used by all model scripts (07-22) instead of a repeated data block.
+load_data <- function() {
   readRDS(here::here("data", "dati.rds")) |>
     dplyr::mutate(dplyr::across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                                 ~ as.integer(as.character(.x)))) |>
@@ -79,7 +79,7 @@ fit_field <- function(df, y_var) {
 
 # Funzioni
 
-analizza_dataset <- function(data) {
+summarize_dataset <- function(data) {
   
   # Validazione input più flessibile
   if (!is.data.frame(data) && !inherits(data, c("tbl_df", "data.table"))) {
@@ -167,8 +167,8 @@ analizza_dataset <- function(data) {
   return(risultato)
 }
 
-correlazione_x_y <- function(data, y_col = 'y', metodo = "pearson", 
-                             plot = T, titolo = "Correlazioni X vs Y") {
+correlate_xy <- function(data, y_col = 'y', metodo = "pearson",
+                         plot = T, titolo = "Correlazioni X vs Y") {
   
   # Validazione input - accetta data.frame, tibble, data.table
   if (!is.data.frame(data)) {
@@ -371,9 +371,9 @@ plot_imageplot_matrix <- function(cor_matrix, titolo, metodo) {
        (legend_y_bottom + legend_y_top)/2, "0", cex = 0.7)
 }
 # Funzione per matrice di correlazione tra tutte le X
-correlazione_tra_x <- function(data, y_col = NULL, metodo = "pearson", 
-                               plot = T, titolo = "Matrice di Correlazione tra X", 
-                               p_threshold = 20) {
+correlate_predictors <- function(data, y_col = NULL, metodo = "pearson",
+                                 plot = T, titolo = "Matrice di Correlazione tra X",
+                                 p_threshold = 20) {
   
   # Validazione input più flessibile
   if (!is.data.frame(data) && !inherits(data, c("tbl_df", "data.table"))) {
@@ -431,7 +431,7 @@ correlazione_tra_x <- function(data, y_col = NULL, metodo = "pearson",
   return(cor_matrix)
 }
 
-grafico_distribuzioni <- function(df) {
+plot_distributions <- function(df) {
   # Verifica che l'input sia un dataframe, tibble o data.table
   if (!is.data.frame(df) && !inherits(df, c("tbl_df", "tbl", "data.table"))) {
     stop("L'input deve essere un dataframe, tibble o data.table")

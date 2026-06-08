@@ -1,5 +1,5 @@
 # =============================================================================
-# run_all.R  —  Master script: esegue l'intera pipeline (07–22)
+# run_all.R  —  Master script: esegue l'intera pipeline (07-22)
 #
 # Esegue in ordine gli script 07–22. I fit (07-09) sono cachati: se esistono
 # già vengono solo caricati. Il modello finale è M-SP-RIRS-MVRE (script 10).
@@ -23,9 +23,9 @@
 #   Script 13 (validazione):          ~5 min
 #   Script 14 (A/B MCMC):             ~10 min ciascuno se non cachati
 #   Script 15 (sensitivity MCMC):     ~10 min se non cachato
-#   Script 16 (MVRE-FULL LOO):        ~3 min (fit già in cache)
-#   Script 17 (frequentista):         ~2 min
-#   Script 18-19 (figure + report):   ~10 min
+#   Script 16-17 (figure principali + report):  ~10 min
+#   Script 18 (MVRE-FULL LOO):                  ~3 min (fit in cache)
+#   Script 19 (frequentista nlme):              ~2 min
 #   Script 20 (spatial confounding):  ~2 min
 #   Script 21 (GP robustezza MCMC):   ~30 min se non cachato
 #   Script 22 (Lat/Long MCMC):        ~10 min se non cachato
@@ -121,17 +121,17 @@ pipeline <- c(
   "09 M-SP-RIRS (confronto)" = "09_model_msp_rirs.R",
   "10 Modello finale MVRE"   = "10_model_final_mvre.R",
   "11 Landuse variante"      = "11_model_msp_landuse.R",
-  "12 Projpred (MVRE)"       = "12_selezione_variabili.R",
-  "13 Validazione projpred"  = "13_validazione_projpred.R",
-  "14 Confronto A/B"         = "14_confronto_modelli.R",
+  "12 Projpred variable sel." = "12_variable_selection.R",
+  "13 Projpred validation"   = "13_projpred_validation.R",
+  "14 Model comparison A/B"  = "14_confronto_modelli.R",
   "15 Sensitivity Pareto"    = "15_sensitivity_pareto.R",
-  "16 MV residui"            = "16_robustezza_msp_mv.R",
-  "17 Frequentista corexp"   = "17_frequentista_corexp.R",
-  "18 Figure principali"     = "18_figure_principali.R",
-  "19 Figure report"         = "19_figure_report.R",
+  "16 Main figures"          = "16_figures_main.R",
+  "17 Report figures"        = "17_figures_report.R",
+  "18 MVRE-FULL robustness"  = "18_robustness_mvre_full.R",
+  "19 Frequentist nlme"      = "19_frequentist_nlme.R",
   "20 Spatial confounding"   = "20_spatial_confounding.R",
-  "21 GP robustezza"         = "21_robustezza_gp.R",
-  "22 Lat/Long robustezza"   = "22_robustezza_latlong.R"
+  "21 GP robustness"         = "21_robustness_gp.R",
+  "22 Lat/Long robustness"   = "22_robustness_latlong.R"
 )
 
 results <- setNames(vector("list", length(pipeline)), names(pipeline))
@@ -167,8 +167,8 @@ cat(sprintf("  Completati: %d | Errori: %d | Saltati: %d / %d totali\n",
             n_ok, n_err, n_skip, length(results)))
 
 if (n_err == 0) {
-  cat("\n  Tutti gli script completati. Compila il PDF con:\n")
-  cat("    cd report && pdflatex report.tex\n")
+  cat("\n  Tutti gli script completati.\n")
+  cat("  Risultati: output/figures/ | output/tables/ | report.pdf\n")
 } else {
-  cat("\n  Correggere gli errori riportati prima di compilare il PDF.\n")
+  cat("\n  Correggere gli errori riportati prima di procedere.\n")
 }

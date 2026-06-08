@@ -50,9 +50,6 @@ crop-soil-analysis/
 ├── output/
 │   ├── figures/                # Tutte le figure (EDA + modello + mappe)
 │   └── tables/                 # Tabelle CSV con risultati
-├── report/
-│   ├── report.tex              # Sorgente LaTeX
-│   └── refs.bib
 └── docs/
     └── crop.pdf                # Documentazione dati originali
 ```
@@ -162,9 +159,6 @@ crop-soil-analysis/
 ├── output/
 │   ├── figures/                # All figures (EDA + model + maps)
 │   └── tables/                 # CSV tables with results
-├── report/
-│   ├── report.tex              # LaTeX source
-│   └── refs.bib
 └── docs/
     └── crop.pdf                # Original data documentation
 ```

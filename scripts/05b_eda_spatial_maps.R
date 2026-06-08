@@ -1,5 +1,5 @@
-# ============================================================
-#  EDA — Grafici motivazione modello
+# =============================================================================
+# 05b_eda_spatial_maps.R  —  EDA: spatial field map and BLUP cross-correlations
 #
 #  Output (output/figures/):
 #    eda_mod_04_mappa.pdf       mappa spaziale campi (colorata per SOC medio)

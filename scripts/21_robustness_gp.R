@@ -1,5 +1,5 @@
 # =============================================================================
-# 21_robustezza_gp.R  —  M-SP-RIRS-GP: GP esponenziale sugli intercetti
+# 21_robustness_gp.R  —  M-SP-RIRS-GP: exponential GP on field intercepts
 #
 # Robustezza rispetto a M-SP-RIRS-MVRE: sostituisce il prior iid sugli
 # intercetti di campo con un GP esponenziale per risposta (kernel Matérn 1/2).
@@ -34,7 +34,7 @@ if (requireNamespace("spdep",      quietly = TRUE)) library(spdep)
 
 # ── 1. DATI ────────────────────────────────────────────────────────────────────
 
-dati <- carica_dati()
+dati <- load_data()
 
 field_levels <- sort(unique(as.integer(as.character(dati$Field))))
 J <- length(field_levels)

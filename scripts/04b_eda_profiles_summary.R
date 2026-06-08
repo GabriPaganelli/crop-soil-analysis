@@ -1,5 +1,5 @@
-# ============================================================
-#  EDA — Proprietà chimico-fisiche del suolo
+# =============================================================================
+# 04b_eda_profiles_summary.R  —  EDA: soil chemical-physical properties
 #
 #  Output (output/figures/):
 #    eda_01_distribuzioni.pdf   istogramma + densità (scala originale e log)

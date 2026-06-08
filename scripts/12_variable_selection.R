@@ -1,5 +1,5 @@
 # =============================================================================
-# 12_selezione_variabili.R  —  Selezione variabili con projpred (reference: M-SP-RIRS-MVRE)
+# 12_variable_selection.R  —  Variable selection with projpred (reference: M-SP-RIRS-MVRE)
 #
 # COME FUNZIONA projpred (NON fitta modelli Stan per ogni subset):
 #   1. Reference model: usa le draws da M-SP-RIRS-MVRE (script 10).
@@ -44,7 +44,7 @@ projpred_cache_path <- file.path(cache_dir, "projpred_varsel_mvre.rds")
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati <- carica_dati()
+dati <- load_data()
 
 field_levels <- sort(unique(as.integer(as.character(dati$Field))))
 J <- length(field_levels)

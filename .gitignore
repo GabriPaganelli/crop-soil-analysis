@@ -17,20 +17,6 @@ output/cache/*.rds
 scripts/_tmp_*.R
 Rplots.pdf
 
-# LaTeX ausiliari e PDF compilato (il deliverable finale sta alla root)
-report/*.aux
-report/*.log
-report/*.blg
-report/*.bbl
-report/*.out
-report/*.toc
-report/*.fdb_latexmk
-report/*.fls
-report/*.synctex*
-report/compile_log.txt
-report/*.pdf
-report/images/
-
 # Docs ausiliari
 docs/*.aux
 docs/*.log

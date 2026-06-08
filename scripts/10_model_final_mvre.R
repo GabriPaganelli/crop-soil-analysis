@@ -34,7 +34,7 @@ if (requireNamespace("loo",        quietly = TRUE)) library(loo)
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati <- carica_dati()
+dati <- load_data()
 
 field_levels <- sort(unique(as.integer(as.character(dati$Field))))
 J <- length(field_levels)

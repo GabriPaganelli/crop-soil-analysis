@@ -1,6 +1,5 @@
 # =============================================================================
-# 17_frequentista_corexp.R  —  Modello frequentista lme (nlme) con correlazione
-#                              esponenziale residua cross-risposta
+# 19_frequentist_nlme.R  —  Frequentist nlme model with cross-response residual correlation
 #
 # Verifica di robustezza: la struttura di correlazione residua R stimata da
 # un modello frequentista (nlme, corSymm) è vicina alla diagonale?

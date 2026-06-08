@@ -1,12 +1,10 @@
 # =============================================================================
-# 19_figure_report.R  —  Export figure per script 13/14 + copia in report/images/
+# 17_figures_report.R  —  Export figures for scripts 13/14 (sensitivity, projpred, LOO A/B)
 #
 # Produce:
 #   output/figures/fig_15_loo_ab_comparison.pdf    — LOO: A / B / M-SP-RIRS
 #   output/figures/fig_16_sensitivity_rho.pdf      — rho_r/tau_beta_r: full vs no-infl
 #   output/figures/fig_17_projpred_panel.pdf       — selection path × 3 risposte
-#
-# Alla fine, copia tutte le figure necessarie al report in report/images/.
 #
 # Dipende da:
 #   output/tables/tab_13_loo.csv           (LOO comparison A/B/M-SP-RIRS)
@@ -21,10 +19,8 @@ suppressPackageStartupMessages({
 })
 
 dir.create(here("output", "figures"), recursive = TRUE, showWarnings = FALSE)
-dir.create(here("report", "images"),  recursive = TRUE, showWarnings = FALSE)
 
 fig_dir <- here("output", "figures")
-img_dir <- here("report", "images")
 
 resp_colors <- c("SOC" = "#2166AC", "N" = "#1A9850", "P" = "#D73027")
 
@@ -197,44 +193,4 @@ if (file.exists(varsel_path)) {
 }
 
 
-# ── 4. COPIA FIGURE IN report/images/ ─────────────────────────────────────────
-
-cat("\n=== Copia figure in report/images/ ===\n")
-
-# Mappa: nome_sorgente (in output/figures/) → nome_destinazione (in report/images/)
-# Per le 3 figure da script 12, la sorgente è già in fig_dir.
-fig_map <- list(
-  "fig_01_aic_forma_funzionale.pdf"     = "fig01_aic.pdf",
-  "fig_03_spaghetti_soc_n.pdf"          = "fig02_spaghetti.pdf",
-  "fig_02_scatter_intercetta_slope.pdf" = "fig03_scatter.pdf",
-  "fig_04_posterior_rho.pdf"            = "fig04_rho.pdf",
-  "fig_05_forest_gamma.pdf"             = "fig05_gamma.pdf",
-  "fig_17_projpred_panel.pdf"           = "fig06_projpred.pdf",
-  "fig_09_loo_comparison.pdf"           = "fig07_loo4.pdf",
-  "fig_07_ppc.pdf"                      = "fig08_ppc.pdf",
-  "fig_15_loo_ab_comparison.pdf"        = "fig09_loo_ab.pdf",
-  "fig_18_cross_corr.pdf"               = "fig10_cross_corr.pdf",
-  "fig_16_sensitivity_rho.pdf"          = "fig11_sensitivity.pdf",
-  "fig_13_proj_vs_msp.pdf"              = "fig12_proj_vs_msp.pdf",
-  "fig_14_nonselected_gamma.pdf"        = "fig13_nonselected_gamma.pdf",
-  "fig_texture_triangle.pdf"            = "fig_texture_triangle.pdf",
-  "fig_06_forest_beta.pdf"              = "appfig01_beta.pdf",
-  "fig_10_trace_key.pdf"                = "appfig02_trace.pdf"
-)
-
-for (src_name in names(fig_map)) {
-  src  <- file.path(fig_dir, src_name)
-  dst  <- file.path(img_dir, fig_map[[src_name]])
-  if (file.exists(src)) {
-    file.copy(src, dst, overwrite = TRUE)
-    cat(sprintf("  Copiato: %s → images/%s\n", src_name, fig_map[[src_name]]))
-  } else {
-    cat(sprintf("  MANCANTE: %s  (non copiato)\n", src_name))
-  }
-}
-
-cat(sprintf("\nContenuto report/images/ (%d file):\n",
-            length(list.files(img_dir))))
-for (f in sort(list.files(img_dir))) cat(sprintf("  %s\n", f))
-
-cat("\n── Fine script 19 ──────────────────────────────────────────────\n")
+cat("\n── Fine script 17 ──────────────────────────────────────────────\n")

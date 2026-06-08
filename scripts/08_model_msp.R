@@ -41,7 +41,7 @@ if (requireNamespace("bayesplot",  quietly = TRUE)) library(bayesplot)
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati <- carica_dati()
+dati <- load_data()
 
 field_levels <- sort(unique(as.integer(as.character(dati$Field))))
 J <- length(field_levels)
