@@ -8,7 +8,7 @@
 #
 # NOTA: script standalone. Usa nlme (non cmdstanr). I dati vengono caricati in
 #       formato long specifico per nlme con risposta e profondità.
-# Dipende da: data/dati.rds
+# Dipende da: data/crop_analytic.rds
 # =============================================================================
 
 
@@ -18,7 +18,7 @@ library(nlme)
 library(tidyverse)
 library(here)
 
-crop <- readRDS(here("data", "dati.rds"))
+crop <- readRDS(here("data", "crop_analytic.rds"))
 
 crop <- crop %>%
   mutate(

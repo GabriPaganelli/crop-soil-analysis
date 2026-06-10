@@ -11,7 +11,7 @@
 #   3. Verifica se i campi erratici condividono caratteristiche (management)
 #   4. Confronta profili N e P stratificati per livello
 #
-# Dipende da: data/dati.rds, scripts/00_utilities.R
+# Dipende da: data/crop_analytic.rds, scripts/00_utilities.R
 # =============================================================================
 
 
@@ -22,7 +22,7 @@ source(here("scripts", "00_utilities.R"))
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati_raw <- readRDS(here("data", "dati.rds")) |>
+dati_raw <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                 ~ as.integer(as.character(.x)))) |>
   mutate(

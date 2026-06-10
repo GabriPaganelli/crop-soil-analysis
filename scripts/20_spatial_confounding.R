@@ -12,7 +12,7 @@
 #   4. Scatter: intercetti posteriori MVRE vs coordinate → visualizzazione confounding
 #   5. Tabella riassuntiva
 #
-# Dipende da: data/dati.rds, data/crop.rds, stan/fit_msp_rirs_mvre.rds
+# Dipende da: data/crop_analytic.rds, data/crop_full.rds, stan/fit_msp_rirs_mvre.rds
 # =============================================================================
 
 library(tidyverse)
@@ -24,12 +24,12 @@ if (requireNamespace("posterior", quietly = TRUE)) library(posterior)
 
 # ── 0. DATI E COORDINATE ──────────────────────────────────────────────────────
 
-dati <- readRDS(here("data", "dati.rds")) |>
+dati <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                 ~ as.integer(as.character(.x)))) |>
   mutate(logBottom = log(Bottom), Field = factor(Field))
 
-crop_raw <- readRDS(here("data", "crop.rds"))
+crop_raw <- readRDS(here("data", "crop_full.rds"))
 
 coords <- crop_raw |>
   group_by(Field) |>

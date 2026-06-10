@@ -2,7 +2,7 @@
 # 05b_eda_spatial_maps.R  —  EDA: spatial field map and BLUP cross-correlations
 #
 #  Output (output/figures/):
-#    eda_mod_04_mappa.pdf       mappa spaziale campi (colorata per SOC medio)
+#    eda_mod_04_map.pdf       mappa spaziale campi (colorata per SOC medio)
 #    eda_mod_05_blup_cross.pdf  correlazione BLUP intercette (LMM univariati)
 # ============================================================
 
@@ -10,7 +10,7 @@ library(tidyverse)
 library(patchwork)
 library(lme4)
 
-dati <- readRDS(here::here("data", "crop.rds")) |>
+dati <- readRDS(here::here("data", "crop_full.rds")) |>
   mutate(
     logSOC    = log(PercSOC),
     logN      = log(PercTotNitro),
@@ -65,7 +65,7 @@ fig4 <- ggplot(field_map, aes(x = Long, y = Lat)) +
   th +
   theme(legend.position = "right")
 
-save_fig("eda_mod_04_mappa.pdf", fig4, w = 28, h = 18)
+save_fig("eda_mod_04_map.pdf", fig4, w = 28, h = 18)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -75,8 +75,8 @@ save_fig("eda_mod_04_mappa.pdf", fig4, w = 28, h = 18)
 #  (between: OnFarm, Irrigate, Fertilised, N_Natural)
 # ══════════════════════════════════════════════════════════════
 
-# dati.rds ha già Texture1, Texture2, log-risposte
-dati_lmm <- readRDS(here::here("data", "dati.rds")) |>
+# crop_analytic.rds ha già Texture1, Texture2, log-risposte
+dati_lmm <- readRDS(here::here("data", "crop_analytic.rds")) |>
   mutate(
     logSOC       = log(PercSOC),
     logN         = log(PercTotNitro),
@@ -140,5 +140,5 @@ fig5 <- (p_b_soc_n + p_b_soc_p + p_b_n_p) +
 save_fig("eda_mod_05_blup_cross.pdf", fig5, w = 28, h = 14)
 
 message("\n✓ Figure motivazione modello generate in output/figures/:")
-message("  eda_mod_04_mappa.pdf")
+message("  eda_mod_04_map.pdf")
 message("  eda_mod_05_blup_cross.pdf")

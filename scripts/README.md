@@ -24,7 +24,7 @@ ricalcolato.
 | Script | Descrizione |
 |---|---|
 | `00_utilities.R` | Funzioni condivise: `setup_rtools()`, `load_data()`, utility EDA e visualizzazione |
-| `01_preprocessing.R` | Carica `crop.csv`, calcola ILR tessitura (Texture1/2), produce `data/dati.rds` e `data/crop.rds` |
+| `01_preprocessing.R` | Carica `crop.csv`, calcola ILR tessitura (Texture1/2), produce `data/crop_analytic.rds` e `data/crop_full.rds` |
 | `02_eda_texture.R` | EDA composizionale tessitura: CLR+PCA, ILR, triangolo USDA. Produce `fig_texture_*.pdf` |
 | `03_eda_functional_form.R` | Forma funzionale (AIC), ICC, scatter intercetta-slope. Produce `fig_01`, `fig_02`, `fig_03` |
 | `04_eda_depth_profiles.R` | Profili N/P per terzile, identificazione campi influenti, SNR |
@@ -39,7 +39,7 @@ ricalcolato.
 | `11_model_msp_landuse.R` | Variante RIRS con covariate Landuse — esplorativa |
 | `12_variable_selection.R` | Selezione predittiva (*projpred*) su MVRE — produce `fig_08_projpred_*.pdf` |
 | `13_projpred_validation.R` | Confronto posterori proiettati vs MVRE. Produce `fig_13_proj_vs_msp.pdf` |
-| `14_confronto_modelli.R` | Fit varianti A (ridotta) e B (parsimoniosa), LOO-CV — produce `fig_15_loo_ab_comparison.pdf` |
+| `14_model_comparison.R` | Fit varianti A (ridotta) e B (parsimoniosa), LOO-CV — produce `fig_15_loo_ab_comparison.pdf` |
 | `15_sensitivity_pareto.R` | Diagnostica Pareto-k, refit MVRE senza osservazioni influenti — produce `fig_16_sensitivity_*.pdf` |
 | `16_figures_main.R` | Genera figure principali per il report (`fig_04` → `fig_18`) in `output/figures/` |
 | `17_figures_report.R` | Genera figure sensibilità/comparazione (`fig_15`, `fig_16`, `fig_17`) in `output/figures/` |
@@ -52,7 +52,7 @@ ricalcolato.
 ### Dipendenze tra script
 
 ```
-01 → {02, 03, 04, 04b, 05, 05b, 06}   (EDA usa dati.rds prodotto da 01)
+01 → {02, 03, 04, 04b, 05, 05b, 06}   (EDA usa crop_analytic.rds prodotto da 01)
 01 → 07 → 08 → 09 → 10                (pipeline modelli)
 10 → {12, 13, 14, 15, 18}             (validazione e robustezza usano il fit finale)
 {07–15} → {16, 17}                    (figure usano tutti i fit principali)
@@ -80,7 +80,7 @@ if an `.rds` fit file already exists, it is loaded rather than resampled.
 | Script | Description |
 |---|---|
 | `00_utilities.R` | Shared functions: `setup_rtools()`, `load_data()`, EDA and plotting utilities |
-| `01_preprocessing.R` | Loads `crop.csv`, computes texture ILR (Texture1/2), produces `data/dati.rds` and `data/crop.rds` |
+| `01_preprocessing.R` | Loads `crop.csv`, computes texture ILR (Texture1/2), produces `data/crop_analytic.rds` and `data/crop_full.rds` |
 | `02_eda_texture.R` | Compositional texture EDA: CLR+PCA, ILR, USDA triangle. Produces `fig_texture_*.pdf` |
 | `03_eda_functional_form.R` | Functional form (AIC), ICC, intercept-slope scatter. Produces `fig_01`, `fig_02`, `fig_03` |
 | `04_eda_depth_profiles.R` | N/P profiles by tertile, influential field identification, SNR |
@@ -95,7 +95,7 @@ if an `.rds` fit file already exists, it is loaded rather than resampled.
 | `11_model_msp_landuse.R` | RIRS variant with Landuse covariates — exploratory |
 | `12_variable_selection.R` | Predictive variable selection (*projpred*) on MVRE — produces `fig_08_projpred_*.pdf` |
 | `13_projpred_validation.R` | Projected vs MVRE posterior comparison. Produces `fig_13_proj_vs_msp.pdf` |
-| `14_confronto_modelli.R` | Fit variants A (reduced) and B (parsimonious), LOO-CV — produces `fig_15_loo_ab_comparison.pdf` |
+| `14_model_comparison.R` | Fit variants A (reduced) and B (parsimonious), LOO-CV — produces `fig_15_loo_ab_comparison.pdf` |
 | `15_sensitivity_pareto.R` | Pareto-k diagnostics, MVRE refit without influential observations — produces `fig_16_sensitivity_*.pdf` |
 | `16_figures_main.R` | Generates main report figures (`fig_04` → `fig_18`) in `output/figures/` |
 | `17_figures_report.R` | Generates sensitivity/comparison figures (`fig_15`, `fig_16`, `fig_17`) in `output/figures/` |
@@ -108,7 +108,7 @@ if an `.rds` fit file already exists, it is loaded rather than resampled.
 ### Script dependencies
 
 ```
-01 → {02, 03, 04, 04b, 05, 05b, 06}   (EDA uses dati.rds produced by 01)
+01 → {02, 03, 04, 04b, 05, 05b, 06}   (EDA uses crop_analytic.rds produced by 01)
 01 → 07 → 08 → 09 → 10                (model pipeline)
 10 → {12, 13, 14, 15, 18}             (validation and robustness use the final model fit)
 {07–15} → {16, 17}                    (figure scripts use all main fits)

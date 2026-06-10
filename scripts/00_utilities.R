@@ -33,11 +33,11 @@ save_fig <- function(fname, p, w = 16, h = 9, u = "cm") {
   cat(sprintf("  [fig] Salvato: %s\n", fname))
 }
 
-# Loads dati.rds and applies standard transformations (log-responses, scaling
+# Loads crop_analytic.rds and applies standard transformations (log-responses, scaling
 # of logBottom/Texture1/Texture2/BulkDensity/PH, Field as factor).
 # Used by all model scripts (07-22) instead of a repeated data block.
 load_data <- function() {
-  readRDS(here::here("data", "dati.rds")) |>
+  readRDS(here::here("data", "crop_analytic.rds")) |>
     dplyr::mutate(dplyr::across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                                 ~ as.integer(as.character(.x)))) |>
     dplyr::mutate(

@@ -12,7 +12,7 @@
 #   fig_12_struct_params_panel.pdf — riassunto parametri strutturali
 #   fig_18_cross_corr.pdf          — correlazioni cross-risposta (MVRE)
 #
-# Dipende da: stan/fit_msp_rirs_mvre.rds, data/dati.rds
+# Dipende da: stan/fit_msp_rirs_mvre.rds, data/crop_analytic.rds
 # =============================================================================
 
 suppressPackageStartupMessages({
@@ -41,7 +41,7 @@ resp_colors  <- c("SOC" = "#2166AC", "N" = "#1A9850", "P" = "#D73027")
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
 cat("Carico dati...\n")
-dati <- readRDS(here("data", "dati.rds")) |>
+dati <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                 ~ as.integer(as.character(.x)))) |>
   mutate(

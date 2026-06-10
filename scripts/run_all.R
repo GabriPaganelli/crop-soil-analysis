@@ -9,7 +9,7 @@
 #   stan/fit_msp_rirs.rds        — confronto M-SP-RIRS
 #   stan/fit_msp.rds             — confronto M-SP
 #   stan/fit_mri.rds             — confronto M-RI
-#   data/dati.rds                — dati preprocessati
+#   data/crop_analytic.rds                — dati preprocessati
 #
 # STRUTTURA:
 #   1. Validazione prerequisiti
@@ -45,7 +45,7 @@ validate_prerequisites <- function() {
 
   # Solo i prerequisiti che non vengono prodotti dalla pipeline stessa
   required_files <- list(
-    dati      = here("data", "dati.rds"),
+    dati      = here("data", "crop_analytic.rds"),
     stan_07   = here("stan", "model_ri.stan"),
     stan_08   = here("stan", "model_ri_slope.stan"),
     stan_09   = here("stan", "model_rirs.stan"),
@@ -123,7 +123,7 @@ pipeline <- c(
   "11 Landuse variante"      = "11_model_msp_landuse.R",
   "12 Projpred variable sel." = "12_variable_selection.R",
   "13 Projpred validation"   = "13_projpred_validation.R",
-  "14 Model comparison A/B"  = "14_confronto_modelli.R",
+  "14 Model comparison A/B"  = "14_model_comparison.R",
   "15 Sensitivity Pareto"    = "15_sensitivity_pareto.R",
   "16 Main figures"          = "16_figures_main.R",
   "17 Report figures"        = "17_figures_report.R",

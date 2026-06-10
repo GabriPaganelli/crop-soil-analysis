@@ -2,19 +2,19 @@
 # 01_preprocessing.R  —  Preprocessing del dataset crop
 #
 # Input:  data/crop.csv
-# Output: data/crop.rds  (dataset completo con Texture USDA e ILR)
-#         data/dati.rds  (subset analitico usato dai modelli)
+# Output: data/crop_full.rds  (dataset completo con Texture USDA e ILR)
+#         data/crop_analytic.rds  (subset analitico usato dai modelli)
 #
 # Operazioni:
 #   1. Carica crop.csv, sistema i tipi
 #   2. Classifica la texture secondo USDA (soiltexture)
 #   3. Calcola Texture1, Texture2 via compositions::ilr()
-#   4. Salva crop.rds e dati.rds
+#   4. Salva crop_full.rds e crop_analytic.rds
 #
 # ILR: compositions::ilr(acomp(Clay, Silt, Sand)), base di Helmert standard.
 #   Texture1 = ILR1: contrasto argilla vs limo nella frazione fine
 #   Texture2 = ILR2: gradiente finezza (argilla+limo vs sabbia)
-#   Vedi 01b_eda_texture.R per la motivazione e l'analisi visiva.
+#   Vedi 02_eda_texture.R per la motivazione e l'analisi visiva.
 # =============================================================================
 
 library(tidyverse)
@@ -88,8 +88,8 @@ dati <- crop |>
          PercTotNitro, PercSOC, PercTotPhos, BulkDensity,
          Texture1, Texture2)
 
-saveRDS(crop, here("data", "crop.rds"))
-saveRDS(dati, here("data", "dati.rds"))
+saveRDS(crop, here("data", "crop_full.rds"))
+saveRDS(dati, here("data", "crop_analytic.rds"))
 
-cat(sprintf("Salvati crop.rds (%d righe, %d col) e dati.rds (%d righe, %d col)\n",
+cat(sprintf("Salvati crop_full.rds (%d righe, %d col) e crop_analytic.rds (%d righe, %d col)\n",
             nrow(crop), ncol(crop), nrow(dati), ncol(dati)))

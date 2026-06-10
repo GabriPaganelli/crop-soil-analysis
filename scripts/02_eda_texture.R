@@ -13,7 +13,7 @@
 #   3. Confronto ILR / CLR+PCA: stessa informazione, assi ruotate
 #   4. Triangolo tessitura USDA colorato per campo
 #
-# Dipende da: data/dati.rds (prodotto da 01_preprocessing.R)
+# Dipende da: data/crop_analytic.rds (prodotto da 01_preprocessing.R)
 # =============================================================================
 
 library(tidyverse)
@@ -25,11 +25,11 @@ source(here("scripts", "00_utilities.R"))
 
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
-# dati.rds non ha PercClay/Silt/Sand (rimosse dopo calcolo ILR).
-# Usiamo crop.rds (dataset completo) per le analisi di tessitura grezza.
+# crop_analytic.rds non ha PercClay/Silt/Sand (rimosse dopo calcolo ILR).
+# Usiamo crop_full.rds (dataset completo) per le analisi di tessitura grezza.
 
-dati <- readRDS(here("data", "dati.rds"))  # per Texture1/Texture2/altri dati
-crop <- readRDS(here("data", "crop.rds"))  # per PercClay/PercSilt/PercSand
+dati <- readRDS(here("data", "crop_analytic.rds"))  # per Texture1/Texture2/altri dati
+crop <- readRDS(here("data", "crop_full.rds"))  # per PercClay/PercSilt/PercSand
 
 
 # ── 2. CLR + PCA: interpretazione ────────────────────────────────────────────

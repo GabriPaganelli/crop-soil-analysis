@@ -50,7 +50,7 @@ X_B_cols <- c("OnFarm", "Irrigate", "Fertilised", "N_Natural")
 
 # ── 2. COORDINATE E MATRICE DISTANZE ──────────────────────────────────────────
 
-crop_raw <- readRDS(here("data", "crop.rds"))
+crop_raw <- readRDS(here("data", "crop_full.rds"))
 coords <- crop_raw |>
   group_by(Field) |>
   summarise(Lat = mean(Lat, na.rm = TRUE), Long = mean(Long, na.rm = TRUE)) |>

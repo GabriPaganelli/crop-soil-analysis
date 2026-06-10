@@ -2,10 +2,10 @@
 # 04b_eda_profiles_summary.R  —  EDA: soil chemical-physical properties
 #
 #  Output (output/figures/):
-#    eda_01_distribuzioni.pdf   istogramma + densità (scala originale e log)
-#    eda_02_gestione.pdf        boxplot + beeswarm per classe di gestione
-#    eda_03_traiettorie.pdf     spaghetti plot profondità × campo × variabile
-#    eda_04_traiettorie_orig.pdf spaghetti plot scala originale (%)
+#    eda_01_distributions.pdf   istogramma + densità (scala originale e log)
+#    eda_02_management.pdf        boxplot + beeswarm per classe di gestione
+#    eda_03_trajectories.pdf     spaghetti plot profondità × campo × variabile
+#    eda_04_trajectories_orig.pdf spaghetti plot scala originale (%)
 #
 #  Pacchetti: tidyverse, patchwork, ggbeeswarm
 # ============================================================
@@ -16,7 +16,7 @@ library(ggbeeswarm)
 
 # ── 0. Dati ──────────────────────────────────────────────────
 
-dati <- readRDS(here::here("data", "crop.rds")) |>
+dati <- readRDS(here::here("data", "crop_full.rds")) |>
   mutate(
     logSOC   = log(PercSOC),
     logN     = log(PercTotNitro),
@@ -127,7 +127,7 @@ fig1 <- (p_raw / p_log) +
     )
   )
 
-save_fig("eda_01_distribuzioni.pdf", fig1, w = 28, h = 22)
+save_fig("eda_01_distributions.pdf", fig1, w = 28, h = 22)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -170,7 +170,7 @@ p_gest <- dati_long |>
     plot.background = element_rect(fill = "#FAFAF8", color = NA)
   )
 
-save_fig("eda_02_gestione.pdf", p_gest, w = 22, h = 30)
+save_fig("eda_02_management.pdf", p_gest, w = 22, h = 30)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -270,7 +270,7 @@ fig3 <- (p3_SOC + p3_N + p3_P) +
     )
   )
 
-save_fig("eda_03_traiettorie.pdf", fig3, w = 28, h = 18)
+save_fig("eda_03_trajectories.pdf", fig3, w = 28, h = 18)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -347,11 +347,11 @@ fig4 <- (p4_SOC + p4_N + p4_P) +
     )
   )
 
-save_fig("eda_04_traiettorie_orig.pdf", fig4, w = 28, h = 18)
+save_fig("eda_04_trajectories_orig.pdf", fig4, w = 28, h = 18)
 
 
 message("\n✓ EDA completata — output in output/figures/:")
-message("  eda_01_distribuzioni.pdf")
-message("  eda_02_gestione.pdf")
-message("  eda_03_traiettorie.pdf")
-message("  eda_04_traiettorie_orig.pdf")
+message("  eda_01_distributions.pdf")
+message("  eda_02_management.pdf")
+message("  eda_03_trajectories.pdf")
+message("  eda_04_trajectories_orig.pdf")

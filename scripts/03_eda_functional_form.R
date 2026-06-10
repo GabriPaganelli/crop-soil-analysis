@@ -16,7 +16,7 @@
 #   - Corr(BLUP intercetta, BLUP slope) per SOC ≈ -0.93 (Bottom non centrato)
 #     equivalente a ≈ +0.93 centrato → "chi parte alto decade più lentamente"
 #
-# Dipende da: data/dati.rds, scripts/00_utilities.R
+# Dipende da: data/crop_analytic.rds, scripts/00_utilities.R
 # =============================================================================
 
 
@@ -33,7 +33,7 @@ fig_dir <- here("output", "figures")
 
 # ── 0. VERIFICHE PRELIMINARI (motivazione del modello) ────────────────────────
 
-dati_raw <- readRDS(here("data", "dati.rds")) |>
+dati_raw <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                 ~ as.integer(as.character(.x)))) |>
   mutate(Field = factor(Field),
@@ -103,7 +103,7 @@ p_aic <- ggplot(aic_df, aes(x = delta_AIC, y = forma)) +
   theme(panel.grid.major.y = element_blank())
 
 print(p_aic)
-save_fig("fig_01_aic_forma_funzionale.pdf", p_aic, w = 14, h = 8)
+save_fig("fig_01_aic_functional_form.pdf", p_aic, w = 14, h = 8)
 
 # ── 0c. RANDOM SLOPE: "chi parte alto decade più lentamente" ──────────────────
 # Con Bottom centrato: correlazione intercetta-slope positiva (campo ricco
@@ -129,7 +129,7 @@ rm(m0, m1, m2, m_lin, m_quad, m_log, m_fact, vc0, vc1, blup, dati_raw); gc()
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati <- readRDS(here("data", "dati.rds")) |>
+dati <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                 ~ as.integer(as.character(.x)))) |>
   mutate(
@@ -250,7 +250,7 @@ p_scatter_blup <- ggplot(blup_df, aes(u0_intercept, u1_slope)) +
   theme(strip.text = element_text(face = "bold"))
 
 print(p_scatter_blup)
-save_fig("fig_02_scatter_intercetta_slope.pdf", p_scatter_blup, w = 18, h = 7)
+save_fig("fig_02_scatter_intercept_slope.pdf", p_scatter_blup, w = 18, h = 7)
 
 
 # ── 5. SPAGHETTI PLOT: PROFILI VERTICALI COLORATI PER LIVELLO ────────────────
@@ -322,9 +322,9 @@ if (requireNamespace("patchwork", quietly = TRUE)) {
   print(p_spagh_all)
   save_fig("fig_03b_spaghetti_all.pdf", p_spagh_all, w = 22, h = 8)
 } else {
-  save_fig("fig_03a_spaghetti_soc.pdf", p_sp_SOC, w = 10, h = 8)
-  save_fig("fig_03b_spaghetti_n.pdf",   p_sp_N,   w = 10, h = 8)
-  save_fig("fig_03c_spaghetti_p.pdf",   p_sp_P,   w = 10, h = 8)
+  save_fig("fig_03_spaghetti_soc.pdf", p_sp_SOC, w = 10, h = 8)
+  save_fig("fig_03_spaghetti_n.pdf",   p_sp_N,   w = 10, h = 8)
+  save_fig("fig_03_spaghetti_p.pdf",   p_sp_P,   w = 10, h = 8)
 }
 
 

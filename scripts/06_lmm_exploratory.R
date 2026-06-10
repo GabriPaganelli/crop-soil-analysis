@@ -26,7 +26,7 @@
 #   → M-SP-RIRS (script 09) risolve questi problemi con parameterizzazione NCP
 #     e prior LKJ su Omega_r.
 #
-# Dipende da: data/dati.rds, data/crop.rds, scripts/00_utilities.R
+# Dipende da: data/crop_analytic.rds, data/crop_full.rds, scripts/00_utilities.R
 # =============================================================================
 
 library(MCMCglmm)
@@ -48,7 +48,7 @@ rename <- dplyr::rename
 # SEZIONE 1: Variante base — binari di gestione
 # ──────────────────────────────────────────────────────────────────────────────
 
-dati <- readRDS(here("data", "dati.rds"))
+dati <- readRDS(here("data", "crop_analytic.rds"))
 dati$logBottom_c <- log(dati$Bottom) - mean(log(dati$Bottom))
 
 dati <- dati |>
@@ -190,7 +190,7 @@ if (!is.null(m_sommer)) {
 
 cat("\n\n═══ SEZIONE 2: Variante Landuse (riferimento = 4) ══════════════\n")
 
-crop <- readRDS(here("data", "crop.rds"))
+crop <- readRDS(here("data", "crop_full.rds"))
 dati2 <- dati |>
   mutate(Landuse = relevel(factor(crop$Landuse), ref = "4"))
 

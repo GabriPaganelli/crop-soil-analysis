@@ -24,7 +24,7 @@
 # Fit:  stan/fit_mvre_full.rds
 # TOTALE PARAMETRI: 6J + 60 = 300 (J=40)
 #
-# Dipende da: stan/fit_msp_rirs_mvre.rds, stan/fit_mvre_full.rds, data/dati.rds
+# Dipende da: stan/fit_msp_rirs_mvre.rds, stan/fit_mvre_full.rds, data/crop_analytic.rds
 # =============================================================================
 
 
@@ -50,7 +50,7 @@ cat("CmdStan version:", cmdstan_version(), "\n")
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati <- readRDS(here("data", "dati.rds")) |>
+dati <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                 ~ as.integer(as.character(.x)))) |>
   mutate(
@@ -286,7 +286,7 @@ cat("\n── Diagnostica residui: autocorrelazione lag-1 (MVRE) ─────
 
 if (file.exists(here("stan", "fit_msp_rirs_mvre.rds"))) {
   fit_mvre_diag <- readRDS(here("stan", "fit_msp_rirs_mvre.rds"))
-  dati_diag <- readRDS(here("data", "dati.rds")) |>
+  dati_diag <- readRDS(here("data", "crop_analytic.rds")) |>
     mutate(lb_sc = as.numeric(scale(log(Bottom))),
            bd_sc = as.numeric(scale(BulkDensity)),
            ph_sc = as.numeric(scale(PH)))

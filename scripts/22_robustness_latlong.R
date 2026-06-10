@@ -46,7 +46,7 @@ dati_int <- dati |>
 
 # ── 2. COORDINATE ─────────────────────────────────────────────────────────────
 
-crop_raw <- readRDS(here("data", "crop.rds"))
+crop_raw <- readRDS(here("data", "crop_full.rds"))
 coords <- crop_raw |>
   group_by(Field) |>
   summarise(Lat = mean(Lat, na.rm = TRUE), Long = mean(Long, na.rm = TRUE)) |>

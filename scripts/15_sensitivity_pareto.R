@@ -18,7 +18,7 @@
 #   output/tables/tab_15_sensitivity.csv   → confronto parametri full vs no-infl
 #
 # MCMC: identici a MVRE (4 catene × 3000wu + 5000samp, adapt_delta=0.97, seed=2024)
-# Dipende da: stan/fit_msp_rirs_mvre.rds, data/dati.rds
+# Dipende da: stan/fit_msp_rirs_mvre.rds, data/crop_analytic.rds
 # =============================================================================
 
 
@@ -50,7 +50,7 @@ smry_draws <- function(fit, vars) {
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
 cat("\nCarico dati...\n")
-dati <- readRDS(here("data", "dati.rds")) |>
+dati <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                 ~ as.integer(as.character(.x)))) |>
   mutate(

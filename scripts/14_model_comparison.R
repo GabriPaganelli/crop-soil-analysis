@@ -1,5 +1,5 @@
 # =============================================================================
-# 14_confronto_modelli.R  —  Confronto modelli A / B / M-SP-RIRS-MVRE (LOO + parametri)
+# 14_model_comparison.R  —  Confronto modelli A / B / M-SP-RIRS-MVRE (LOO + parametri)
 #
 # Testa due varianti semplificate di M-SP-RIRS-MVRE (modello finale):
 #
@@ -21,7 +21,7 @@
 #   output/tables/tab_14_loo.csv     → tabella confronto LOO
 #
 # MCMC: 4 catene × 3000wu + 5000samp, adapt_delta=0.97, seed=2024
-# Dipende da: stan/fit_msp_rirs_mvre.rds, data/dati.rds
+# Dipende da: stan/fit_msp_rirs_mvre.rds, data/crop_analytic.rds
 # =============================================================================
 
 
@@ -59,7 +59,7 @@ fmt_row <- function(smry_df, var_name) {
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
 cat("\nPreparazione dati...\n")
-dati <- readRDS(here("data", "dati.rds")) |>
+dati <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                 ~ as.integer(as.character(.x)))) |>
   mutate(

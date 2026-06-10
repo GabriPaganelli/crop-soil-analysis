@@ -13,7 +13,7 @@
 #   verifica se la reparametrizzazione cambia l'inferenza su eta_r e se
 #   i beta_r per Landuse sono più interpretabili di quelli per le binarie.
 #
-# CATEGORIE LANDUSE (da crop.rds):
+# CATEGORIE LANDUSE (da crop_full.rds):
 #   Landuse 1: OnFarm=1, Irrigate=0, Fertilised=1, N_Natural=1
 #   Landuse 2: OnFarm=1, Irrigate=1, Fertilised=1, N_Natural=1
 #   Landuse 3: OnFarm=0, Irrigate=0, Fertilised=0, N_Natural=1  ← RIFERIMENTO
@@ -50,7 +50,7 @@ if (requireNamespace("bayesplot",  quietly = TRUE)) library(bayesplot)
 
 # ── 1. DATI ───────────────────────────────────────────────────────────────────
 
-dati <- readRDS(here("data", "dati.rds")) |>
+dati <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(
     logSOC    = log(PercSOC),
     logN      = log(PercTotNitro),
@@ -76,11 +76,11 @@ X_W      <- as.matrix(dati_int[, X_W_cols])
 
 
 # ── 1b. X_B DA LANDUSE ────────────────────────────────────────────────────────
-# Landuse non è in dati.rds → recuperato da crop.rds.
+# Landuse non è in crop_analytic.rds → recuperato da crop_full.rds.
 # Riferimento: Landuse 3 (nessuna gestione, solo azoto naturale).
 # K_B = 6 dummy (una per ogni livello ≠ 3).
 
-crop_raw <- readRDS(here("data", "crop.rds"))
+crop_raw <- readRDS(here("data", "crop_full.rds"))
 
 landuse_per_field <- crop_raw |>
   distinct(Field, Landuse) |>

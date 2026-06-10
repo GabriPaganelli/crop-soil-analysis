@@ -8,7 +8,7 @@
 #   C. Correlazioni cross-risposta a livello di campo.
 #   D. Range GP stimato (M-GPS) vs range empirico dal variogramma SOC.
 #
-# Dipende da: data/dati.rds, data/crop.rds
+# Dipende da: data/crop_analytic.rds, data/crop_full.rds
 # =============================================================================
 
 suppressMessages({
@@ -19,7 +19,7 @@ suppressMessages({
 
 # ── 0. DATI ──────────────────────────────────────────────────────────────────
 
-dati <- readRDS(here("data", "dati.rds")) |>
+dati <- readRDS(here("data", "crop_analytic.rds")) |>
   mutate(across(c(OnFarm, Irrigate, Fertilised, N_Natural),
                 ~ as.integer(as.character(.x)))) |>
   mutate(
@@ -32,8 +32,8 @@ dati <- readRDS(here("data", "dati.rds")) |>
                 ~ c(scale(.x)))) |>
   mutate(Field = factor(Field))
 
-# Coordinate da crop.rds (ha Lat/Long)
-crop_raw <- readRDS(here("data", "crop.rds"))
+# Coordinate da crop_full.rds (ha Lat/Long)
+crop_raw <- readRDS(here("data", "crop_full.rds"))
 coords <- crop_raw |>
   group_by(Field) |>
   summarise(Lat = mean(Lat, na.rm = TRUE), Long = mean(Long, na.rm = TRUE)) |>
