@@ -9,7 +9,7 @@
 
 Progetto universitario di analisi della distribuzione verticale dei nutrienti del suolo —
 carbonio organico (SOC), azoto totale (N) e fosforo totale (P) — in 40 campi agricoli
-in Tanzania, nell'ambito del corso di Statistica per l'Iterazione
+in Tanzania, nell'ambito del corso di Statistica Iterazione
 (Università degli Studi di Padova, a.a. 2025/26).
 
 ### Methodology
@@ -119,7 +119,7 @@ Il report include:
 ### Authors
 
 **Bortoletto Davide, Faedo Piero, Paganelli Gabriele, Zannini Pietro** — Academic Portfolio  
-Statistica per l'Iterazione, Università degli Studi di Padova, a.a. 2025/26.
+Statistica Iterazione, Università degli Studi di Padova, a.a. 2025/26.
 
 **Fonte dei dati:** `data/crop.csv` — documentazione in `docs/crop.pdf`.
 
@@ -131,7 +131,7 @@ Statistica per l'Iterazione, Università degli Studi di Padova, a.a. 2025/26.
 
 University project analysing the vertical distribution of soil nutrients —
 organic carbon (SOC), total nitrogen (N), and total phosphorus (P) — across
-40 agricultural fields in Tanzania, developed for the Statistics for Iteration
+40 agricultural fields in Tanzania, developed for the Statistics: Case Studies
 course (University of Padova, academic year 2025/26).
 
 ### Methodology
@@ -242,6 +242,6 @@ The report includes:
 ### Authors
 
 **Bortoletto Davide, Faedo Piero, Paganelli Gabriele, Zannini Pietro** — Academic Portfolio  
-Statistics for Iteration, University of Padova, academic year 2025/26.
+Statistics: Case Studies, University of Padova, academic year 2025/26.
 
 **Data source:** `data/crop.csv` — documentation in `docs/crop.pdf`.

@@ -5,7 +5,7 @@ title: "Bayesian Hierarchical Analysis of Soil Nutrient Vertical Profiles"
 abstract: >
   Bayesian hierarchical model for soil nutrient (SOC, N, P) vertical depth profiles
   in 40 Tanzanian agricultural fields. Uses a multivariate random effects structure
-  (M-SP-RIRS-MVRE) with proportional slope and 6D LKJ covariance, implemented in Stan
+  with random intercepts and slopes and a 6D LKJ covariance, implemented in Stan
   via cmdstanr. Includes projpred variable selection and robustness checks.
 authors:
   - family-names: Bortoletto

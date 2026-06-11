@@ -32,21 +32,21 @@ ricalcolato.
 | `05_eda_spatial.R` | Moran's I, semivariogramma, varianza between/within |
 | `05b_eda_spatial_maps.R` | Mappa spaziale campi (SOC medio) e correlazioni BLUP cross-risposta. Produce `eda_mod_04–05_*.pdf` |
 | `06_lmm_exploratory.R` | LMM multivariato frequentista (MCMCglmm, sommer) — esplorativo, non nel pipeline finale |
-| `07_model_ri.R` | Fit **M-RI**: random intercept baseline (`model_ri.stan`) |
-| `08_model_msp.R` | Fit **M-SP**: pendenza proporzionale (`model_ri_slope.stan`) |
-| `09_model_msp_rirs.R` | Fit **M-SP-RIRS**: pendenza risposta-specifica (`model_rirs.stan`) |
-| `10_model_final_mvre.R` | Fit **M-SP-RIRS-MVRE**: modello finale, effetti casuali 6D (`model_mvre.stan`) + LOO completo |
-| `11_model_msp_landuse.R` | Variante RIRS con covariate Landuse — esplorativa |
-| `12_variable_selection.R` | Selezione predittiva (*projpred*) su MVRE — produce `fig_08_projpred_*.pdf` |
-| `13_projpred_validation.R` | Confronto posterori proiettati vs MVRE. Produce `fig_13_proj_vs_msp.pdf` |
+| `07_model_ri.R` | Fit del modello random intercept baseline (`model_ri.stan`) |
+| `08_model_msp.R` | Fit del modello a pendenza proporzionale (`model_ri_slope.stan`) |
+| `09_model_msp_rirs.R` | Fit del modello a pendenza risposta-specifica (`model_rirs.stan`) |
+| `10_model_final_mvre.R` | Fit del modello finale a effetti casuali 6D (`model_mvre.stan`) + LOO completo |
+| `11_model_msp_landuse.R` | Variante a pendenza risposta-specifica con covariate Landuse — esplorativa |
+| `12_variable_selection.R` | Selezione predittiva (*projpred*) sul modello finale — produce `fig_08_projpred_*.pdf` |
+| `13_projpred_validation.R` | Confronto posterori proiettati vs modello finale. Produce `fig_13_proj_vs_msp.pdf` |
 | `14_model_comparison.R` | Fit varianti A (ridotta) e B (parsimoniosa), LOO-CV — produce `fig_15_loo_ab_comparison.pdf` |
-| `15_sensitivity_pareto.R` | Diagnostica Pareto-k, refit MVRE senza osservazioni influenti — produce `fig_16_sensitivity_*.pdf` |
+| `15_sensitivity_pareto.R` | Diagnostica Pareto-k, refit del modello finale senza osservazioni influenti — produce `fig_16_sensitivity_*.pdf` |
 | `16_figures_main.R` | Genera figure principali per il report (`fig_04` → `fig_18`) in `output/figures/` |
 | `17_figures_report.R` | Genera figure sensibilità/comparazione (`fig_15`, `fig_16`, `fig_17`) in `output/figures/` |
-| `18_robustness_mvre_full.R` | MVRE-FULL: aggiunge correlazioni residue (stoichiometria residua). Verifica indipendenza condizionale |
+| `18_robustness_mvre_full.R` | Modello finale con correlazioni residue aggiuntive (stoichiometria residua). Verifica indipendenza condizionale |
 | `19_frequentist_nlme.R` | Confronto frequentista: `nlme` con struttura di correlazione esponenziale cross-risposta (robustezza) |
 | `20_spatial_confounding.R` | Diagnostica confounding spaziale: Moran's I sulle covariate |
-| `21_robustness_gp.R` | Robustezza con Gaussian Process sugli intercetti (`model_mvre_gp.stan`) + LOO GP vs MVRE |
+| `21_robustness_gp.R` | Robustezza con Gaussian Process sugli intercetti (`model_mvre_gp.stan`) + LOO GP vs modello finale |
 | `22_robustness_latlong.R` | Robustezza con Lat/Long come covariate between-field aggiuntive |
 
 ### Dipendenze tra script
@@ -88,21 +88,21 @@ if an `.rds` fit file already exists, it is loaded rather than resampled.
 | `05_eda_spatial.R` | Moran's I, semivariogram, between/within variance |
 | `05b_eda_spatial_maps.R` | Spatial field map (mean SOC) and BLUP cross-response correlations. Produces `eda_mod_04–05_*.pdf` |
 | `06_lmm_exploratory.R` | Frequentist multivariate LMM (MCMCglmm, sommer) — exploratory, not in final pipeline |
-| `07_model_ri.R` | Fit **M-RI**: random intercept baseline (`model_ri.stan`) |
-| `08_model_msp.R` | Fit **M-SP**: proportional slope (`model_ri_slope.stan`) |
-| `09_model_msp_rirs.R` | Fit **M-SP-RIRS**: response-specific slope (`model_rirs.stan`) |
-| `10_model_final_mvre.R` | Fit **M-SP-RIRS-MVRE**: final model, 6D random effects (`model_mvre.stan`) + full LOO |
-| `11_model_msp_landuse.R` | RIRS variant with Landuse covariates — exploratory |
-| `12_variable_selection.R` | Predictive variable selection (*projpred*) on MVRE — produces `fig_08_projpred_*.pdf` |
-| `13_projpred_validation.R` | Projected vs MVRE posterior comparison. Produces `fig_13_proj_vs_msp.pdf` |
+| `07_model_ri.R` | Fit of the random intercept baseline model (`model_ri.stan`) |
+| `08_model_msp.R` | Fit of the proportional-slope model (`model_ri_slope.stan`) |
+| `09_model_msp_rirs.R` | Fit of the response-specific random-slope model (`model_rirs.stan`) |
+| `10_model_final_mvre.R` | Fit of the final model, 6D random effects (`model_mvre.stan`) + full LOO |
+| `11_model_msp_landuse.R` | Response-specific random-slope variant with Landuse covariates — exploratory |
+| `12_variable_selection.R` | Predictive variable selection (*projpred*) on the final model — produces `fig_08_projpred_*.pdf` |
+| `13_projpred_validation.R` | Projected vs final-model posterior comparison. Produces `fig_13_proj_vs_msp.pdf` |
 | `14_model_comparison.R` | Fit variants A (reduced) and B (parsimonious), LOO-CV — produces `fig_15_loo_ab_comparison.pdf` |
-| `15_sensitivity_pareto.R` | Pareto-k diagnostics, MVRE refit without influential observations — produces `fig_16_sensitivity_*.pdf` |
+| `15_sensitivity_pareto.R` | Pareto-k diagnostics, final-model refit without influential observations — produces `fig_16_sensitivity_*.pdf` |
 | `16_figures_main.R` | Generates main report figures (`fig_04` → `fig_18`) in `output/figures/` |
 | `17_figures_report.R` | Generates sensitivity/comparison figures (`fig_15`, `fig_16`, `fig_17`) in `output/figures/` |
-| `18_robustness_mvre_full.R` | MVRE-FULL: adds residual cross-response correlations. Tests conditional independence |
+| `18_robustness_mvre_full.R` | Final model with added residual cross-response correlations. Tests conditional independence |
 | `19_frequentist_nlme.R` | Frequentist comparison: `nlme` with exponential cross-response correlation structure (robustness) |
 | `20_spatial_confounding.R` | Spatial confounding diagnostics: Moran's I on covariates |
-| `21_robustness_gp.R` | Robustness with Gaussian Process on field intercepts (`model_mvre_gp.stan`) + LOO GP vs MVRE |
+| `21_robustness_gp.R` | Robustness with Gaussian Process on field intercepts (`model_mvre_gp.stan`) + LOO GP vs final model |
 | `22_robustness_latlong.R` | Robustness with Lat/Long as additional between-field covariates |
 
 ### Script dependencies

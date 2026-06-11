@@ -14,31 +14,31 @@ repository (`.gitignore`) per via delle dimensioni (100–700 MB ciascuno).
 I modelli sono stati sviluppati in progressione di complessità crescente:
 
 ```
-M-RI  →  M-SP  →  M-SP-RIRS  →  M-SP-RIRS-MVRE  ← modello finale
-                                        ↓
-                              varianti A / B / full / gp
+random intercept → proportional slope → response-specific random slopes → multivariate random effects (final)
+                                                                                ↓
+                                                                    varianti A / B / full / gp
 ```
 
 ### File Stan
 
 **Modelli principali (confronto)**
 
-| File | Sigla | Descrizione |
-|---|---|---|
-| `model_ri.stan` | **M-RI** | Random intercept puro (baseline). Un effetto casuale scalare per campo. |
-| `model_ri_slope.stan` | **M-SP** | Pendenza proporzionale: `slope_j = ρ_r · intercept_j`. La slope dipende linearmente dall'intercetta. |
-| `model_rirs.stan` | **M-SP-RIRS** | Pendenza risposta-specifica: `(intercept_j, slope_j)` bivariati per ciascuna risposta (SOC, N, P) separatamente. |
-| `model_mvre.stan` | **M-SP-RIRS-MVRE** ⭐ | **Modello finale.** Effetti casuali 6D multivariati `V[1:6, j]`. Stima le correlazioni cross-risposta a livello di campo tramite LKJ. |
+| File | Descrizione |
+|---|---|
+| `model_ri.stan` | Random intercept puro (baseline). Un effetto casuale scalare per campo. |
+| `model_ri_slope.stan` | Pendenza proporzionale: `slope_j = ρ_r · intercept_j`. La slope dipende linearmente dall'intercetta. |
+| `model_rirs.stan` | Pendenza risposta-specifica: `(intercept_j, slope_j)` bivariati per ciascuna risposta (SOC, N, P) separatamente. |
+| `model_mvre.stan` ⭐ | **Modello finale.** Effetti casuali 6D multivariati `V[1:6, j]`. Stima le correlazioni cross-risposta a livello di campo tramite LKJ. |
 
 **Modelli di robustezza e varianti**
 
 | File | Descrizione |
 |---|---|
-| `model_mvre_A.stan` | MVRE ridotto: senza predittori management (K_B = 0), Texture1 esclusa. Confronto in script 14. |
-| `model_mvre_B.stan` | MVRE parsimonioso: N trattato come solo random intercept (5D invece di 6D). Confronto in script 14. |
-| `model_mvre_full.stan` | MVRE + correlazioni residue tra risposte (MVNormal sui residui). Verifica indipendenza condizionale (script 16). |
-| `model_mvre_gp.stan` | MVRE + Gaussian Process sugli intercetti di campo (kernel squared-exponential). Robustezza spaziale (script 21). |
-| `model_rirs_mv.stan` | RIRS + residui multivariati. Step intermedio tra RIRS e MVRE. |
+| `model_mvre_A.stan` | Modello finale ridotto: senza predittori management (K_B = 0), Texture1 esclusa. Confronto in script 14. |
+| `model_mvre_B.stan` | Modello finale parsimonioso: N trattato come solo random intercept (5D invece di 6D). Confronto in script 14. |
+| `model_mvre_full.stan` | Modello finale + correlazioni residue tra risposte (MVNormal sui residui). Verifica indipendenza condizionale (script 16). |
+| `model_mvre_gp.stan` | Modello finale + Gaussian Process sugli intercetti di campo (kernel squared-exponential). Robustezza spaziale (script 21). |
+| `model_rirs_mv.stan` | Pendenza risposta-specifica + residui multivariati. Step intermedio verso il modello finale. |
 | `model_gp_fixed_slope.stan` | GP + pendenza fissa globale. Alternativa spaziale non gerarchica (script 21). |
 | `model_gp_full.stan` | GP completo sulle 3 risposte. Confronto computazionalmente pesante. |
 
@@ -63,7 +63,7 @@ L_Omega[6×6]        Cholesky della matrice di correlazione LKJ
 **Risultati principali**:
 - `ρ_int(SOC, N) = +0.386` — correlazione tra intercette di campo SOC e N
 - `ρ_slope(SOC, N) > 0` — i campi con profilo SOC più uniforme hanno anche N più uniforme
-- ΔELPD MVRE vs RIRS = +0.4 (SE 0.9) — miglioramento marginale ma struttura interpretabile
+- ΔELPD modello finale vs pendenza risposta-specifica = +0.4 (SE 0.9) — miglioramento marginale ma struttura interpretabile
 
 ### Compilazione e sampling
 
@@ -93,31 +93,31 @@ repository (`.gitignore`) due to size (100–700 MB each).
 Models were developed in order of increasing complexity:
 
 ```
-M-RI  →  M-SP  →  M-SP-RIRS  →  M-SP-RIRS-MVRE  ← final model
-                                        ↓
-                              variants A / B / full / gp
+random intercept → proportional slope → response-specific random slopes → multivariate random effects (final)
+                                                                                ↓
+                                                                    variants A / B / full / gp
 ```
 
 ### Stan files
 
 **Main models (comparison)**
 
-| File | Label | Description |
-|---|---|---|
-| `model_ri.stan` | **M-RI** | Pure random intercept (baseline). One scalar random effect per field. |
-| `model_ri_slope.stan` | **M-SP** | Proportional slope: `slope_j = ρ_r · intercept_j`. Slope depends linearly on the intercept. |
-| `model_rirs.stan` | **M-SP-RIRS** | Response-specific slope: bivariate `(intercept_j, slope_j)` for each response (SOC, N, P) separately. |
-| `model_mvre.stan` | **M-SP-RIRS-MVRE** ⭐ | **Final model.** 6D multivariate random effects `V[1:6, j]`. Estimates cross-response field-level correlations via LKJ. |
+| File | Description |
+|---|---|
+| `model_ri.stan` | Pure random intercept (baseline). One scalar random effect per field. |
+| `model_ri_slope.stan` | Proportional slope: `slope_j = ρ_r · intercept_j`. Slope depends linearly on the intercept. |
+| `model_rirs.stan` | Response-specific slope: bivariate `(intercept_j, slope_j)` for each response (SOC, N, P) separately. |
+| `model_mvre.stan` ⭐ | **Final model.** 6D multivariate random effects `V[1:6, j]`. Estimates cross-response field-level correlations via LKJ. |
 
 **Robustness models and variants**
 
 | File | Description |
 |---|---|
-| `model_mvre_A.stan` | Reduced MVRE: no management predictors (K_B = 0), Texture1 excluded. Comparison in script 14. |
-| `model_mvre_B.stan` | Parsimonious MVRE: N treated as random intercept only (5D instead of 6D). Comparison in script 14. |
-| `model_mvre_full.stan` | MVRE + residual cross-response correlations (MVNormal on residuals). Tests conditional independence (script 16). |
-| `model_mvre_gp.stan` | MVRE + Gaussian Process on field intercepts (squared-exponential kernel). Spatial robustness (script 21). |
-| `model_rirs_mv.stan` | RIRS + multivariate residuals. Intermediate step between RIRS and MVRE. |
+| `model_mvre_A.stan` | Reduced final model: no management predictors (K_B = 0), Texture1 excluded. Comparison in script 14. |
+| `model_mvre_B.stan` | Parsimonious final model: N treated as random intercept only (5D instead of 6D). Comparison in script 14. |
+| `model_mvre_full.stan` | Final model + residual cross-response correlations (MVNormal on residuals). Tests conditional independence (script 16). |
+| `model_mvre_gp.stan` | Final model + Gaussian Process on field intercepts (squared-exponential kernel). Spatial robustness (script 21). |
+| `model_rirs_mv.stan` | Response-specific random slopes + multivariate residuals. Intermediate step toward the final model. |
 | `model_gp_fixed_slope.stan` | GP + fixed global slope. Non-hierarchical spatial alternative (script 21). |
 | `model_gp_full.stan` | Full GP over all 3 responses. Computationally intensive comparison. |
 
@@ -142,7 +142,7 @@ L_Omega[6×6]        Cholesky factor of the LKJ correlation matrix
 **Key results**:
 - `ρ_int(SOC, N) = +0.386` — correlation between SOC and N field intercepts
 - `ρ_slope(SOC, N) > 0` — fields with a flatter SOC profile also show a flatter N profile
-- ΔELPD MVRE vs RIRS = +0.4 (SE 0.9) — marginal improvement but interpretable structure
+- ΔELPD final model vs response-specific random slopes = +0.4 (SE 0.9) — marginal improvement but interpretable structure
 
 ### Compilation and sampling
 
