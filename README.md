@@ -1,18 +1,23 @@
 # Analisi gerarchica bayesiana dei profili verticali di nutrienti del suolo
 # *Bayesian Hierarchical Analysis of Soil Nutrient Vertical Profiles*
 
+**[Italiano](#italiano) · [English](#english)** · [Report (PDF)](report.pdf) · [Web](https://gabripaganelli.github.io/projects/crop-soil-analysis.html)
+
+![Vertical profiles of SOC, N and P](figures/vertical_profiles.png)
+*Profili verticali (scala log) di carbonio organico, azoto e fosforo nei 40 campi: linee grigie i singoli campi, linea colorata la mediana per profondità, banda l'intervallo interquartile · Vertical profiles (log scale) of organic carbon, nitrogen and phosphorus in the 40 fields: grey lines are individual fields, the coloured line is the median by depth, the band is the interquartile range — report, Fig. 3*
+
 ---
 
 ## Italiano
 
-### Overview
+### Panoramica
 
 Progetto universitario di analisi della distribuzione verticale dei nutrienti del suolo —
 carbonio organico (SOC), azoto totale (N) e fosforo totale (P) — in 40 campi agricoli
 in Tanzania, nell'ambito del corso di Statistica Iterazione
 (Università degli Studi di Padova, a.a. 2025/26).
 
-### Methodology
+### Metodologia
 
 L'analisi impiega un modello bayesiano gerarchico con pendenza proporzionale ed effetti
 casuali multivariati, stimato tramite Stan (MCMC). Il modello stima esplicitamente come
@@ -29,13 +34,15 @@ frazioni fini/sabbia, ILR) come principale predittore *within-field*. Le pratich
 di gestione risultano non significative dopo aver controllato per la struttura fisica
 del suolo.
 
-### Repository Structure
+### Struttura del repository
 
 ```
 crop-soil-analysis/
 ├── README.md
 ├── LICENSE
+├── CITATION.cff
 ├── report.pdf                  # Report pre-compilato (visualizzazione diretta)
+├── figures/                    # Immagine del README
 ├── data/
 │   ├── crop.csv                # Dati grezzi (fonte canonica)
 │   ├── crop_full.rds           # Cache: dataset completo (rigenerato da 01_preprocessing.R)
@@ -52,11 +59,11 @@ crop-soil-analysis/
 │   └── tables/                 # Tabelle CSV con risultati
 └── docs/
     ├── crop.pdf                # Documentazione dati originali
-    ├── map1.jpg                # Mappa area di studio (asset del report)
-    └── map2.jpg                # Mappa area di studio (asset del report)
+    ├── map1.jpg                # Mappa area di studio (screenshot Google Earth)
+    └── map2.jpg                # Mappa area di studio (screenshot Google Earth)
 ```
 
-### Installation
+### Installazione
 
 R ≥ 4.3 e CmdStan ≥ 2.33.
 
@@ -74,7 +81,7 @@ cmdstanr::install_cmdstan()
 > **Windows**: è necessario [Rtools](https://cran.r-project.org/bin/windows/Rtools/)
 > per compilare i modelli Stan.
 
-### Usage
+### Utilizzo
 
 ```r
 library(here)
@@ -105,9 +112,14 @@ source(here("scripts", "run_all.R"))
 > esatte dei pacchetti eseguire `sessionInfo()`. Su Windows il percorso di Rtools può
 > essere impostato con la variabile d'ambiente `RTOOLS45_HOME`.
 
-### Results
+### Risultati
 
-Il report pre-compilato è disponibile in `report.pdf` per la visualizzazione diretta.
+**Risultati principali** (dal report, Tab. 3–4 e §5.4, §6.3):
+- I campi con più carbonio organico medio hanno profili più uniformi in profondità: la correlazione tra intercetta e pendenza casuale del carbonio è ρ_SOC = +0,52 (CI 90% [0,12; 0,80]); per l'azoto è compatibile con zero, per il fosforo l'incertezza è troppo elevata per trarre conclusioni
+- La tessitura fine (contrasto frazioni fini/sabbia, ILR) è il principale predittore *within-field* per carbonio e azoto (coefficienti −0,50 e −0,28); per il fosforo nessuna covariata fisica è informativa
+- Le pratiche di gestione non vengono selezionate da *projpred* per nessuna risposta, e le loro stime non sono interpretabili come effetti causali per il confondimento strutturale tra le variabili di gestione e geografico con la posizione dei campi
+
+Il report pre-compilato è disponibile in [`report.pdf`](report.pdf) per la visualizzazione diretta.
 
 Il report include:
 - Analisi esplorativa della tessitura e dei profili di profondità
@@ -116,12 +128,15 @@ Il report include:
 - Selezione predittiva delle variabili con *projpred*
 - Interpretazione agronomica delle correlazioni cross-risposta
 
-### Authors
+### Autori
 
-**Bortoletto Davide, Faedo Piero, Paganelli Gabriele, Zannini Pietro** — Academic Portfolio  
-Statistica Iterazione, Università degli Studi di Padova, a.a. 2025/26.
+**Bortoletto Davide, Faedo Piero, Paganelli Gabriele, Zannini Pietro** — Statistica Iterazione, Università degli Studi di Padova, a.a. 2025/26.
 
-**Fonte dei dati:** `data/crop.csv` — documentazione in `docs/crop.pdf`.
+### Fonte dei dati
+
+`data/crop.csv` — documentazione in [`docs/crop.pdf`](docs/crop.pdf).
+
+Il MIT copre solo il codice: i dati e `docs/crop.pdf` sono materiale del corso; le mappe in `docs/` sono screenshot di Google Earth (immagini © Maxar Technologies, Landsat/Copernicus, CNES/Airbus).
 
 ---
 
@@ -157,7 +172,9 @@ practices are not significant after controlling for soil physical structure.
 crop-soil-analysis/
 ├── README.md
 ├── LICENSE
+├── CITATION.cff
 ├── report.pdf                  # Pre-compiled report (for direct viewing)
+├── figures/                    # README image
 ├── data/
 │   ├── crop.csv                # Raw data (canonical source)
 │   ├── crop_full.rds           # Cache: full dataset (regenerated by 01_preprocessing.R)
@@ -174,8 +191,8 @@ crop-soil-analysis/
 │   └── tables/                 # CSV tables with results
 └── docs/
     ├── crop.pdf                # Original data documentation
-    ├── map1.jpg                # Study-area map (report asset)
-    └── map2.jpg                # Study-area map (report asset)
+    ├── map1.jpg                # Study-area map (Google Earth screenshot)
+    └── map2.jpg                # Study-area map (Google Earth screenshot)
 ```
 
 ### Installation
@@ -230,7 +247,12 @@ source(here("scripts", "run_all.R"))
 
 ### Results
 
-A pre-compiled report is available at `report.pdf` for direct viewing.
+**Key findings** (from the report, Tables 3–4 and §5.4, §6.3):
+- Fields with higher mean organic carbon have more uniform depth profiles: the correlation between the random intercept and slope for carbon is ρ_SOC = +0.52 (90% CI [0.12, 0.80]); for nitrogen it is compatible with zero, for phosphorus the uncertainty is too large to draw conclusions
+- Fine texture (fine fraction/sand contrast, ILR) is the main *within-field* predictor for carbon and nitrogen (coefficients −0.50 and −0.28); no physical covariate is informative for phosphorus
+- Management practices are not selected by *projpred* for any response, and their estimates cannot be read as causal effects because of structural confounding among the management variables and geographic confounding with field location
+
+A pre-compiled report is available at [`report.pdf`](report.pdf) for direct viewing.
 
 The report includes:
 - Exploratory analysis of texture and depth profiles
@@ -241,7 +263,10 @@ The report includes:
 
 ### Authors
 
-**Bortoletto Davide, Faedo Piero, Paganelli Gabriele, Zannini Pietro** — Academic Portfolio  
-Statistics: Case Studies, University of Padova, academic year 2025/26.
+**Bortoletto Davide, Faedo Piero, Paganelli Gabriele, Zannini Pietro** — Statistics: Case Studies, University of Padova, academic year 2025/26.
 
-**Data source:** `data/crop.csv` — documentation in `docs/crop.pdf`.
+### Data source
+
+`data/crop.csv` — documentation in [`docs/crop.pdf`](docs/crop.pdf).
+
+The MIT license covers the code only: the data and `docs/crop.pdf` are course material; the maps in `docs/` are Google Earth screenshots (imagery © Maxar Technologies, Landsat/Copernicus, CNES/Airbus).
